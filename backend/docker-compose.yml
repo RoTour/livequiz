@@ -1,0 +1,14 @@
+services:
+  postgres:
+    image: postgres:18
+    container_name: livequiz-db
+    environment:
+      POSTGRES_DB: livequiz
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    volumes:
+      - livequiz_pg_data:/var/lib/postgresql
+volumes:
+  livequiz_pg_data:

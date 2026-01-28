@@ -16,4 +16,8 @@ public class Quiz {
   public QuizId id() {
     return id;
   }
+
+  public String title() {
+    return title;
+  }
 }
