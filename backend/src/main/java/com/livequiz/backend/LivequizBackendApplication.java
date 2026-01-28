@@ -1,0 +1,13 @@
+package com.livequiz.backend;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+public class LivequizBackendApplication {
+
+	public static void main(String[] args) {
+		SpringApplication.run(LivequizBackendApplication.class, args);
+	}
+
+}
