@@ -23,6 +23,7 @@ public class QuizController {
   public record CreateQuizRequestDTO(String quizId, String title) {}
 
   @PostMapping
+  @LogExecutionTime
   public Map<String, String> createQuiz(
     @RequestBody CreateQuizRequestDTO createQuizRequestDTO
   ) {
