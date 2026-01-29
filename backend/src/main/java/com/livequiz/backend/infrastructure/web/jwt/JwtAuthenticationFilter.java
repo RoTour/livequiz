@@ -4,6 +4,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.util.Collections;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -39,8 +40,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     UsernamePasswordAuthenticationToken authentication =
-      new UsernamePasswordAuthenticationToken(userId, null);
-    authentication.setAuthenticated(true);
+      new UsernamePasswordAuthenticationToken(
+        userId,
+        null,
+        Collections.emptyList()
+      );
     SecurityContextHolder.getContext().setAuthentication(authentication);
 
     filterChain.doFilter(request, response); // next()

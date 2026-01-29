@@ -12,7 +12,7 @@ public class JwtService {
   public String createToken(String subject) {
     return Jwts.builder()
       .subject(subject)
-      .signWith(Jwts.SIG.HS256.key().build())
+      .signWith(secret)
       .compact();
   }
 
