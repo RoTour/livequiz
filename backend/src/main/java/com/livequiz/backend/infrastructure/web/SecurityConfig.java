@@ -37,7 +37,6 @@ public class SecurityConfig {
         jwtAuthenticationFilter,
         UsernamePasswordAuthenticationFilter.class
       );
-    // .httpBasic(Customizer.withDefaults()); // Enable Basic Auth (Header based)
     return http.build();
   }
 

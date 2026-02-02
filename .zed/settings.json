@@ -1,0 +1,33 @@
+{
+  "languages": {
+    "HTML": {
+      "language_servers": [
+        "angular",
+        "tailwindcss-language-server",
+        "!html-language-server",
+        "..."
+      ]
+    },
+    "TypeScript": {
+      "language_servers": ["angular", "tailwindcss-language-server", "..."]
+    }
+  },
+  "lsp": {
+    "tailwindcss-language-server": {
+      "settings": {
+        "tailwindCSS": {
+          "includeLanguages": {
+            "typescript": "javascript",
+            "typescriptreact": "javascript",
+            "html": "html",
+            "angular": "html"
+          },
+          "experimental": {
+            "configFile": "frontend/src/styles.css"
+          },
+          "emmetCompletions": true
+        }
+      }
+    }
+  }
+}

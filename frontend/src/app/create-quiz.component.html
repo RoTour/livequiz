@@ -1,0 +1,18 @@
+<div class="quiz-container">
+  <h2>Create New Quiz</h2>
+
+  <!-- [formGroup] links HTML to our TypeScript logic -->
+  <form [formGroup]="form" (ngSubmit)="submit()">
+    <div class="form-group">
+      <label>Quiz Title</label>
+      <!-- formControlName needs to match the key in our TS -->
+      <input type="text" formControlName="title" placeholder="Ex: Geography Trivia" />
+
+      <!-- Validation Feedback -->
+      @if (form.controls.title.invalid && form.controls.title.touched) {
+        <div class="error">Title is required (min 5 chars).</div>
+      }
+    </div>
+    <button type="submit" [disabled]="form.invalid || form.disabled">Create</button>
+  </form>
+</div>

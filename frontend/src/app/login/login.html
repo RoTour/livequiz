@@ -1,0 +1,29 @@
+<section class="px-4">
+  <h1 class="">Auth Form</h1>
+  <form [formGroup]="form" (ngSubmit)="submit()">
+    <div class="form-group space-y-4">
+      <div class="flex flex-col">
+        <label>Username</label>
+        <input type="text" formControlName="username" placeholder="Enter your username"/>
+      </div>
+
+
+      <div class="flex flex-col">
+        <label>Password</label>
+        <input type="password" formControlName="password" placeholder="Enter your password"/>
+      </div>
+
+      <!-- Validation Feedback -->
+      @if (form.controls.username.invalid && form.controls.username.touched) {
+        <div class="error">Username is required.</div>
+      }
+    </div>
+    <button
+      type="submit"
+      [disabled]="form.invalid || form.disabled"
+      class="border px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+    >
+      Login
+    </button>
+  </form>
+</section>

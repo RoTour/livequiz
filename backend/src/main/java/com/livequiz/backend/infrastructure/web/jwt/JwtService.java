@@ -12,6 +12,8 @@ public class JwtService {
   public String createToken(String subject) {
     return Jwts.builder()
       .subject(subject)
+      .issuedAt(new java.util.Date())
+      .expiration(new java.util.Date(System.currentTimeMillis() + 1000 * 60 * 60 * 10))
       .signWith(secret)
       .compact();
   }
