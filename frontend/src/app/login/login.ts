@@ -1,6 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { FormControl, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { AuthService } from './auth.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-login',
@@ -10,6 +11,7 @@ import { AuthService } from './auth.service';
 })
 export class Login {
   authService = inject(AuthService);
+  router = inject(Router);
   form = new FormGroup({
     username: new FormControl('admin', Validators.required),
     password: new FormControl('username', [
@@ -25,9 +27,8 @@ export class Login {
     this.form.disable();
 
     this.authService.login(this.form.value.username!, 'password').subscribe({
-      next: () => {
-        this.form.enable();
-        this.form.reset();
+      next: async () => {
+        await this.router.navigate(['/dashboard']);
       },
       error: (error) => {
         console.error('Login failed:', error);

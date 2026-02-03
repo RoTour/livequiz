@@ -1,7 +1,8 @@
 import { HttpInterceptorFn } from '@angular/common/http';
+import { LocalStorageKeys } from '../LocalStorageKeys';
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
-  const token = sessionStorage.getItem('token');
+  const token = localStorage.getItem(LocalStorageKeys.authorization);
 
   // Skip adding the token for the login endpoint
   // We check for /auth/login to be safe, assuming the path structure
@@ -12,7 +13,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   if (token) {
     const updatedReq = req.clone({
       setHeaders: {
-        Authorization: `Bearer ${token}`,
+        Authorization: `Bearer ${ token }`,
       },
     });
     return next(updatedReq);
