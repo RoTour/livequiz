@@ -1,6 +1,6 @@
 import { Component, inject } from '@angular/core';
-import { QuizService } from './quiz.service';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { CreateQuizUsecaseService } from '../../application/CreateQuiz.usecase.service';
 
 @Component({
   selector: 'app-create-quiz',
@@ -9,13 +9,13 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angula
   styleUrls: ['./create-quiz.component.css'],
 })
 export class CreateQuizComponent {
-  private quizService = inject(QuizService);
+  private quizService = inject(CreateQuizUsecaseService);
 
   form = new FormGroup({
     title: new FormControl('', [Validators.required, Validators.minLength(3)]),
   });
 
-  submit() {
+  async submit() {
     if (this.form.invalid) return;
 
     this.form.disable();
@@ -24,16 +24,14 @@ export class CreateQuizComponent {
       title: this.form.value.title!,
     };
 
-    this.quizService.create(dto).subscribe({
-      next: (response) => {
-        console.log('Quiz created with ID:', response.id);
-        this.form.enable();
-        this.form.reset();
-      },
-      error: (error) => {
-        console.error('Error creating quiz:', error);
-        this.form.enable();
-      },
-    });
+    try {
+      const { id } = await this.quizService.execute(dto.title);
+      console.log('Quiz created with ID:', id);
+      this.form.enable();
+      this.form.reset();
+    } catch (e) {
+      console.error('Error creating quiz:', e);
+      this.form.enable();
+    }
   }
 }

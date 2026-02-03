@@ -1,7 +1,7 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { HealthService } from './health.service';
-import { CreateQuizComponent } from './create-quiz.component';
+import { CreateQuizComponent } from './features/quiz/ui/create-quiz/create-quiz.component';
 import { BackendStatus } from './shared/backend-status/backend-status';
 
 @Component({
