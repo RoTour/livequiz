@@ -1,17 +1,17 @@
-package com.livequiz.backend.domain.quiz;
+package com.livequiz.backend.domain.lecture;
 
-public record QuizId(String value) {
-  public QuizId {
+public record LectureId(String value) {
+  public LectureId {
     if (value == null || value.isBlank()) {
-      throw new IllegalArgumentException("Quiz ID cannot be empty");
+      throw new IllegalArgumentException("Lecture ID cannot be empty");
     }
   }
 }
 // Old version without records:
 //
-// public class QuizId {
+// public class LectureId {
 //     private final String value;
-//     public QuizId(String value) {
+//     public LectureId(String value) {
 //         this.value = value;
 //     }
 //     // No "get...", just the name of the field
@@ -19,6 +19,6 @@ public record QuizId(String value) {
 //     // Automatic equals() and hashCode() based on 'value'
 //     public boolean equals(Object o) { ... }
 //     public int hashCode() { ... }
-//     // Automatic toString() -> "QuizId[value=...]"
+//     // Automatic toString() -> "LectureId[value=...]"
 //     public String toString() { ... }
 // }

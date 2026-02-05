@@ -1,15 +1,15 @@
 import { Component, inject } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { CreateQuizUsecaseService } from '../../application/CreateQuiz.usecase.service';
+import { CreateLectureUsecaseService } from '../../application/CreateLecture.usecase.service';
 
 @Component({
-  selector: 'app-create-quiz',
-  templateUrl: './create-quiz.component.html',
+  selector: 'app-create-lecture',
+  templateUrl: './create-lecture.component.html',
   imports: [ReactiveFormsModule],
-  styleUrls: ['./create-quiz.component.css'],
+  styleUrls: ['./create-lecture.component.css'],
 })
-export class CreateQuizComponent {
-  private quizService = inject(CreateQuizUsecaseService);
+export class CreateLectureComponent {
+  private lectureService = inject(CreateLectureUsecaseService);
 
   form = new FormGroup({
     title: new FormControl('', [Validators.required, Validators.minLength(3)]),
@@ -25,12 +25,12 @@ export class CreateQuizComponent {
     };
 
     try {
-      const { id } = await this.quizService.execute(dto.title);
-      console.log('Quiz created with ID:', id);
+      const { id } = await this.lectureService.execute(dto.title);
+      console.log('Lecture created with ID:', id);
       this.form.enable();
       this.form.reset();
     } catch (e) {
-      console.error('Error creating quiz:', e);
+      console.error('Error creating lecture:', e);
       this.form.enable();
     }
   }

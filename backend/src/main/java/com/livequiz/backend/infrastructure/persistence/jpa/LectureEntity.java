@@ -5,17 +5,17 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name = "quizzes")
-public class QuizEntity {
+@Table(name = "lectures")
+public class LectureEntity {
 
   @Id
   private String id;
 
   private String title;
 
-  public QuizEntity() {}
+  public LectureEntity() {}
 
-  public QuizEntity(String id, String title) {
+  public LectureEntity(String id, String title) {
     this.id = id;
     this.title = title;
   }

@@ -1,11 +1,11 @@
-package com.livequiz.backend.domain.quiz;
+package com.livequiz.backend.domain.lecture;
 
-public class Quiz {
+public class Lecture {
 
-  private final QuizId id;
+  private final LectureId id;
   private final String title;
 
-  public Quiz(QuizId id, String title) {
+  public Lecture(LectureId id, String title) {
     if (title == null || title.isBlank()) {
       throw new IllegalArgumentException("Title cannot be null or blank");
     }
@@ -13,7 +13,7 @@ public class Quiz {
     this.title = title;
   }
 
-  public QuizId id() {
+  public LectureId id() {
     return id;
   }
 

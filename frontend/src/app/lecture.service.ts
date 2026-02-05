@@ -3,15 +3,15 @@ import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
 @Injectable({ providedIn: 'root' }) // Singleton, available application-wide
-export class QuizService {
+export class LectureService {
   private http = inject(HttpClient);
-  private endpoint = '/api/quizzes';
+  private endpoint = '/api/lectures';
 
-  create(dto: CreateQuizDto): Observable<{ id: string }> {
+  create(dto: CreateLectureDto): Observable<{ id: string }> {
     return this.http.post<{ id: string }>(this.endpoint, dto);
   }
 }
 
-type CreateQuizDto = {
+type CreateLectureDto = {
   title: string;
 };
