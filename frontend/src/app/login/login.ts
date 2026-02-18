@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { FormControl, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { AuthService } from './auth.service';
 import { Router } from '@angular/router';
@@ -12,6 +12,7 @@ import { Router } from '@angular/router';
 export class Login {
   authService = inject(AuthService);
   router = inject(Router);
+  authErrorMessage = signal('');
   form = new FormGroup({
     username: new FormControl('instructor', Validators.required),
     password: new FormControl('password', [
@@ -24,14 +25,29 @@ export class Login {
   submit() {
     if (this.form.invalid) return;
 
+    this.authErrorMessage.set('');
     this.form.disable();
 
     this.authService.login(this.form.value.username!, this.form.value.password!).subscribe({
       next: async () => {
-        await this.router.navigate(['/dashboard']);
+        const targetRoute = this.authService.routeForCurrentUser();
+
+        if (targetRoute === '/auth/login') {
+          this.authService.logout();
+          this.authErrorMessage.set('Could not determine your role. Please log in again.');
+          this.form.enable();
+          return;
+        }
+
+        const navigated = await this.router.navigate([targetRoute]);
+        if (!navigated) {
+          this.authErrorMessage.set('Could not open your dashboard. Please try again.');
+          this.form.enable();
+        }
       },
       error: (error) => {
         console.error('Login failed:', error);
+        this.authErrorMessage.set('Invalid username or password.');
         this.form.enable();
       },
     });
