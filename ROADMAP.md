@@ -44,3 +44,15 @@ Goal: production-ready reliability, security, and observability.
 - [ ] Add migration tooling (`Flyway` or `Liquibase`)
 - [ ] Add role-aware instructor/student dashboards
 - [ ] Add structured audit logs and rate limiting for join/submission flows
+
+## Phase 6: Role-aware Frontend UX Rollout
+Goal: ship an appealing, role-first UI in reviewable steps.
+
+- [x] Step 1: role-aware auth + route foundations (`/instructor`, `/student`, role guards, login redirect)
+- [ ] Step 2: shared app shell + role-based navigation + logout flow
+- [ ] Step 3: instructor workspace migration (create lecture, add question, unlock, state)
+- [ ] Step 4: complete invite management (list/revoke with clear active/revoked states)
+- [ ] Step 5: student workspace migration (join by code, next question, submit + cooldown UX)
+- [ ] Step 6: invite token deep-link (`/student/join/:token`) with auto-join flow
+- [ ] Step 7: cohesive visual system (typography, color tokens, spacing, responsive polish)
+- [ ] Step 8: behavior-focused frontend tests across role flows and critical components
