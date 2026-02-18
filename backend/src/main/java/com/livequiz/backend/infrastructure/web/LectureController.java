@@ -1,9 +1,16 @@
 package com.livequiz.backend.infrastructure.web;
 
+import com.livequiz.backend.application.AddQuestionToLectureUseCase;
 import com.livequiz.backend.application.CreateLectureUseCase;
+import com.livequiz.backend.application.GetLectureStateUseCase;
+import com.livequiz.backend.application.UnlockNextQuestionUseCase;
+import com.livequiz.backend.application.UnlockQuestionUseCase;
 import com.livequiz.backend.domain.lecture.Lecture;
 import java.util.Map;
+import java.util.UUID;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -15,12 +22,32 @@ import org.springframework.web.bind.annotation.RestController;
 public class LectureController {
 
   private final CreateLectureUseCase createLectureUseCase;
+  private final AddQuestionToLectureUseCase addQuestionToLectureUseCase;
+  private final UnlockQuestionUseCase unlockQuestionUseCase;
+  private final UnlockNextQuestionUseCase unlockNextQuestionUseCase;
+  private final GetLectureStateUseCase getLectureStateUseCase;
 
-  public LectureController(CreateLectureUseCase createLectureUseCase) {
+  public LectureController(
+    CreateLectureUseCase createLectureUseCase,
+    AddQuestionToLectureUseCase addQuestionToLectureUseCase,
+    UnlockQuestionUseCase unlockQuestionUseCase,
+    UnlockNextQuestionUseCase unlockNextQuestionUseCase,
+    GetLectureStateUseCase getLectureStateUseCase
+  ) {
     this.createLectureUseCase = createLectureUseCase;
+    this.addQuestionToLectureUseCase = addQuestionToLectureUseCase;
+    this.unlockQuestionUseCase = unlockQuestionUseCase;
+    this.unlockNextQuestionUseCase = unlockNextQuestionUseCase;
+    this.getLectureStateUseCase = getLectureStateUseCase;
   }
 
   public record CreateLectureRequestDTO(String lectureId, String title) {}
+  public record AddQuestionRequestDTO(
+    String questionId,
+    String prompt,
+    String modelAnswer,
+    int timeLimitSeconds
+  ) {}
 
   @PostMapping
   @LogExecutionTime
@@ -33,4 +60,79 @@ public class LectureController {
     );
     return Map.of("lectureId", lecture.id().value());
   }
+
+  @PostMapping("/{lectureId}/questions")
+  @LogExecutionTime
+  public Map<String, String> addQuestion(
+    @PathVariable String lectureId,
+    @RequestBody AddQuestionRequestDTO request
+  ) {
+    String questionId =
+      request.questionId() == null || request.questionId().isBlank()
+        ? UUID.randomUUID().toString()
+        : request.questionId();
+    Lecture lecture = this.addQuestionToLectureUseCase.execute(
+        lectureId,
+        questionId,
+        request.prompt(),
+        request.modelAnswer(),
+        request.timeLimitSeconds()
+      );
+    return Map.of("lectureId", lecture.id().value(), "questionId", questionId);
+  }
+
+  @PostMapping("/{lectureId}/questions/{questionId}/unlock")
+  @LogExecutionTime
+  public Map<String, String> unlockQuestion(
+    @PathVariable String lectureId,
+    @PathVariable String questionId
+  ) {
+    Lecture lecture = this.unlockQuestionUseCase.execute(lectureId, questionId);
+    return Map.of("lectureId", lecture.id().value(), "questionId", questionId);
+  }
+
+  @PostMapping("/{lectureId}/questions/unlock-next")
+  @LogExecutionTime
+  public Map<String, String> unlockNextQuestion(@PathVariable String lectureId) {
+    Lecture lecture = this.unlockNextQuestionUseCase.execute(lectureId);
+    return Map.of("lectureId", lecture.id().value());
+  }
+
+  @GetMapping("/{lectureId}/state")
+  @LogExecutionTime
+  public LectureStateResponse getLectureState(@PathVariable String lectureId) {
+    Lecture lecture = this.getLectureStateUseCase.execute(lectureId);
+    return new LectureStateResponse(
+      lecture.id().value(),
+      lecture.title(),
+      lecture
+        .questions()
+        .stream()
+        .sorted(java.util.Comparator.comparingInt(com.livequiz.backend.domain.lecture.Question::order))
+        .map(question ->
+          new QuestionStateResponse(
+            question.id().value(),
+            question.prompt(),
+            question.order(),
+            question.timeLimitSeconds(),
+            lecture.unlockedQuestionIds().contains(question.id().value())
+          )
+        )
+        .toList()
+    );
+  }
+
+  public record LectureStateResponse(
+    String lectureId,
+    String title,
+    java.util.List<QuestionStateResponse> questions
+  ) {}
+
+  public record QuestionStateResponse(
+    String questionId,
+    String prompt,
+    int order,
+    int timeLimitSeconds,
+    boolean unlocked
+  ) {}
 }

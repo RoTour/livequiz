@@ -3,6 +3,11 @@
 ## 🎯 Product Vision
 LiveQuiz is a real-time feedback tool for classrooms. It allows instructors to launch quick quizzes during lectures to verify student comprehension immediately. The goal is to create an active learning loop between the teacher and students.
 
+In the current domain model, `Lecture` is the aggregate root. Quiz interactions are modeled as lecture behavior:
+- instructors create ordered questions and unlock them when needed,
+- students advance through the oldest unlocked question they have not submitted yet,
+- submissions keep full history while the latest attempt is canonical.
+
 ## 🛠 Technical Goals
 This project serves as a comprehensive learning exercise for **Java Spring Boot** and **Angular**.
 
@@ -10,6 +15,15 @@ This project serves as a comprehensive learning exercise for **Java Spring Boot*
 - **Manual Coding**: The user writes every line of code. The AI's role is to explain concepts and guide, not to do the work.
 - **Deep Understanding**: No "magic" code. Every annotation, configuration, and pattern must be understood.
 - **Architecture**: Strict adherence to **Domain-Driven Design (DDD)** and **Clean Architecture** principles.
+
+## ✅ Implemented Capabilities
+- JWT authentication with instructor/student roles
+- Lecture creation and ordered question management
+- Question unlock flow (`unlock specific` and `unlock next`)
+- Instructor-generated invite flow (6-char code + QR-friendly token URL, max 24h)
+- Student enrollment via invite with idempotent join behavior
+- Student progression API for "next pending unlocked question"
+- Submission cooldown policy with `429` rejection and retry metadata
 
 ## 📂 Project Structure
 This repository is a monorepo containing:

@@ -19,6 +19,24 @@ public class GlobalExceptionHandler {
     return ResponseEntity.badRequest().body(errorResponse);
   }
 
+  @ExceptionHandler(ApiException.class)
+  public ResponseEntity<ErrorResponse> handleApiException(ApiException e) {
+    ErrorResponse errorResponse = ErrorResponse.of(e.code(), e.getMessage());
+    return ResponseEntity.status(e.status()).body(errorResponse);
+  }
+
+  @ExceptionHandler(SubmissionCooldownException.class)
+  public ResponseEntity<ErrorResponse> handleSubmissionCooldownException(
+    SubmissionCooldownException e
+  ) {
+    ErrorResponse errorResponse = ErrorResponse.of(
+      e.code(),
+      e.getMessage(),
+      java.util.Map.of("retryAfterSeconds", e.retryAfterSeconds())
+    );
+    return ResponseEntity.status(e.status()).body(errorResponse);
+  }
+
   @ExceptionHandler(NoHandlerFoundException.class)
   public ResponseEntity<ErrorResponse> handleNotFoundError(
     NoHandlerFoundException e
@@ -34,7 +52,7 @@ public class GlobalExceptionHandler {
   public ResponseEntity<ErrorResponse> handleGenericError(Exception e) {
     ErrorResponse errorResponse = ErrorResponse.of(
       "INTERNAL_SERVER_ERROR",
-      "An unexpected error occurred : [" + e.getMessage() + "]"
+      "An unexpected error occurred"
     );
     return ResponseEntity.status(500).body(errorResponse);
   }

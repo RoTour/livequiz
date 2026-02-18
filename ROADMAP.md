@@ -1,39 +1,46 @@
-# 🗺 Roadmap
+# Roadmap
 
-We follow an incremental development process, focusing on the smallest deliverable unit at a time.
+We build LiveQuiz incrementally, always delivering a fully connected vertical slice.
 
-## 🚀 Phase 1: The Walking Skeleton
-*Goal: E2E connectivity between a basic Backend and Frontend.*
+## Phase 1: Walking Skeleton
+Goal: backend + frontend connectivity with authentication and health visibility.
 
-- [ ] **1.1 Workspace Setup**:
-  - Initialize git repository structure.
-  - Create `backend` (Spring Boot) and `frontend` (Angular) directories.
-- [ ] **1.2 Backend Bootstrapping**:
-  - Initialize a minimal Spring Boot application.
-  - Create a simple "Health Check" endpoint (e.g., `GET /health`).
-- [ ] **1.3 Frontend Bootstrapping**:
-  - Initialize a minimal Angular application.
-  - Create a service to fetch data from the Backend health endpoint.
-  - Display the Backend status on the landing page.
+- [x] Backend bootstrapped and running (`Spring Boot`)
+- [x] Frontend bootstrapped and running (`Angular`)
+- [x] Health check endpoint and frontend status widget
+- [x] JWT login flow and protected routes
 
-## 📝 Phase 2: Domain Foundation - The Quiz
-*Goal: An instructor can create a named Quiz.*
+## Phase 2: Lecture Foundation
+Goal: instructor can create and manage a lecture aggregate.
 
-- [ ] **2.1 Domain Modeling**: Define the `Quiz` aggregate (initially just an ID and Title).
-- [ ] **2.2 Application Layer**: Create a Use Case to `CreateQuiz`.
-- [ ] **2.3 Infrastructure (Persistence)**: Implement an in-memory repository for Quizzes.
-- [ ] **2.4 Infrastructure (API)**: Expose a `POST /quizzes` endpoint.
-- [ ] **2.5 Frontend Implementation**: Create a simple form to input a Quiz title and submit it.
+- [x] Lecture aggregate created (`Lecture`, `LectureId`)
+- [x] `CreateLecture` use case and API (`POST /api/lectures`)
+- [x] Add ordered questions to lecture
+- [x] Unlock question behavior (`unlock specific`, `unlock next`)
+- [x] Read lecture state endpoint for UI sync
 
-## ❓ Phase 3: The Question
-*Goal: Add a question to a Quiz.*
+## Phase 3: Invite-based Enrollment
+Goal: instructor controls enrollment with reusable class invite.
 
-- [ ] **3.1 Domain Modeling**: Add `Question` entity to the `Quiz` aggregate.
-- [ ] **3.2 Backend Implementation**: Update API to support adding questions.
-- [ ] **3.3 Frontend Implementation**: UI to add questions to a created quiz.
+- [x] Instructor can generate lecture invite
+- [x] Invite contains short code (6 chars) + token URL for QR
+- [x] Invite expiration capped at 24h
+- [x] Student join endpoint is idempotent (`200` for already enrolled)
+- [x] Enrollment required before student can access question flow
 
-## 🎮 Phase 4: Joining a Session
-*Goal: A student can see a Quiz.*
+## Phase 4: Student Progression and Submission Policy
+Goal: students progress deterministically through unlocked questions.
 
-- [ ] **4.1 Read Model**: Create a projection/read-model for "Open Quizzes".
-- [ ] **4.2 Frontend**: Student view to list available quizzes.
+- [x] Next question policy: oldest unlocked and not yet submitted
+- [x] Submission endpoint stores history as append-only attempts
+- [x] Latest attempt treated as canonical
+- [x] Resubmission cooldown with `429` and retry metadata
+
+## Phase 5: Hardening and Scale
+Goal: production-ready reliability, security, and observability.
+
+- [ ] Persist all lecture/invite/enrollment/submission models in Postgres profile
+- [ ] Replace default credentials with managed identity provider
+- [ ] Add migration tooling (`Flyway` or `Liquibase`)
+- [ ] Add role-aware instructor/student dashboards
+- [ ] Add structured audit logs and rate limiting for join/submission flows

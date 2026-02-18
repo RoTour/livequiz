@@ -1,1 +1,120 @@
-<p>dashboard works!</p>
+<section class="space-y-6 p-4">
+  <h1 class="text-2xl font-semibold">Lecture Control Center</h1>
+  <p class="text-sm text-gray-700">{{ status() }}</p>
+
+  <article class="space-y-3 rounded border p-4">
+    <h2 class="font-semibold">Instructor: Create Lecture</h2>
+    <form [formGroup]="createLectureForm" (ngSubmit)="createLecture()" class="space-y-2">
+      <input
+        formControlName="title"
+        type="text"
+        placeholder="Lecture title"
+        class="w-full rounded border px-3 py-2"
+      />
+      <button class="rounded bg-blue-600 px-3 py-2 text-white" [disabled]="createLectureForm.invalid">
+        Create Lecture
+      </button>
+    </form>
+    @if (createdLectureId()) {
+      <p class="text-sm">Lecture ID: <strong>{{ createdLectureId() }}</strong></p>
+    }
+  </article>
+
+  <article class="space-y-3 rounded border p-4">
+    <h2 class="font-semibold">Instructor: Add Question</h2>
+    <form [formGroup]="addQuestionForm" (ngSubmit)="addQuestion()" class="space-y-2">
+      <input formControlName="prompt" type="text" placeholder="Prompt" class="w-full rounded border px-3 py-2" />
+      <input
+        formControlName="modelAnswer"
+        type="text"
+        placeholder="Model answer"
+        class="w-full rounded border px-3 py-2"
+      />
+      <input
+        formControlName="timeLimitSeconds"
+        type="number"
+        min="10"
+        class="w-full rounded border px-3 py-2"
+      />
+      <div class="flex gap-2">
+        <button class="rounded bg-green-600 px-3 py-2 text-white" [disabled]="addQuestionForm.invalid || !createdLectureId()">
+          Add Question
+        </button>
+        <button type="button" class="rounded bg-indigo-600 px-3 py-2 text-white" (click)="unlockNextQuestion()" [disabled]="!createdLectureId()">
+          Unlock Next
+        </button>
+      </div>
+    </form>
+  </article>
+
+  <article class="space-y-3 rounded border p-4">
+    <h2 class="font-semibold">Instructor: Invite Students</h2>
+    <button class="rounded bg-purple-600 px-3 py-2 text-white" (click)="createInvite()" [disabled]="!createdLectureId()">
+      Generate Invite
+    </button>
+    @if (invite(); as generatedInvite) {
+      <p class="text-sm">Join code: <strong>{{ generatedInvite.joinCode }}</strong></p>
+      <p class="text-sm">QR URL: <code>{{ generatedInvite.joinUrl }}</code></p>
+      <p class="text-sm">Expires: {{ generatedInvite.expiresAt }}</p>
+    }
+  </article>
+
+  <article class="space-y-3 rounded border p-4">
+    <h2 class="font-semibold">Student: Join Lecture</h2>
+    <form [formGroup]="joinLectureForm" (ngSubmit)="joinLecture()" class="space-y-2">
+      <input
+        formControlName="code"
+        type="text"
+        maxlength="6"
+        placeholder="6-char invite code"
+        class="w-full rounded border px-3 py-2 uppercase"
+      />
+      <button class="rounded bg-orange-600 px-3 py-2 text-white" [disabled]="joinLectureForm.invalid">
+        Join
+      </button>
+    </form>
+    @if (joinResult()) {
+      <p class="text-sm">{{ joinResult() }}</p>
+    }
+  </article>
+
+  <article class="space-y-3 rounded border p-4">
+    <h2 class="font-semibold">Student: Answer Flow</h2>
+    <button class="rounded bg-teal-600 px-3 py-2 text-white" (click)="loadNextQuestion()" [disabled]="!createdLectureId()">
+      Load Next Question
+    </button>
+    @if (nextQuestion(); as question) {
+      @if (question.hasQuestion) {
+        <p class="text-sm"><strong>Q{{ question.order }}:</strong> {{ question.prompt }}</p>
+        <form [formGroup]="submitAnswerForm" (ngSubmit)="submitAnswer()" class="space-y-2">
+          <textarea formControlName="answerText" class="w-full rounded border px-3 py-2" rows="4"></textarea>
+          <button class="rounded bg-slate-700 px-3 py-2 text-white" [disabled]="submitAnswerForm.invalid">
+            Submit
+          </button>
+        </form>
+      } @else {
+        <p class="text-sm">No unlocked pending question.</p>
+      }
+    }
+    @if (cooldownMessage()) {
+      <p class="text-sm text-red-600">{{ cooldownMessage() }}</p>
+    }
+  </article>
+
+  <article class="space-y-2 rounded border p-4">
+    <h2 class="font-semibold">Lecture State</h2>
+    @if (lectureState(); as state) {
+      @for (question of state.questions; track question.questionId) {
+        <div class="rounded border px-3 py-2 text-sm">
+          <span class="font-medium">#{{ question.order }}</span>
+          <span>{{ question.prompt }}</span>
+          <span class="ml-2" [class.text-green-700]="question.unlocked" [class.text-gray-500]="!question.unlocked">
+            {{ question.unlocked ? 'unlocked' : 'locked' }}
+          </span>
+        </div>
+      }
+    } @else {
+      <p class="text-sm">No lecture selected.</p>
+    }
+  </article>
+</section>

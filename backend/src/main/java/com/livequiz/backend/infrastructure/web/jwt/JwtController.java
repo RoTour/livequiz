@@ -4,12 +4,13 @@ import java.util.Map;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.provisioning.UserDetailsManager;
-import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import com.livequiz.backend.infrastructure.web.ApiException;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -35,13 +36,21 @@ public class JwtController {
     String password = dto.password;
 
     try {
-      authService.authenticate(
+      Authentication authentication = authService.authenticate(
         new UsernamePasswordAuthenticationToken(username, password)
       );
-      String token = jwtService.createToken(username);
+      String role = authentication
+        .getAuthorities()
+        .stream()
+        .map(GrantedAuthority::getAuthority)
+        .filter(authority -> authority.startsWith("ROLE_"))
+        .findFirst()
+        .map(authority -> authority.substring("ROLE_".length()))
+        .orElse("STUDENT");
+      String token = jwtService.createToken(username, role);
       return Map.of("token", token);
     } catch (Exception e) {
-      throw new RuntimeException("Invalid credentials");
+      throw new ApiException(HttpStatus.UNAUTHORIZED, "INVALID_CREDENTIALS", "Invalid credentials");
     }
   }
 }

@@ -13,8 +13,8 @@ export class Login {
   authService = inject(AuthService);
   router = inject(Router);
   form = new FormGroup({
-    username: new FormControl('admin', Validators.required),
-    password: new FormControl('username', [
+    username: new FormControl('instructor', Validators.required),
+    password: new FormControl('password', [
       Validators.required,
       Validators.minLength(6),
       Validators.maxLength(64),
@@ -26,7 +26,7 @@ export class Login {
 
     this.form.disable();
 
-    this.authService.login(this.form.value.username!, 'password').subscribe({
+    this.authService.login(this.form.value.username!, this.form.value.password!).subscribe({
       next: async () => {
         await this.router.navigate(['/dashboard']);
       },

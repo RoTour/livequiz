@@ -4,10 +4,10 @@ import com.livequiz.backend.infrastructure.web.jwt.JwtAuthenticationFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
@@ -25,13 +25,29 @@ public class SecurityConfig {
   ) throws Exception {
     http
       .csrf(csrf -> csrf.disable()) // Disable CSRF for non-browser APIs
+      .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+      .httpBasic(httpBasic -> httpBasic.disable())
+      .formLogin(formLogin -> formLogin.disable())
       .authorizeHttpRequests(
         auth ->
           auth
             .requestMatchers("/health", "/api/auth/**")
-            .permitAll() // Public endpoint
+            .permitAll()
+            .requestMatchers(
+              "/api/lectures",
+              "/api/lectures/*/questions/**",
+              "/api/lectures/*/state",
+              "/api/lectures/*/invites/**"
+            )
+            .hasRole("INSTRUCTOR")
+            .requestMatchers(
+              "/api/lectures/join",
+              "/api/lectures/*/students/me/next-question",
+              "/api/lectures/*/submissions"
+            )
+            .hasAnyRole("STUDENT", "INSTRUCTOR")
             .anyRequest()
-            .authenticated() // Everything else requires login
+            .authenticated()
       )
       .addFilterBefore(
         jwtAuthenticationFilter,
@@ -42,12 +58,18 @@ public class SecurityConfig {
 
   @Bean
   public InMemoryUserDetailsManager userDetailsService() {
-    UserDetails admin = User.withDefaultPasswordEncoder()
-      .username("admin")
+    UserDetails instructor = User.withDefaultPasswordEncoder()
+      .username("instructor")
       .password("password")
-      .roles("ADMIN")
+      .roles("INSTRUCTOR")
       .build();
-    return new InMemoryUserDetailsManager(admin);
+
+    UserDetails student = User.withDefaultPasswordEncoder()
+      .username("student")
+      .password("password")
+      .roles("STUDENT")
+      .build();
+    return new InMemoryUserDetailsManager(instructor, student);
   }
 
   @Bean

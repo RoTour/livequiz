@@ -4,8 +4,9 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import java.util.Collections;
+import java.util.List;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -33,17 +34,19 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     String token = authHeader.substring(7);
-    String userId = jwtService.validateToken(token);
-    if (userId == null) {
+    JwtService.TokenClaims claims = jwtService.validateToken(token);
+    if (claims == null || claims.subject() == null || claims.subject().isBlank()) {
       response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
       return;
     }
 
+    String role = claims.role() == null || claims.role().isBlank() ? "STUDENT" : claims.role();
+
     UsernamePasswordAuthenticationToken authentication =
       new UsernamePasswordAuthenticationToken(
-        userId,
+        claims.subject(),
         null,
-        Collections.emptyList()
+        List.of(new SimpleGrantedAuthority("ROLE_" + role))
       );
     SecurityContextHolder.getContext().setAuthentication(authentication);
 
