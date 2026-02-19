@@ -49,8 +49,8 @@ Goal: production-ready reliability, security, and observability.
 Goal: ship an appealing, role-first UI in reviewable steps.
 
 - [x] Step 1: role-aware auth + route foundations (`/instructor`, `/student`, role guards, login redirect)
-- [ ] Step 2: shared app shell + role-based navigation + logout flow
-- [ ] Step 3: instructor workspace migration (create lecture, add question, unlock, state)
+- [x] Step 2: shared app shell + role-based navigation + logout flow
+- [x] Step 3: instructor workspace migration (create lecture, add question, unlock, state)
 - [ ] Step 4: complete invite management (list/revoke with clear active/revoked states)
 - [ ] Step 5: student workspace migration (join by code, next question, submit + cooldown UX)
 - [ ] Step 6: invite token deep-link (`/student/join/:token`) with auto-join flow

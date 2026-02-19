@@ -22,6 +22,13 @@ export class LectureService {
     return this.http.post<{ lectureId: string }>(`${this.endpoint}/${lectureId}/questions/unlock-next`, {});
   }
 
+  unlockQuestion(lectureId: string, questionId: string): Observable<{ lectureId: string; questionId: string }> {
+    return this.http.post<{ lectureId: string; questionId: string }>(
+      `${this.endpoint}/${lectureId}/questions/${questionId}/unlock`,
+      {},
+    );
+  }
+
   getState(lectureId: string): Observable<LectureStateResponse> {
     return this.http.get<LectureStateResponse>(`${this.endpoint}/${lectureId}/state`);
   }

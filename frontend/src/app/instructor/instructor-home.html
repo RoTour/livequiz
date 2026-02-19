@@ -1,4 +1,108 @@
-<section class="p-4">
-  <h1 class="text-2xl font-semibold">Instructor Workspace</h1>
-  <p class="mt-2 text-sm text-slate-600">Role-aware navigation is active. Instructor features come next.</p>
+<section class="space-y-6">
+  <header>
+    <h1 class="text-2xl font-semibold">Instructor Workspace</h1>
+    <p class="mt-1 text-sm text-slate-600">Create your lecture, add questions, and unlock progression.</p>
+    <p class="mt-2 text-sm font-medium text-slate-700">{{ status() }}</p>
+  </header>
+
+  <article class="space-y-3 rounded-xl border border-slate-200 bg-white p-4">
+    <h2 class="font-semibold text-slate-900">Create lecture</h2>
+    <form [formGroup]="createLectureForm" (ngSubmit)="createLecture()" class="space-y-2">
+      <input
+        type="text"
+        formControlName="title"
+        placeholder="Lecture title"
+        class="w-full rounded-md border border-slate-300 px-3 py-2"
+      />
+      <button
+        type="submit"
+        [disabled]="createLectureForm.invalid"
+        class="rounded-md bg-slate-900 px-3 py-2 text-sm font-medium text-white disabled:opacity-50"
+      >
+        Create lecture
+      </button>
+    </form>
+    @if (selectedLectureId()) {
+      <p class="text-sm text-slate-700">Lecture ID: <span class="font-mono">{{ selectedLectureId() }}</span></p>
+    }
+  </article>
+
+  <article class="space-y-3 rounded-xl border border-slate-200 bg-white p-4">
+    <h2 class="font-semibold text-slate-900">Add question and unlock flow</h2>
+    <form [formGroup]="addQuestionForm" (ngSubmit)="addQuestion()" class="space-y-2">
+      <input
+        type="text"
+        formControlName="prompt"
+        placeholder="Prompt"
+        class="w-full rounded-md border border-slate-300 px-3 py-2"
+      />
+      <input
+        type="text"
+        formControlName="modelAnswer"
+        placeholder="Model answer"
+        class="w-full rounded-md border border-slate-300 px-3 py-2"
+      />
+      <input
+        type="number"
+        min="10"
+        formControlName="timeLimitSeconds"
+        class="w-full rounded-md border border-slate-300 px-3 py-2"
+      />
+
+      <div class="flex flex-wrap gap-2">
+        <button
+          type="submit"
+          [disabled]="addQuestionForm.invalid || !selectedLectureId()"
+          class="rounded-md bg-emerald-600 px-3 py-2 text-sm font-medium text-white disabled:opacity-50"
+        >
+          Add question
+        </button>
+        <button
+          type="button"
+          (click)="unlockNextQuestion()"
+          [disabled]="!selectedLectureId()"
+          class="rounded-md bg-slate-700 px-3 py-2 text-sm font-medium text-white disabled:opacity-50"
+        >
+          Unlock next
+        </button>
+        <button
+          type="button"
+          (click)="refreshLectureState()"
+          [disabled]="!selectedLectureId()"
+          class="rounded-md border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 disabled:opacity-50"
+        >
+          Refresh state
+        </button>
+      </div>
+    </form>
+  </article>
+
+  <article class="space-y-3 rounded-xl border border-slate-200 bg-white p-4">
+    <h2 class="font-semibold text-slate-900">Lecture state</h2>
+    @if (lectureState(); as state) {
+      <p class="text-sm text-slate-700">{{ state.title }}</p>
+
+      <div class="space-y-2">
+        @for (question of state.questions; track question.questionId) {
+          <div class="rounded-md border border-slate-200 px-3 py-2 text-sm">
+            <span class="font-medium text-slate-900">#{{ question.order }}</span>
+            <span class="ml-2 text-slate-700">{{ question.prompt }}</span>
+            <span class="ml-2 text-xs" [class.text-emerald-700]="question.unlocked" [class.text-slate-500]="!question.unlocked">
+              {{ question.unlocked ? 'unlocked' : 'locked' }}
+            </span>
+            <button
+              type="button"
+              class="ml-3 rounded-md border border-slate-300 px-2 py-1 text-xs font-medium text-slate-700 disabled:opacity-50"
+              (click)="unlockQuestion(question.questionId)"
+              [disabled]="question.unlocked"
+            >
+              Unlock this
+            </button>
+          </div>
+        }
+      </div>
+    } @else {
+      <p class="text-sm text-slate-500">No lecture selected yet.</p>
+    }
+  </article>
 </section>
