@@ -17,9 +17,7 @@ export class BackendStatus {
   private now = signal(new Date());
   public timeInStatus = computed(() => Math.floor((this.now().getTime() - this.backendService.lastChange().getTime()) / 1000));
 
-  styles = {
-    bg: computed(() => (this.backendService.backendUp() ? 'bg-emerald-50' : 'bg-rose-50')),
-  };
+  bgClass = computed(() => (this.backendService.backendUp() ? 'bg-emerald-50' : 'bg-rose-50'));
 
   constructor() {
     if (!this.devMode) return;

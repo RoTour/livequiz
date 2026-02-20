@@ -12,6 +12,9 @@ describe('InstructorHome', () => {
   const unlockQuestion = vi.fn();
   const unlockNextQuestion = vi.fn();
   const getLectureState = vi.fn();
+  const createInvite = vi.fn();
+  const listInvites = vi.fn();
+  const revokeInvite = vi.fn();
 
   beforeEach(async () => {
     createLecture.mockReset();
@@ -19,6 +22,11 @@ describe('InstructorHome', () => {
     unlockQuestion.mockReset();
     unlockNextQuestion.mockReset();
     getLectureState.mockReset();
+    createInvite.mockReset();
+    listInvites.mockReset();
+    revokeInvite.mockReset();
+
+    listInvites.mockResolvedValue([]);
 
     await TestBed.configureTestingModule({
       imports: [InstructorHome],
@@ -31,6 +39,9 @@ describe('InstructorHome', () => {
             unlockQuestion,
             unlockNextQuestion,
             getLectureState,
+            createInvite,
+            listInvites,
+            revokeInvite,
           },
         },
       ],
@@ -51,6 +62,7 @@ describe('InstructorHome', () => {
 
     expect(createLecture).toHaveBeenCalledWith('DDD');
     expect(getLectureState).toHaveBeenCalledWith('lecture-1');
+    expect(listInvites).toHaveBeenCalledWith('lecture-1');
     expect(fixture.nativeElement.textContent).toContain('lecture-1');
   });
 
@@ -113,6 +125,64 @@ describe('InstructorHome', () => {
     expect(getLectureState).toHaveBeenCalledTimes(2);
   });
 
+  it('creates invite then refreshes invite list', async () => {
+    createLecture.mockResolvedValue('lecture-1');
+    getLectureState.mockResolvedValue({ lectureId: 'lecture-1', title: 'DDD', questions: [] });
+    createInvite.mockResolvedValue({
+      inviteId: 'inv-1',
+      lectureId: 'lecture-1',
+      joinCode: 'ABCD12',
+      joinUrl: 'https://join/token',
+      expiresAt: '2026-02-19T10:00:00Z',
+      active: true,
+    });
+    listInvites
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([
+        {
+          inviteId: 'inv-1',
+          lectureId: 'lecture-1',
+          joinCode: 'ABCD12',
+          createdAt: '2026-02-19T08:00:00Z',
+          expiresAt: '2026-02-19T10:00:00Z',
+          revokedAt: null,
+          active: true,
+        },
+      ]);
+    await setupLecture(component);
+
+    await component.createInvite();
+    fixture.detectChanges();
+
+    expect(createInvite).toHaveBeenCalledWith('lecture-1');
+    expect(listInvites).toHaveBeenCalledTimes(2);
+    expect(fixture.nativeElement.textContent).toContain('ABCD12');
+  });
+
+  it('revokes invite and refreshes list', async () => {
+    createLecture.mockResolvedValue('lecture-1');
+    getLectureState.mockResolvedValue({ lectureId: 'lecture-1', title: 'DDD', questions: [] });
+    listInvites
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([
+        {
+          inviteId: 'inv-1',
+          lectureId: 'lecture-1',
+          joinCode: 'ABCD12',
+          createdAt: '2026-02-19T08:00:00Z',
+          expiresAt: '2026-02-19T10:00:00Z',
+          revokedAt: '2026-02-19T09:00:00Z',
+          active: false,
+        },
+      ]);
+    await setupLecture(component);
+
+    await component.revokeInvite('inv-1');
+
+    expect(revokeInvite).toHaveBeenCalledWith('lecture-1', 'inv-1');
+    expect(listInvites).toHaveBeenCalledTimes(2);
+  });
+
   it('does not create lecture when form is invalid', async () => {
     component.createLectureForm.setValue({ title: '' });
 
@@ -134,6 +204,35 @@ describe('InstructorHome', () => {
     expect(fixture.nativeElement.textContent).toContain(
       'Lecture created: lecture-1, but latest state could not be loaded.',
     );
+  });
+
+  it('clears previously created invite summary when creating a new lecture', async () => {
+    createLecture.mockResolvedValueOnce('lecture-1').mockResolvedValueOnce('lecture-2');
+    getLectureState
+      .mockResolvedValueOnce({ lectureId: 'lecture-1', title: 'DDD', questions: [] })
+      .mockResolvedValueOnce({ lectureId: 'lecture-2', title: 'Tactical DDD', questions: [] });
+    createInvite.mockResolvedValue({
+      inviteId: 'inv-1',
+      lectureId: 'lecture-1',
+      joinCode: 'ABCD12',
+      joinUrl: 'https://join/token',
+      expiresAt: '2026-02-19T10:00:00Z',
+      active: true,
+    });
+    listInvites.mockResolvedValue([]);
+
+    component.createLectureForm.setValue({ title: 'DDD' });
+    await component.createLecture();
+    await component.createInvite();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('New code:');
+
+    component.createLectureForm.setValue({ title: 'Tactical DDD' });
+    await component.createLecture();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).not.toContain('New code:');
+    expect(fixture.nativeElement.textContent).toContain('lecture-2');
   });
 });
 

@@ -48,11 +48,14 @@ Goal: production-ready reliability, security, and observability.
 ## Phase 6: Role-aware Frontend UX Rollout
 Goal: ship an appealing, role-first UI in reviewable steps.
 
+Related plan:
+- `plans/2-QR-invite-autojoin-and-anonymous-student-onboarding-plan.md`
+
 - [x] Step 1: role-aware auth + route foundations (`/instructor`, `/student`, role guards, login redirect)
 - [x] Step 2: shared app shell + role-based navigation + logout flow
 - [x] Step 3: instructor workspace migration (create lecture, add question, unlock, state)
-- [ ] Step 4: complete invite management (list/revoke with clear active/revoked states)
-- [ ] Step 5: student workspace migration (join by code, next question, submit + cooldown UX)
+- [x] Step 4: complete invite management (list/revoke with clear active/revoked states)
+- [x] Step 5: student workspace migration (join by code, next question, submit + cooldown UX)
 - [ ] Step 6: invite token deep-link (`/student/join/:token`) with auto-join flow
 - [ ] Step 7: cohesive visual system (typography, color tokens, spacing, responsive polish)
 - [ ] Step 8: behavior-focused frontend tests across role flows and critical components

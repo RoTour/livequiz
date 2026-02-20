@@ -37,6 +37,14 @@ export class LectureService {
     return this.http.post<CreateInviteResponse>(`${this.endpoint}/${lectureId}/invites`, {});
   }
 
+  listInvites(lectureId: string): Observable<LectureInviteResponse[]> {
+    return this.http.get<LectureInviteResponse[]>(`${this.endpoint}/${lectureId}/invites`);
+  }
+
+  revokeInvite(lectureId: string, inviteId: string): Observable<LectureInviteResponse> {
+    return this.http.post<LectureInviteResponse>(`${this.endpoint}/${lectureId}/invites/${inviteId}/revoke`, {});
+  }
+
   joinLecture(dto: JoinLectureDto): Observable<JoinLectureResponse> {
     return this.http.post<JoinLectureResponse>(`${this.endpoint}/join`, dto);
   }
@@ -78,6 +86,16 @@ export type CreateInviteResponse = {
   joinCode: string;
   joinUrl: string;
   expiresAt: string;
+  active: boolean;
+};
+
+export type LectureInviteResponse = {
+  inviteId: string;
+  lectureId: string;
+  joinCode: string;
+  createdAt: string;
+  expiresAt: string;
+  revokedAt: string | null;
   active: boolean;
 };
 

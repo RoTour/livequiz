@@ -1,6 +1,11 @@
 import { inject, Injectable } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
-import { LectureService, LectureStateResponse } from '../../lecture.service';
+import {
+  CreateInviteResponse,
+  LectureInviteResponse,
+  LectureService,
+  LectureStateResponse,
+} from '../../lecture.service';
 
 @Injectable({ providedIn: 'root' })
 export class InstructorWorkspaceService {
@@ -28,5 +33,17 @@ export class InstructorWorkspaceService {
 
   async getLectureState(lectureId: string): Promise<LectureStateResponse> {
     return await firstValueFrom(this.lectureService.getState(lectureId));
+  }
+
+  async createInvite(lectureId: string): Promise<CreateInviteResponse> {
+    return await firstValueFrom(this.lectureService.createInvite(lectureId));
+  }
+
+  async listInvites(lectureId: string): Promise<LectureInviteResponse[]> {
+    return await firstValueFrom(this.lectureService.listInvites(lectureId));
+  }
+
+  async revokeInvite(lectureId: string, inviteId: string): Promise<void> {
+    await firstValueFrom(this.lectureService.revokeInvite(lectureId, inviteId));
   }
 }
