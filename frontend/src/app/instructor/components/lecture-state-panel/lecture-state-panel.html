@@ -1,0 +1,32 @@
+<article class="lq-card lq-stack">
+  <h2 class="lq-card-title">Lecture state</h2>
+  @if (lectureState; as state) {
+    <p class="lq-muted">{{ state.title }}</p>
+
+    <div class="lq-stack">
+      @for (question of state.questions; track question.questionId) {
+        <div class="lq-question-item">
+          <div class="lq-row">
+            <span><strong>#{{ question.order }}</strong></span>
+            <span>{{ question.prompt }}</span>
+            <span class="lq-chip" [class.lq-chip-success]="question.unlocked" [class.lq-chip-muted]="!question.unlocked">
+              {{ question.unlocked ? 'unlocked' : 'locked' }}
+            </span>
+          </div>
+          <div>
+            <button
+              type="button"
+              class="lq-btn lq-btn-neutral"
+              (click)="unlock(question.questionId)"
+              [disabled]="question.unlocked"
+            >
+              Unlock this
+            </button>
+          </div>
+        </div>
+      }
+    </div>
+  } @else {
+    <p class="lq-muted">No lecture selected yet.</p>
+  }
+</article>

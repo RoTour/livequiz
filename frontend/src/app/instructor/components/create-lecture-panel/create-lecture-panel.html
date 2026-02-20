@@ -1,0 +1,10 @@
+<article class="lq-card lq-stack">
+  <h2 class="lq-card-title">Create lecture</h2>
+  <form [formGroup]="form" (ngSubmit)="submit()" class="lq-stack">
+    <input type="text" formControlName="title" placeholder="Lecture title" class="lq-input" />
+    <button type="submit" [disabled]="form.invalid" class="lq-btn lq-btn-primary">Create lecture</button>
+  </form>
+  @if (selectedLectureId) {
+    <p class="lq-muted">Lecture ID: <span class="lq-code">{{ selectedLectureId }}</span></p>
+  }
+</article>

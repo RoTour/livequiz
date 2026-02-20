@@ -1,0 +1,22 @@
+<article class="lq-card lq-stack">
+  <h2 class="lq-card-title">Join lecture</h2>
+
+  <form [formGroup]="joinLectureForm" (ngSubmit)="submit()" class="lq-stack">
+    <input
+      formControlName="code"
+      type="text"
+      maxlength="6"
+      placeholder="6-character invite code"
+      class="lq-input uppercase"
+    />
+    <button type="submit" [disabled]="joinLectureForm.invalid" class="lq-btn lq-btn-secondary">Join lecture</button>
+  </form>
+
+  @if (selectedLectureId) {
+    <p class="lq-muted">Lecture ID: <span class="lq-code">{{ selectedLectureId }}</span></p>
+  }
+
+  @if (joinResult) {
+    <p class="lq-muted">{{ joinResult }}</p>
+  }
+</article>

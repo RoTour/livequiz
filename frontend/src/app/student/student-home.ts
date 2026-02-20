@@ -3,10 +3,12 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { ActivatedRoute } from '@angular/router';
 import { NextQuestionResponse } from '../lecture.service';
 import { StudentWorkspaceService } from './application/student-workspace.service';
+import { JoinLecturePanel } from './components/join-lecture-panel/join-lecture-panel';
+import { AnswerFlowPanel } from './components/answer-flow-panel/answer-flow-panel';
 
 @Component({
   selector: 'app-student-home',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, JoinLecturePanel, AnswerFlowPanel],
   templateUrl: './student-home.html',
   styleUrl: './student-home.css',
 })

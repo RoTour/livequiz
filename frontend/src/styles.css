@@ -1,2 +1,355 @@
-/* You can add global styles to this file, and also import other style files */
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
 @import 'tailwindcss';
+
+@theme {
+  --font-sans: 'Manrope', 'Avenir Next', 'Segoe UI', sans-serif;
+  --color-lq-canvas: #111217;
+  --color-lq-surface: #f4f1ea;
+  --color-lq-surface-raised: #fffdf8;
+  --color-lq-surface-dark: #1a1e27;
+  --color-lq-ink: #101317;
+  --color-lq-ink-soft: #495061;
+  --color-lq-ink-inverse: #f4f6fb;
+  --color-lq-border: #101317;
+  --color-lq-accent-primary: #b8f2c4;
+  --color-lq-accent-secondary: #ffbfd8;
+  --color-lq-warning: #ffe08c;
+  --color-lq-danger: #f57c9d;
+  --color-lq-success: #79d697;
+}
+
+:root {
+  color: var(--color-lq-ink);
+  background: radial-gradient(circle at 0 0, #283046 0%, var(--color-lq-canvas) 45%);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: var(--font-sans);
+  color: var(--color-lq-ink-inverse);
+  background: transparent;
+}
+
+h1,
+h2,
+h3 {
+  margin: 0;
+  line-height: 1.15;
+}
+
+p {
+  margin: 0;
+}
+
+input,
+textarea,
+select,
+button {
+  font: inherit;
+}
+
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+button:focus-visible,
+a:focus-visible {
+  outline: 3px dashed var(--color-lq-warning);
+  outline-offset: 2px;
+}
+
+.lq-shell {
+  min-height: 100vh;
+  color: var(--color-lq-ink-inverse);
+}
+
+.lq-topbar {
+  border-bottom: 3px solid var(--color-lq-border);
+  background: color-mix(in oklab, var(--color-lq-surface-dark) 92%, black);
+}
+
+.lq-topbar-inner,
+.lq-main {
+  margin: 0 auto;
+  width: min(1040px, 100% - 2rem);
+}
+
+.lq-topbar-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.95rem 0;
+}
+
+.lq-brand {
+  font-size: 1.2rem;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  color: var(--color-lq-accent-secondary);
+  text-decoration: none;
+}
+
+.lq-role-chip {
+  border: 2px solid var(--color-lq-border);
+  border-radius: 999px;
+  background: var(--color-lq-accent-primary);
+  color: var(--color-lq-ink);
+  padding: 0.18rem 0.62rem;
+  font-size: 0.73rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.lq-nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.lq-main {
+  padding: clamp(1rem, 2.4vw, 2rem) 0 clamp(1.2rem, 2.7vw, 2.5rem);
+}
+
+.lq-page {
+  position: relative;
+  border: 3px solid var(--color-lq-border);
+  border-radius: 0.95rem;
+  background: color-mix(in oklab, var(--color-lq-canvas) 84%, #293149);
+  box-shadow: 7px 7px 0 rgba(0, 0, 0, 0.88);
+  padding: clamp(1rem, 2.5vw, 1.6rem);
+  animation: lq-rise 340ms ease both;
+}
+
+.lq-page-header {
+  display: grid;
+  gap: 0.35rem;
+  margin-bottom: 1rem;
+}
+
+.lq-page-title {
+  font-size: clamp(1.7rem, 4vw, 2.45rem);
+  font-weight: 800;
+  color: var(--color-lq-accent-secondary);
+}
+
+.lq-page-subtitle {
+  color: color-mix(in oklab, var(--color-lq-ink-inverse) 88%, var(--color-lq-accent-primary));
+  font-size: 0.96rem;
+}
+
+.lq-status-line {
+  margin-top: 0.2rem;
+  color: var(--color-lq-accent-primary);
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+.lq-grid {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.lq-card {
+  border: 3px solid var(--color-lq-border);
+  border-radius: 0.85rem;
+  background: var(--color-lq-surface);
+  color: var(--color-lq-ink);
+  box-shadow: 5px 5px 0 rgba(0, 0, 0, 0.84);
+  padding: clamp(0.85rem, 1.9vw, 1rem);
+}
+
+.lq-grid > .lq-card:nth-child(2) {
+  animation: lq-rise 300ms ease 80ms both;
+}
+
+.lq-grid > .lq-card:nth-child(3) {
+  animation: lq-rise 300ms ease 140ms both;
+}
+
+.lq-grid > .lq-card:nth-child(4) {
+  animation: lq-rise 300ms ease 200ms both;
+}
+
+.lq-card-dark {
+  background: var(--color-lq-surface-dark);
+  color: var(--color-lq-ink-inverse);
+}
+
+.lq-card-title {
+  font-size: 1.04rem;
+  font-weight: 700;
+}
+
+.lq-stack {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.lq-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.lq-input,
+.lq-textarea,
+.lq-select {
+  width: 100%;
+  border: 3px solid var(--color-lq-border);
+  border-radius: 0.6rem;
+  background: color-mix(in oklab, white 95%, var(--color-lq-warning));
+  color: var(--color-lq-ink);
+  padding: 0.58rem 0.68rem;
+}
+
+.lq-textarea {
+  resize: vertical;
+  min-height: 6rem;
+}
+
+.lq-btn {
+  border: 3px solid var(--color-lq-border);
+  border-radius: 0.62rem;
+  box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.86);
+  padding: 0.49rem 0.8rem;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 120ms ease, box-shadow 120ms ease, opacity 120ms ease;
+}
+
+.lq-btn:hover:not(:disabled) {
+  transform: translate(-1px, -1px);
+  box-shadow: 5px 5px 0 rgba(0, 0, 0, 0.86);
+}
+
+.lq-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.lq-btn-primary {
+  background: var(--color-lq-accent-primary);
+  color: var(--color-lq-ink);
+}
+
+.lq-btn-secondary {
+  background: var(--color-lq-accent-secondary);
+  color: var(--color-lq-ink);
+}
+
+.lq-btn-neutral {
+  background: var(--color-lq-surface-raised);
+  color: var(--color-lq-ink);
+}
+
+.lq-btn-danger {
+  background: var(--color-lq-danger);
+  color: var(--color-lq-ink);
+}
+
+.lq-chip {
+  display: inline-flex;
+  align-items: center;
+  border: 2px solid var(--color-lq-border);
+  border-radius: 999px;
+  padding: 0.14rem 0.53rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.lq-chip-success {
+  background: var(--color-lq-success);
+  color: var(--color-lq-ink);
+}
+
+.lq-chip-muted {
+  background: #d6dbe8;
+  color: #293149;
+}
+
+.lq-chip-warning {
+  background: var(--color-lq-warning);
+  color: var(--color-lq-ink);
+}
+
+.lq-muted {
+  color: var(--color-lq-ink-soft);
+  font-size: 0.9rem;
+}
+
+.lq-code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+  font-size: 0.82rem;
+  word-break: break-all;
+}
+
+.lq-alert {
+  border: 2px solid var(--color-lq-border);
+  border-radius: 0.6rem;
+  padding: 0.55rem 0.64rem;
+  font-size: 0.88rem;
+}
+
+.lq-alert-info {
+  background: color-mix(in oklab, var(--color-lq-accent-primary) 52%, white);
+  color: var(--color-lq-ink);
+}
+
+.lq-alert-danger {
+  background: color-mix(in oklab, var(--color-lq-danger) 35%, white);
+  color: #4d1021;
+}
+
+.lq-question-item {
+  display: grid;
+  gap: 0.45rem;
+  border: 2px solid var(--color-lq-border);
+  border-radius: 0.62rem;
+  background: var(--color-lq-surface-raised);
+  padding: 0.58rem 0.7rem;
+}
+
+.lq-dev-ok {
+  background: color-mix(in oklab, var(--color-lq-success) 48%, white);
+}
+
+.lq-dev-down {
+  background: color-mix(in oklab, var(--color-lq-danger) 30%, white);
+}
+
+@keyframes lq-rise {
+  from {
+    opacity: 0;
+    transform: translateY(7px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 720px) {
+  .lq-topbar-inner,
+  .lq-main {
+    width: min(1040px, 100% - 1.1rem);
+  }
+
+  .lq-topbar-inner {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .lq-page {
+    padding: 0.85rem;
+    border-radius: 0.75rem;
+  }
+}

@@ -1,12 +1,12 @@
-<section class="space-y-3 rounded-xl border border-slate-200 bg-white p-5">
-  <h1 class="text-2xl font-semibold text-slate-900">Join lecture</h1>
-  <p class="text-sm text-slate-700">{{ status() }}</p>
+<section class="lq-page lq-stack">
+  <h1 class="lq-page-title">Join lecture</h1>
+  <p class="lq-status-line">{{ status() }}</p>
 
   @if (errorMessage()) {
-    <p class="rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">
+    <p class="lq-alert lq-alert-danger">
       {{ errorMessage() }}
     </p>
   } @else {
-    <p class="text-sm text-slate-500">You will be redirected automatically when enrollment succeeds.</p>
+    <p class="lq-alert lq-alert-info">You will be redirected automatically when enrollment succeeds.</p>
   }
 </section>

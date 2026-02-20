@@ -1,0 +1,53 @@
+<article class="lq-card lq-stack">
+  <h2 class="lq-card-title">Invite management</h2>
+
+  <div class="lq-row">
+    <button type="button" (click)="create()" [disabled]="!selectedLectureId" class="lq-btn lq-btn-secondary">
+      Generate invite
+    </button>
+    <button type="button" (click)="refresh()" [disabled]="!selectedLectureId" class="lq-btn lq-btn-neutral">
+      Refresh invites
+    </button>
+  </div>
+
+  @if (lastCreatedInvite; as invite) {
+    <div class="lq-alert lq-alert-info lq-stack">
+      <p>New code: <strong>{{ invite.joinCode }}</strong></p>
+      <p class="lq-code">{{ invite.joinUrl }}</p>
+    </div>
+  }
+
+  @if (invites.length > 0) {
+    <div class="lq-stack">
+      @for (invite of invites; track invite.inviteId) {
+        <div class="lq-question-item">
+          <div class="lq-row">
+            <span><strong>{{ invite.joinCode }}</strong></span>
+            <span
+              class="lq-chip"
+              [class.lq-chip-success]="invite.active"
+              [class.lq-chip-warning]="!invite.active && !!invite.revokedAt"
+              [class.lq-chip-muted]="!invite.active && !invite.revokedAt"
+            >
+              {{ inviteDisplayStatus(invite) }}
+            </span>
+            <span class="lq-muted">Expires {{ invite.expiresAt }}</span>
+          </div>
+
+          <div>
+            <button
+              type="button"
+              (click)="revoke(invite.inviteId)"
+              [disabled]="!invite.active"
+              class="lq-btn lq-btn-danger"
+            >
+              Revoke
+            </button>
+          </div>
+        </div>
+      }
+    </div>
+  } @else {
+    <p class="lq-muted">No invites yet for this lecture.</p>
+  }
+</article>

@@ -2,10 +2,20 @@ import { Component, inject, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CreateInviteResponse, LectureInviteResponse, LectureStateResponse } from '../lecture.service';
 import { InstructorWorkspaceService } from './application/instructor-workspace.service';
+import { CreateLecturePanel } from './components/create-lecture-panel/create-lecture-panel';
+import { QuestionFlowPanel } from './components/question-flow-panel/question-flow-panel';
+import { InviteManagementPanel } from './components/invite-management-panel/invite-management-panel';
+import { LectureStatePanel } from './components/lecture-state-panel/lecture-state-panel';
 
 @Component({
   selector: 'app-instructor-home',
-  imports: [ReactiveFormsModule],
+  imports: [
+    ReactiveFormsModule,
+    CreateLecturePanel,
+    QuestionFlowPanel,
+    InviteManagementPanel,
+    LectureStatePanel,
+  ],
   templateUrl: './instructor-home.html',
   styleUrl: './instructor-home.css',
 })
@@ -186,13 +196,4 @@ export class InstructorHome {
     }
   }
 
-  protected inviteDisplayStatus(invite: LectureInviteResponse): string {
-    if (invite.active) {
-      return 'active';
-    }
-    if (invite.revokedAt) {
-      return 'revoked';
-    }
-    return 'expired';
-  }
 }

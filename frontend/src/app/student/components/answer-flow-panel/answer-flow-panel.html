@@ -1,0 +1,34 @@
+<article class="lq-card lq-stack">
+  <h2 class="lq-card-title">Answer flow</h2>
+
+  <button type="button" (click)="loadNext()" [disabled]="!selectedLectureId" class="lq-btn lq-btn-primary">
+    Load next question
+  </button>
+
+  @if (nextQuestion; as question) {
+    @if (question.hasQuestion) {
+      <div class="lq-question-item">
+        <p>
+          <strong>Q{{ question.order }}</strong>
+          <span> {{ question.prompt }}</span>
+        </p>
+      </div>
+
+      <form [formGroup]="submitAnswerForm" (ngSubmit)="submit()" class="lq-stack">
+        <textarea
+          formControlName="answerText"
+          rows="4"
+          class="lq-textarea"
+          placeholder="Write your answer"
+        ></textarea>
+        <button type="submit" [disabled]="submitAnswerForm.invalid" class="lq-btn lq-btn-neutral">Submit answer</button>
+      </form>
+    } @else {
+      <p class="lq-muted">No unlocked pending question.</p>
+    }
+  }
+
+  @if (cooldownMessage) {
+    <p class="lq-alert lq-alert-danger">{{ cooldownMessage }}</p>
+  }
+</article>

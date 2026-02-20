@@ -1,150 +1,33 @@
-<section class="ds-shell">
-  <div class="ds-orb ds-orb-left" aria-hidden="true"></div>
-  <div class="ds-orb ds-orb-right" aria-hidden="true"></div>
-
-  <header class="ds-frame ds-hero ds-animate">
-    <p class="ds-kicker">LiveQuiz Design System</p>
-    <h1>Neo-Brutal Professional</h1>
-    <p>
-      Production-ready base styles with dark foundations, pastel accents, and thin typography. This page
-      demos typography, forms, buttons, tables, and cards across both light and dark surfaces.
-    </p>
+<section class="lq-page lq-grid">
+  <header class="lq-page-header">
+    <h1 class="lq-page-title">LiveQuiz Design System</h1>
+    <p class="lq-page-subtitle">Config-free Tailwind v4 tokens and reusable primitives used across app routes.</p>
   </header>
 
-  <section class="ds-grid-2">
-    <article class="ds-frame ds-surface-light ds-animate">
-      <h2>Light Surface</h2>
-      <h3>Heading Level 3</h3>
-      <p>
-        Paragraph styles keep line length and rhythm readable while preserving neo-brutal outlines and
-        spacing.
-      </p>
+  <article class="lq-card lq-stack">
+    <h2 class="lq-card-title">Buttons</h2>
+    <div class="lq-row">
+      <button type="button" class="lq-btn lq-btn-primary">Primary</button>
+      <button type="button" class="lq-btn lq-btn-secondary">Secondary</button>
+      <button type="button" class="lq-btn lq-btn-neutral">Neutral</button>
+      <button type="button" class="lq-btn lq-btn-danger">Danger</button>
+    </div>
+  </article>
 
-      <div class="ds-button-row">
-        <button type="button" class="ds-btn ds-btn-primary">Primary Action</button>
-        <button type="button" class="ds-btn ds-btn-secondary">Secondary</button>
-        <button type="button" class="ds-btn ds-btn-ghost">Ghost</button>
-      </div>
+  <article class="lq-card lq-stack">
+    <h2 class="lq-card-title">Form controls</h2>
+    <input class="lq-input" value="Lecture title" />
+    <textarea class="lq-textarea">Type student answer here...</textarea>
+  </article>
 
-      <form class="ds-form" novalidate>
-        <label for="light-name">Name</label>
-        <input id="light-name" type="text" value="Avery Collins" />
-
-        <label for="light-role">Role</label>
-        <select id="light-role">
-          <option>Instructor</option>
-          <option>Student</option>
-          <option>Moderator</option>
-        </select>
-      </form>
-    </article>
-
-    <article class="ds-frame ds-surface-dark ds-animate">
-      <h2>Dark Surface</h2>
-      <h3>Heading Level 3</h3>
-      <p>
-        The same component language on a dark base with clear contrast and pastel highlights for states and
-        focus.
-      </p>
-
-      <div class="ds-button-row">
-        <button type="button" class="ds-btn ds-btn-primary">Primary Action</button>
-        <button type="button" class="ds-btn ds-btn-secondary">Secondary</button>
-        <button type="button" class="ds-btn ds-btn-ghost">Ghost</button>
-      </div>
-
-      <form class="ds-form" novalidate>
-        <label for="dark-name">Name</label>
-        <input id="dark-name" type="text" value="Jordan Lee" />
-
-        <label for="dark-role">Role</label>
-        <select id="dark-role">
-          <option>Instructor</option>
-          <option>Student</option>
-          <option>Moderator</option>
-        </select>
-      </form>
-    </article>
-  </section>
-
-  <section class="ds-grid-2">
-    <article class="ds-frame ds-surface-light ds-animate">
-      <h2>Sample Table</h2>
-      <div class="ds-table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Lecture</th>
-              <th>Status</th>
-              <th>Students</th>
-              <th>Updated</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>Design Critique</td>
-              <td><span class="ds-pill ds-pill-green">Live</span></td>
-              <td>28</td>
-              <td>2 min ago</td>
-            </tr>
-            <tr>
-              <td>UI Systems</td>
-              <td><span class="ds-pill ds-pill-pink">Review</span></td>
-              <td>34</td>
-              <td>18 min ago</td>
-            </tr>
-            <tr>
-              <td>Frontend Lab</td>
-              <td><span class="ds-pill">Queued</span></td>
-              <td>19</td>
-              <td>41 min ago</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <article class="ds-tile ds-tile-light">
-        <p class="ds-tile-tag">Light Tile</p>
-        <h3>Lecture Briefing Card</h3>
-        <p>Quick content summary on a bright surface with strong edge contrast.</p>
-      </article>
-    </article>
-
-    <article class="ds-frame ds-surface-dark ds-animate">
-      <h2>UI Tile / Card</h2>
-      <article class="ds-tile">
-        <p class="ds-tile-tag">Priority Lecture</p>
-        <h3>Advanced Interaction Design</h3>
-        <p>
-          Keep cards direct and high-contrast. Use hard borders, offset shadows, and compact metadata for a
-          polished neo-brutal feel.
-        </p>
-        <div class="ds-tile-footer">
-          <span class="ds-pill ds-pill-green">Open</span>
-          <button type="button" class="ds-btn ds-btn-secondary">Open Workspace</button>
-        </div>
-      </article>
-
-      <div class="ds-table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Token</th>
-              <th>Value</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>Accent Pink</td>
-              <td>#FFBFD8</td>
-            </tr>
-            <tr>
-              <td>Accent Green</td>
-              <td>#B8F2C4</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </article>
-  </section>
+  <article class="lq-card lq-stack">
+    <h2 class="lq-card-title">Status and feedback</h2>
+    <div class="lq-row">
+      <span class="lq-chip lq-chip-success">active</span>
+      <span class="lq-chip lq-chip-warning">revoked</span>
+      <span class="lq-chip lq-chip-muted">expired</span>
+    </div>
+    <p class="lq-alert lq-alert-info">Informational message with action context.</p>
+    <p class="lq-alert lq-alert-danger">Error message with clear recovery guidance.</p>
+  </article>
 </section>

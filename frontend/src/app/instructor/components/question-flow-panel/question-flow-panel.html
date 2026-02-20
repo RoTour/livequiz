@@ -1,0 +1,20 @@
+<article class="lq-card lq-stack">
+  <h2 class="lq-card-title">Add question and unlock flow</h2>
+  <form [formGroup]="form" (ngSubmit)="submit()" class="lq-stack">
+    <input type="text" formControlName="prompt" placeholder="Prompt" class="lq-input" />
+    <input type="text" formControlName="modelAnswer" placeholder="Model answer" class="lq-input" />
+    <input type="number" min="10" formControlName="timeLimitSeconds" class="lq-input" />
+
+    <div class="lq-row">
+      <button type="submit" [disabled]="form.invalid || !selectedLectureId" class="lq-btn lq-btn-primary">
+        Add question
+      </button>
+      <button type="button" (click)="unlockNextQuestion()" [disabled]="!selectedLectureId" class="lq-btn lq-btn-secondary">
+        Unlock next
+      </button>
+      <button type="button" (click)="refreshLectureState()" [disabled]="!selectedLectureId" class="lq-btn lq-btn-neutral">
+        Refresh state
+      </button>
+    </div>
+  </form>
+</article>

@@ -57,7 +57,7 @@ Related plan:
 - [x] Step 4: complete invite management (list/revoke with clear active/revoked states)
 - [x] Step 5: student workspace migration (join by code, next question, submit + cooldown UX)
 - [x] Step 6: invite token deep-link (`/student/join/:token`) with auto-join flow
-- [ ] Step 7: cohesive visual system (typography, color tokens, spacing, responsive polish)
+- [x] Step 7: cohesive visual system (typography, color tokens, spacing, responsive polish)
 - [ ] Step 8: behavior-focused frontend tests across role flows and critical components
 
 ## Phase 7: Complete End-to-End Role Workflows (Part 2)
