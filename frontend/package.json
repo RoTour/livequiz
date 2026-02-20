@@ -2,12 +2,12 @@
   "name": "livequiz-frontend",
   "version": "0.0.0",
   "scripts": {
-    "ng": "ng",
-    "start": "ng serve",
-    "build": "ng build",
-    "watch": "ng build --watch --configuration development",
-    "test": "ng test",
-    "test:coverage": "ng test --watch=false --coverage",
+    "ng": "./scripts/with-node.sh ./node_modules/.bin/ng",
+    "start": "./scripts/with-node.sh ./node_modules/.bin/ng serve",
+    "build": "./scripts/with-node.sh ./node_modules/.bin/ng build",
+    "watch": "./scripts/with-node.sh ./node_modules/.bin/ng build --watch --configuration development",
+    "test": "./scripts/with-node.sh ./node_modules/.bin/ng test",
+    "test:coverage": "./scripts/with-node.sh ./node_modules/.bin/ng test --watch=false --coverage",
     "test:mutation": "stryker run"
   },
   "prettier": {

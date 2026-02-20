@@ -5,6 +5,7 @@ import { instructorGuard, studentGuard } from './login/role-guard';
 import { InstructorHome } from './instructor/instructor-home';
 import { StudentHome } from './student/student-home';
 import { StudentJoinToken } from './student/student-join-token';
+import { DesignSystem } from './design-system/design-system';
 
 export const routes: Routes = [
   {
@@ -20,6 +21,10 @@ export const routes: Routes = [
     path: 'student',
     component: StudentHome,
     canActivate: [authGuard, studentGuard],
+  },
+  {
+    path: 'design-system',
+    component: DesignSystem,
   },
   {
     path: 'student/join/:token',

@@ -39,7 +39,11 @@ class StudentFlowIT {
       )
       .andExpect(status().isOk());
 
-    String inviteCode = createInvite(instructorToken, lectureId);
+    String inviteResponse = createInviteResponse(instructorToken, lectureId);
+    String inviteCode = extractField(inviteResponse, "joinCode");
+    String joinUrl = extractField(inviteResponse, "joinUrl");
+    org.junit.jupiter.api.Assertions.assertTrue(joinUrl.contains("/student/join/"));
+    org.junit.jupiter.api.Assertions.assertFalse(joinUrl.contains("?token="));
     String studentToken = login("student", "password");
 
     String firstJoinResponse = mockMvc
@@ -204,8 +208,8 @@ class StudentFlowIT {
     return response.substring(start, end);
   }
 
-  private String createInvite(String instructorToken, String lectureId) throws Exception {
-    String response = this.mockMvc
+  private String createInviteResponse(String instructorToken, String lectureId) throws Exception {
+    return this.mockMvc
       .perform(
         post("/api/lectures/{lectureId}/invites", lectureId)
           .header("Authorization", "Bearer " + instructorToken)
@@ -214,10 +218,6 @@ class StudentFlowIT {
       .andReturn()
       .getResponse()
       .getContentAsString();
-    int keyIndex = response.indexOf("joinCode");
-    int start = response.indexOf(":\"", keyIndex) + 2;
-    int end = response.indexOf('"', start);
-    return response.substring(start, end);
   }
 
   private String createInviteAndGetInviteId(String instructorToken, String lectureId) throws Exception {

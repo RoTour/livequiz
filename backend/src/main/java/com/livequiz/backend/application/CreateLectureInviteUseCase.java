@@ -65,7 +65,15 @@ public class CreateLectureInviteUseCase {
     );
     this.lectureInviteRepository.save(invite);
 
-    String joinUrl = this.liveQuizProperties.inviteBaseUrl() + "?token=" + token;
+    String joinUrl = buildJoinUrl(token);
     return new CreateInviteResult(invite, token, joinUrl);
+  }
+
+  private String buildJoinUrl(String token) {
+    String baseUrl = this.liveQuizProperties.inviteBaseUrl();
+    if (baseUrl.endsWith("/")) {
+      return baseUrl + token;
+    }
+    return baseUrl + "/" + token;
   }
 }

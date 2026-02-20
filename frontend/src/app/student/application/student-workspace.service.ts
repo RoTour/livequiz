@@ -10,6 +10,10 @@ export class StudentWorkspaceService {
     return await firstValueFrom(this.lectureService.joinLecture({ code }));
   }
 
+  async joinLectureByToken(token: string): Promise<JoinLectureResponse> {
+    return await firstValueFrom(this.lectureService.joinLecture({ token }));
+  }
+
   async getNextQuestion(lectureId: string): Promise<NextQuestionResponse> {
     return await firstValueFrom(this.lectureService.getNextQuestion(lectureId));
   }

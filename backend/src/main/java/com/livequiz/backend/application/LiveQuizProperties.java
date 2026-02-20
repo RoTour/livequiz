@@ -13,7 +13,7 @@ public record LiveQuizProperties(
       submissionCooldownSeconds = 30;
     }
     if (inviteBaseUrl == null || inviteBaseUrl.isBlank()) {
-      inviteBaseUrl = "http://localhost:4200/join";
+      inviteBaseUrl = "http://localhost:4200/student/join";
     }
     if (inviteExpirationHours <= 0 || inviteExpirationHours > 24) {
       inviteExpirationHours = 24;

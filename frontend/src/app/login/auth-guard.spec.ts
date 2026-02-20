@@ -39,7 +39,7 @@ describe('authGuard', () => {
   it('allows navigation when authenticated', async () => {
     configure(true);
 
-    const allowed = await executeGuard({} as never, {} as never);
+    const allowed = await executeGuard({} as never, { url: '/student/join/token-1' } as never);
 
     expect(allowed).toBe(true);
     expect(navigate).not.toHaveBeenCalled();
@@ -49,9 +49,13 @@ describe('authGuard', () => {
     configure(false);
     navigate.mockResolvedValue(true);
 
-    const allowed = await executeGuard({} as never, {} as never);
+    const allowed = await executeGuard({} as never, { url: '/student/join/token-1' } as never);
 
     expect(allowed).toBe(false);
-    expect(navigate).toHaveBeenCalledWith(['/auth/login']);
+    expect(navigate).toHaveBeenCalledWith(['/auth/login'], {
+      queryParams: {
+        returnUrl: '/student/join/token-1',
+      },
+    });
   });
 });

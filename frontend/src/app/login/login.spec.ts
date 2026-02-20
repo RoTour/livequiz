@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { Router } from '@angular/router';
-import { from, of, throwError } from 'rxjs';
+import { ActivatedRoute, Router, convertToParamMap } from '@angular/router';
+import { from, throwError } from 'rxjs';
 import { vi } from 'vitest';
 
 import { Login } from './login';
@@ -13,12 +13,16 @@ describe('Login', () => {
   const routeForCurrentUser = vi.fn();
   const logout = vi.fn();
   const navigate = vi.fn();
+  const navigateByUrl = vi.fn();
+  let queryParamMap = convertToParamMap({});
 
   beforeEach(async () => {
     login.mockReset();
     routeForCurrentUser.mockReset();
     logout.mockReset();
     navigate.mockReset();
+    navigateByUrl.mockReset();
+    queryParamMap = convertToParamMap({});
 
     await TestBed.configureTestingModule({
       imports: [Login],
@@ -35,6 +39,17 @@ describe('Login', () => {
           provide: Router,
           useValue: {
             navigate,
+            navigateByUrl,
+          },
+        },
+        {
+          provide: ActivatedRoute,
+          useValue: {
+            snapshot: {
+              get queryParamMap() {
+                return queryParamMap;
+              },
+            },
           },
         },
       ],
@@ -61,6 +76,7 @@ describe('Login', () => {
     expect(login).toHaveBeenCalledWith('student', 'password');
     expect(routeForCurrentUser).toHaveBeenCalled();
     expect(navigate).toHaveBeenCalledWith(['/student']);
+    expect(navigateByUrl).not.toHaveBeenCalled();
   });
 
   it('logs out and re-enables form when role target is unknown', async () => {
@@ -73,6 +89,7 @@ describe('Login', () => {
 
     expect(logout).toHaveBeenCalled();
     expect(navigate).not.toHaveBeenCalled();
+    expect(navigateByUrl).not.toHaveBeenCalled();
     expect(component.form.disabled).toBe(false);
     expect(component.authErrorMessage()).toContain('Could not determine your role');
   });
@@ -87,8 +104,23 @@ describe('Login', () => {
     await fixture.whenStable();
 
     expect(navigate).toHaveBeenCalledWith(['/student']);
+    expect(navigateByUrl).not.toHaveBeenCalled();
     expect(component.form.disabled).toBe(false);
     expect(component.authErrorMessage()).toContain('Could not open your dashboard');
+  });
+
+  it('uses returnUrl when present after successful login', async () => {
+    queryParamMap = convertToParamMap({ returnUrl: '/student/join/token-1' });
+    routeForCurrentUser.mockReturnValue('/student');
+    login.mockReturnValue(from(Promise.resolve({ token: 'jwt' })));
+    navigateByUrl.mockResolvedValue(true);
+    component.form.setValue({ username: 'student', password: 'password' });
+
+    component.submit();
+    await fixture.whenStable();
+
+    expect(navigateByUrl).toHaveBeenCalledWith('/student/join/token-1');
+    expect(navigate).not.toHaveBeenCalled();
   });
 
   it('re-enables form when login fails', () => {

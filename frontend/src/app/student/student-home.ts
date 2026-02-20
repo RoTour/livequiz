@@ -1,5 +1,6 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { ActivatedRoute } from '@angular/router';
 import { NextQuestionResponse } from '../lecture.service';
 import { StudentWorkspaceService } from './application/student-workspace.service';
 
@@ -9,7 +10,8 @@ import { StudentWorkspaceService } from './application/student-workspace.service
   templateUrl: './student-home.html',
   styleUrl: './student-home.css',
 })
-export class StudentHome {
+export class StudentHome implements OnInit {
+  private readonly route = inject(ActivatedRoute);
   private readonly workspaceService = inject(StudentWorkspaceService);
 
   protected readonly status = signal('Ready');
@@ -25,6 +27,22 @@ export class StudentHome {
   readonly submitAnswerForm = new FormGroup({
     answerText: new FormControl('', [Validators.required, Validators.minLength(2)]),
   });
+
+  ngOnInit() {
+    const lectureIdFromLink = this.route.snapshot.queryParamMap.get('lectureId')?.trim();
+    if (!lectureIdFromLink) {
+      return;
+    }
+
+    this.selectedLectureId.set(lectureIdFromLink);
+    this.nextQuestion.set(null);
+    this.submitAnswerForm.reset({ answerText: '' });
+    this.cooldownMessage.set('');
+
+    const alreadyEnrolled = this.route.snapshot.queryParamMap.get('alreadyEnrolled') === '1';
+    this.joinResult.set(alreadyEnrolled ? 'Already enrolled' : 'Enrolled successfully');
+    this.status.set('Lecture joined from invite link');
+  }
 
   async joinLecture() {
     if (this.joinLectureForm.invalid) {

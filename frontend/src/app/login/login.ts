@@ -1,7 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormControl, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { AuthService } from './auth.service';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 
 @Component({
   selector: 'app-login',
@@ -12,6 +12,7 @@ import { Router } from '@angular/router';
 export class Login {
   authService = inject(AuthService);
   router = inject(Router);
+  route = inject(ActivatedRoute);
   authErrorMessage = signal('');
   form = new FormGroup({
     username: new FormControl('instructor', Validators.required),
@@ -30,16 +31,19 @@ export class Login {
 
     this.authService.login(this.form.value.username!, this.form.value.password!).subscribe({
       next: async () => {
-        const targetRoute = this.authService.routeForCurrentUser();
+        const roleRoute = this.authService.routeForCurrentUser();
 
-        if (targetRoute === '/auth/login') {
+        if (roleRoute === '/auth/login') {
           this.authService.logout();
           this.authErrorMessage.set('Could not determine your role. Please log in again.');
           this.form.enable();
           return;
         }
 
-        const navigated = await this.router.navigate([targetRoute]);
+        const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
+        const navigated = returnUrl
+          ? await this.router.navigateByUrl(returnUrl)
+          : await this.router.navigate([roleRoute]);
         if (!navigated) {
           this.authErrorMessage.set('Could not open your dashboard. Please try again.');
           this.form.enable();
