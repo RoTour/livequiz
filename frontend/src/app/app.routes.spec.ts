@@ -6,11 +6,22 @@ import { StudentHome } from './student/student-home';
 import { StudentJoinToken } from './student/student-join-token';
 
 describe('app routes', () => {
-  it('protects instructor route with auth and instructor guards', () => {
-    const instructorRoute = routes.find((route) => route.path === 'instructor');
+  it('keeps legacy instructor path as guarded redirect', () => {
+    const instructorLegacyRoute = routes.find((route) => route.path === 'instructor');
 
-    expect(instructorRoute?.component).toBe(InstructorHome);
-    expect(instructorRoute?.canActivate).toEqual([authGuard, instructorGuard]);
+    expect(instructorLegacyRoute?.redirectTo).toBe('instructor/lectures');
+    expect(instructorLegacyRoute?.pathMatch).toBe('full');
+    expect(instructorLegacyRoute?.canActivate).toEqual([authGuard, instructorGuard]);
+  });
+
+  it('protects instructor lecture routes with auth and instructor guards', () => {
+    const instructorListRoute = routes.find((route) => route.path === 'instructor/lectures');
+    const instructorDetailRoute = routes.find((route) => route.path === 'instructor/lectures/:lectureId');
+
+    expect(instructorListRoute?.component).toBe(InstructorHome);
+    expect(instructorDetailRoute?.component).toBe(InstructorHome);
+    expect(instructorListRoute?.canActivate).toEqual([authGuard, instructorGuard]);
+    expect(instructorDetailRoute?.canActivate).toEqual([authGuard, instructorGuard]);
   });
 
   it('protects student routes with auth and student guards', () => {

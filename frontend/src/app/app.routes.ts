@@ -14,6 +14,17 @@ export const routes: Routes = [
   },
   {
     path: 'instructor',
+    redirectTo: 'instructor/lectures',
+    pathMatch: 'full',
+    canActivate: [authGuard, instructorGuard],
+  },
+  {
+    path: 'instructor/lectures',
+    component: InstructorHome,
+    canActivate: [authGuard, instructorGuard],
+  },
+  {
+    path: 'instructor/lectures/:lectureId',
     component: InstructorHome,
     canActivate: [authGuard, instructorGuard],
   },
