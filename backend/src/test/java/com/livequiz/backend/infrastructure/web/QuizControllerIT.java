@@ -10,6 +10,12 @@ import static org.hamcrest.Matchers.hasItem;
 
 import com.livequiz.backend.domain.lecture.LectureId;
 import com.livequiz.backend.domain.lecture.LectureRepository;
+import com.livequiz.backend.domain.lecture.QuestionId;
+import com.livequiz.backend.domain.submission.Submission;
+import com.livequiz.backend.domain.submission.SubmissionId;
+import com.livequiz.backend.domain.submission.SubmissionRepository;
+import java.time.Instant;
+import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -27,6 +33,9 @@ public class QuizControllerIT {
 
   @Autowired
   private LectureRepository lectureRepository;
+
+  @Autowired
+  private SubmissionRepository submissionRepository;
 
   private String loginAsInstructor() throws Exception {
     String requestBody = """
@@ -326,6 +335,14 @@ public class QuizControllerIT {
 
     mockMvc
       .perform(
+        get("/api/lectures/{lectureId}/questions/analytics", lectureId)
+          .header("Authorization", "Bearer " + otherInstructorToken)
+      )
+      .andExpect(status().isNotFound())
+      .andExpect(jsonPath("$.code").value("LECTURE_NOT_FOUND"));
+
+    mockMvc
+      .perform(
         post("/api/lectures/{lectureId}/invites/{inviteId}/revoke", lectureId, inviteId)
           .header("Authorization", "Bearer " + otherInstructorToken)
       )
@@ -353,6 +370,87 @@ public class QuizControllerIT {
       .andExpect(jsonPath("$[?(@.lectureId=='" + ownerLectureId + "')]" ).isEmpty());
   }
 
+  @Test
+  void should_return_per_question_analytics_rollup_for_owned_lecture() throws Exception {
+    String instructorToken = loginAsInstructor();
+    String studentToken = loginAsStudent();
+    String lectureId = createLecture(instructorToken, "Analytics Lecture");
+    String firstQuestionId = addQuestion(
+      instructorToken,
+      lectureId,
+      "What is DDD?",
+      "A design approach",
+      60
+    );
+    String secondQuestionId = addQuestion(
+      instructorToken,
+      lectureId,
+      "What is a value object?",
+      "Immutable object",
+      60
+    );
+
+    String joinCode = createInviteJoinCode(instructorToken, lectureId);
+    joinLectureByCode(studentToken, joinCode);
+
+    mockMvc
+      .perform(
+        post("/api/lectures/{lectureId}/questions/unlock-next", lectureId)
+          .header("Authorization", "Bearer " + instructorToken)
+      )
+      .andExpect(status().isOk());
+
+    submitAnswer(studentToken, lectureId, firstQuestionId, "First attempt");
+    saveSubmission(lectureId, firstQuestionId, "student", "Second attempt");
+
+    mockMvc
+      .perform(
+        get("/api/lectures/{lectureId}/questions/analytics", lectureId)
+          .header("Authorization", "Bearer " + instructorToken)
+      )
+      .andExpect(status().isOk())
+      .andExpect(
+        jsonPath("$[?(@.questionId=='" + firstQuestionId + "')].enrolledCount").value(
+          hasItem(1)
+        )
+      )
+      .andExpect(
+        jsonPath("$[?(@.questionId=='" + firstQuestionId + "')].answeredCount").value(
+          hasItem(1)
+        )
+      )
+      .andExpect(
+        jsonPath("$[?(@.questionId=='" + firstQuestionId + "')].unansweredCount").value(
+          hasItem(0)
+        )
+      )
+      .andExpect(
+        jsonPath("$[?(@.questionId=='" + firstQuestionId + "')].multiAttemptCount").value(
+          hasItem(1)
+        )
+      )
+      .andExpect(
+        jsonPath("$[?(@.questionId=='" + secondQuestionId + "')].enrolledCount").value(
+          hasItem(1)
+        )
+      )
+      .andExpect(
+        jsonPath("$[?(@.questionId=='" + secondQuestionId + "')].answeredCount").value(
+          hasItem(0)
+        )
+      )
+      .andExpect(
+        jsonPath("$[?(@.questionId=='" + secondQuestionId + "')].unansweredCount").value(
+          hasItem(1)
+        )
+      )
+      .andExpect(
+        jsonPath("$[?(@.questionId=='" + secondQuestionId + "')].multiAttemptCount").value(
+          hasItem(0)
+        )
+      );
+  }
+
   private String createLecture(String token, String title) throws Exception {
     String requestBody = """
       {
@@ -375,7 +473,7 @@ public class QuizControllerIT {
     return extractField(response, "lectureId");
   }
 
-  private void addQuestion(
+  private String addQuestion(
     String token,
     String lectureId,
     String prompt,
@@ -390,14 +488,19 @@ public class QuizControllerIT {
       }
       """.formatted(prompt, modelAnswer, timeLimitSeconds);
 
-    mockMvc
+    String response = mockMvc
       .perform(
         post("/api/lectures/{lectureId}/questions", lectureId)
           .contentType("application/json")
           .header("Authorization", "Bearer " + token)
           .content(requestBody)
       )
-      .andExpect(status().isOk());
+      .andExpect(status().isOk())
+      .andReturn()
+      .getResponse()
+      .getContentAsString();
+
+    return extractField(response, "questionId");
   }
 
   private String createInvite(String token, String lectureId) throws Exception {
@@ -412,6 +515,71 @@ public class QuizControllerIT {
       .getContentAsString();
 
     return extractField(response, "inviteId");
+  }
+
+  private String createInviteJoinCode(String token, String lectureId) throws Exception {
+    String response = mockMvc
+      .perform(
+        post("/api/lectures/{lectureId}/invites", lectureId)
+          .header("Authorization", "Bearer " + token)
+      )
+      .andExpect(status().isOk())
+      .andReturn()
+      .getResponse()
+      .getContentAsString();
+
+    return extractField(response, "joinCode");
+  }
+
+  private void joinLectureByCode(String studentToken, String joinCode) throws Exception {
+    mockMvc
+      .perform(
+        post("/api/lectures/join")
+          .header("Authorization", "Bearer " + studentToken)
+          .contentType("application/json")
+          .content("{\"code\":\"" + joinCode + "\"}")
+      )
+      .andExpect(status().isOk());
+  }
+
+  private void submitAnswer(
+    String studentToken,
+    String lectureId,
+    String questionId,
+    String answerText
+  ) throws Exception {
+    mockMvc
+      .perform(
+        post("/api/lectures/{lectureId}/submissions", lectureId)
+          .header("Authorization", "Bearer " + studentToken)
+          .contentType("application/json")
+          .content(
+            "{\"questionId\":\"" +
+            questionId +
+            "\",\"answerText\":\"" +
+            answerText +
+            "\"}"
+          )
+      )
+      .andExpect(status().isOk());
+  }
+
+  private void saveSubmission(
+    String lectureId,
+    String questionId,
+    String studentId,
+    String answerText
+  ) {
+    this.submissionRepository.save(
+        new Submission(
+          new SubmissionId(UUID.randomUUID().toString()),
+          new LectureId(lectureId),
+          new QuestionId(questionId),
+          studentId,
+          Instant.now().plusSeconds(60),
+          answerText
+        )
+      );
   }
 
   private String extractField(String response, String fieldName) {

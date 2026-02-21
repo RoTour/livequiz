@@ -22,6 +22,15 @@ public class InMemoryLectureEnrollmentRepository
   }
 
   @Override
+  public long countByLectureId(LectureId lectureId) {
+    return this.enrollments
+      .values()
+      .stream()
+      .filter(enrollment -> enrollment.lectureId().value().equals(lectureId.value()))
+      .count();
+  }
+
+  @Override
   public boolean existsByLectureIdAndStudentId(LectureId lectureId, String studentId) {
     return this.enrollments.containsKey(key(lectureId, studentId));
   }

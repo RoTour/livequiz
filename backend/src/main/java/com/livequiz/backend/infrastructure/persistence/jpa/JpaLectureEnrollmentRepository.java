@@ -3,4 +3,6 @@ package com.livequiz.backend.infrastructure.persistence.jpa;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface JpaLectureEnrollmentRepository
-  extends JpaRepository<LectureEnrollmentEntity, LectureEnrollmentId> {}
+  extends JpaRepository<LectureEnrollmentEntity, LectureEnrollmentId> {
+  long countByIdLectureId(String lectureId);
+}

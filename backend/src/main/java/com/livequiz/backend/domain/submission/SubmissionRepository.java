@@ -6,6 +6,8 @@ import java.util.Optional;
 import java.util.Set;
 
 public interface SubmissionRepository {
+  record QuestionStudentAttempt(String questionId, String studentId, long attemptCount) {}
+
   void save(Submission submission);
 
   Optional<Submission> findLatestByLectureQuestionAndStudent(
@@ -17,5 +19,9 @@ public interface SubmissionRepository {
   Set<String> findSubmittedQuestionIdsByLectureAndStudent(
     LectureId lectureId,
     String studentId
+  );
+
+  java.util.List<QuestionStudentAttempt> findQuestionStudentAttemptsByLecture(
+    LectureId lectureId
   );
 }

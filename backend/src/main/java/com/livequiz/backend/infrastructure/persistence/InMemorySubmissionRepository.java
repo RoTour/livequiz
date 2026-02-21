@@ -8,6 +8,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.concurrent.CopyOnWriteArrayList;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
@@ -48,5 +49,30 @@ public class InMemorySubmissionRepository implements SubmissionRepository {
       .filter(submission -> submission.studentId().equals(studentId))
       .map(submission -> submission.questionId().value())
       .collect(java.util.stream.Collectors.toSet());
+  }
+
+  @Override
+  public List<QuestionStudentAttempt> findQuestionStudentAttemptsByLecture(
+    LectureId lectureId
+  ) {
+    return this.submissions
+      .stream()
+      .filter(submission -> submission.lectureId().value().equals(lectureId.value()))
+      .collect(
+        Collectors.groupingBy(submission ->
+          submission.questionId().value() + "::" + submission.studentId()
+        )
+      )
+      .entrySet()
+      .stream()
+      .map(entry -> {
+        Submission sample = entry.getValue().get(0);
+        return new QuestionStudentAttempt(
+          sample.questionId().value(),
+          sample.studentId(),
+          entry.getValue().size()
+        );
+      })
+      .toList();
   }
 }

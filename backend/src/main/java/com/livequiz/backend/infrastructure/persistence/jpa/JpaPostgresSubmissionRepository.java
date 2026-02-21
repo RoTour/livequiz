@@ -69,4 +69,21 @@ public class JpaPostgresSubmissionRepository implements SubmissionRepository {
       .stream()
       .collect(Collectors.toSet());
   }
+
+  @Override
+  public java.util.List<QuestionStudentAttempt> findQuestionStudentAttemptsByLecture(
+    LectureId lectureId
+  ) {
+    return this.jpaSubmissionRepository
+      .findQuestionStudentAttemptsByLecture(lectureId.value())
+      .stream()
+      .map(projection ->
+        new QuestionStudentAttempt(
+          projection.getQuestionId(),
+          projection.getStudentId(),
+          projection.getAttemptCount()
+        )
+      )
+      .toList();
+  }
 }

@@ -8,6 +8,14 @@ import org.springframework.data.repository.query.Param;
 
 public interface JpaSubmissionRepository
   extends JpaRepository<SubmissionEntity, String> {
+  interface QuestionStudentAttemptProjection {
+    String getQuestionId();
+
+    String getStudentId();
+
+    long getAttemptCount();
+  }
+
   Optional<SubmissionEntity> findTopByLectureIdAndQuestionIdAndStudentIdOrderBySubmittedAtDesc(
     String lectureId,
     String questionId,
@@ -20,5 +28,17 @@ public interface JpaSubmissionRepository
   List<String> findDistinctQuestionIdsByLectureAndStudent(
     @Param("lectureId") String lectureId,
     @Param("studentId") String studentId
+  );
+
+  @Query(
+    """
+      select s.questionId as questionId, s.studentId as studentId, count(s.id) as attemptCount
+      from SubmissionEntity s
+      where s.lectureId = :lectureId
+      group by s.questionId, s.studentId
+    """
+  )
+  List<QuestionStudentAttemptProjection> findQuestionStudentAttemptsByLecture(
+    @Param("lectureId") String lectureId
   );
 }

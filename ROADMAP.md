@@ -87,7 +87,7 @@ Acceptance criteria for this phase:
 - [x] Iteration 05 - Instructor lecture list page
 - [x] Iteration 06 - Instructor detail route param source of truth
 - [x] Iteration 07 - Instructor ownership enforcement on existing endpoints
-- [ ] Iteration 08 - Instructor per-question analytics rollup API
+- [x] Iteration 08 - Instructor per-question analytics rollup API
 - [ ] Iteration 09 - Instructor per-question student answer history API
 - [ ] Iteration 10 - Instructor analytics UI integration
 - [ ] Iteration 11 - Student lecture listing API

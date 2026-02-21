@@ -31,6 +31,11 @@ public class JpaPostgresLectureEnrollmentRepository
   }
 
   @Override
+  public long countByLectureId(LectureId lectureId) {
+    return this.jpaLectureEnrollmentRepository.countByIdLectureId(lectureId.value());
+  }
+
+  @Override
   public boolean existsByLectureIdAndStudentId(LectureId lectureId, String studentId) {
     return this.jpaLectureEnrollmentRepository.existsById(
         new LectureEnrollmentId(lectureId.value(), studentId)
