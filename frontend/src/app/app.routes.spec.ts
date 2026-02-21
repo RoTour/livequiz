@@ -7,12 +7,11 @@ import { StudentHome } from './student/student-home';
 import { StudentJoinToken } from './student/student-join-token';
 
 describe('app routes', () => {
-  it('keeps legacy instructor path as guarded redirect', () => {
+  it('keeps legacy instructor path as redirect', () => {
     const instructorLegacyRoute = routes.find((route) => route.path === 'instructor');
 
     expect(instructorLegacyRoute?.redirectTo).toBe('instructor/lectures');
     expect(instructorLegacyRoute?.pathMatch).toBe('full');
-    expect(instructorLegacyRoute?.canActivate).toEqual([authGuard, instructorGuard]);
   });
 
   it('protects instructor lecture routes with auth and instructor guards', () => {

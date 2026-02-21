@@ -17,7 +17,6 @@ export const routes: Routes = [
     path: 'instructor',
     redirectTo: 'instructor/lectures',
     pathMatch: 'full',
-    canActivate: [authGuard, instructorGuard],
   },
   {
     path: 'instructor/lectures',
