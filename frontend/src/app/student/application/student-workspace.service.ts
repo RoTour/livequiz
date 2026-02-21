@@ -1,6 +1,12 @@
 import { inject, Injectable } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
-import { JoinLectureResponse, LectureService, NextQuestionResponse, SubmitAnswerResponse } from '../../lecture.service';
+import {
+  JoinLectureResponse,
+  LectureService,
+  NextQuestionResponse,
+  StudentLectureSummaryResponse,
+  SubmitAnswerResponse,
+} from '../../lecture.service';
 
 @Injectable({ providedIn: 'root' })
 export class StudentWorkspaceService {
@@ -12,6 +18,10 @@ export class StudentWorkspaceService {
 
   async joinLectureByToken(token: string): Promise<JoinLectureResponse> {
     return await firstValueFrom(this.lectureService.joinLecture({ token }));
+  }
+
+  async listLectures(): Promise<StudentLectureSummaryResponse[]> {
+    return await firstValueFrom(this.lectureService.listStudentLectures());
   }
 
   async getNextQuestion(lectureId: string): Promise<NextQuestionResponse> {

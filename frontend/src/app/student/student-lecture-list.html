@@ -1,0 +1,55 @@
+<section class="lq-page lq-grid">
+  <header class="lq-page-header">
+    <h1 class="lq-page-title">Student Lectures</h1>
+    <p class="lq-page-subtitle">Join with a code or re-enter any lecture you already joined.</p>
+    <p class="lq-status-line">{{ status() }}</p>
+  </header>
+
+  <article class="lq-card lq-stack">
+    <h2 class="lq-card-title">Join by code</h2>
+    <form [formGroup]="joinLectureForm" (ngSubmit)="joinLecture()" class="lq-row">
+      <input
+        type="text"
+        maxlength="6"
+        formControlName="code"
+        class="lq-input"
+        placeholder="Invite code"
+      />
+      <button type="submit" class="lq-btn lq-btn-primary" [disabled]="joinLectureForm.invalid || loading()">
+        Join lecture
+      </button>
+      <button type="button" class="lq-btn lq-btn-neutral" [disabled]="loading()" (click)="refreshLectures()">
+        Refresh list
+      </button>
+    </form>
+    @if (joinResult()) {
+      <p class="lq-muted">{{ joinResult() }}</p>
+    }
+  </article>
+
+  <article class="lq-card lq-stack">
+    <h2 class="lq-card-title">Joined lectures</h2>
+    @if (loading()) {
+      <p class="lq-muted">Loading lectures…</p>
+    } @else if (lectures().length === 0) {
+      <p class="lq-muted">No lectures joined yet. Use an invite code to join your first lecture.</p>
+    } @else {
+      <div class="lq-stack">
+        @for (lecture of lectures(); track lecture.lectureId) {
+          <div class="lq-question-item">
+            <div class="lq-row">
+              <strong>{{ lecture.title }}</strong>
+              <span class="lq-chip lq-chip-muted">{{ lecture.answeredCount }}/{{ lecture.questionCount }} answered</span>
+              <span class="lq-muted">Joined {{ lecture.enrolledAt }}</span>
+            </div>
+            <div>
+              <button type="button" class="lq-btn lq-btn-secondary" (click)="openLecture(lecture.lectureId)">
+                Enter room
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </article>
+</section>

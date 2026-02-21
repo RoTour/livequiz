@@ -92,7 +92,7 @@ Acceptance criteria for this phase:
 - [x] Iteration 10 - Instructor analytics UI integration
 - [x] Iteration 11 - Student lecture listing API
 - [x] Iteration 12 - Student route scaffold (backward compatible)
-- [ ] Iteration 13 - Student lecture list page (join + re-entry)
+- [x] Iteration 13 - Student lecture list page (join + re-entry)
 - [ ] Iteration 14 - Student lecture room page
 - [ ] Iteration 15 - Token/code join contract hardening (explicit invite errors)
 - [ ] Iteration 16 - Token deep-link completion and cleanup

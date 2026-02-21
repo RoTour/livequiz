@@ -66,6 +66,10 @@ export class LectureService {
     return this.http.post<JoinLectureResponse>(`${this.endpoint}/join`, dto);
   }
 
+  listStudentLectures(): Observable<StudentLectureSummaryResponse[]> {
+    return this.http.get<StudentLectureSummaryResponse[]>(`${this.endpoint}/students/me`);
+  }
+
   getNextQuestion(lectureId: string): Observable<NextQuestionResponse> {
     return this.http.get<NextQuestionResponse>(`${this.endpoint}/${lectureId}/students/me/next-question`);
   }
@@ -151,6 +155,14 @@ export type JoinLectureResponse = {
   studentId: string;
   alreadyEnrolled: boolean;
   enrolledAt: string;
+};
+
+export type StudentLectureSummaryResponse = {
+  lectureId: string;
+  title: string;
+  enrolledAt: string;
+  questionCount: number;
+  answeredCount: number;
 };
 
 export type NextQuestionResponse =

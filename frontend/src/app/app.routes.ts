@@ -5,6 +5,7 @@ import { instructorGuard, studentGuard } from './login/role-guard';
 import { InstructorHome } from './instructor/instructor-home';
 import { InstructorLectureList } from './instructor/instructor-lecture-list';
 import { StudentHome } from './student/student-home';
+import { StudentLectureList } from './student/student-lecture-list';
 import { StudentJoinToken } from './student/student-join-token';
 import { DesignSystem } from './design-system/design-system';
 
@@ -35,7 +36,7 @@ export const routes: Routes = [
   },
   {
     path: 'student/lectures',
-    component: StudentHome,
+    component: StudentLectureList,
     canActivate: [authGuard, studentGuard],
   },
   {
