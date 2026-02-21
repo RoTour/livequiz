@@ -1,0 +1,42 @@
+:host {
+  display: block;
+}
+
+.lq-workspace-layout {
+  gap: 1rem;
+}
+
+.lq-workspace-content {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(18rem, 1fr);
+  grid-template-areas:
+    'question sidebar'
+    'state sidebar';
+  align-items: start;
+  gap: 0.9rem;
+}
+
+.lq-workspace-question {
+  grid-area: question;
+  min-width: 0;
+}
+
+.lq-workspace-state {
+  grid-area: state;
+  min-width: 0;
+}
+
+.lq-workspace-sidebar {
+  grid-area: sidebar;
+  min-width: 0;
+}
+
+@media (max-width: 960px) {
+  .lq-workspace-content {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      'question'
+      'sidebar'
+      'state';
+  }
+}

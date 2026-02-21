@@ -1,39 +1,47 @@
-<section class="lq-page lq-grid">
+<section class="lq-page lq-grid lq-workspace-layout">
   <header class="lq-page-header">
     <h1 class="lq-page-title">Instructor Workspace</h1>
     <p class="lq-page-subtitle">Create your lecture, add questions, and unlock progression.</p>
     <p class="lq-status-line">{{ status() }}</p>
   </header>
 
-  <app-question-flow-panel
-    [form]="addQuestionForm"
-    [selectedLectureId]="selectedLectureId()"
-    (addQuestion)="addQuestion()"
-    (unlockNext)="unlockNextQuestion()"
-    (refreshState)="refreshLectureState()"
-  />
+  <div class="lq-workspace-content">
+    <div class="lq-workspace-question">
+      <app-question-flow-panel
+        [form]="addQuestionForm"
+        [selectedLectureId]="selectedLectureId()"
+        (addQuestion)="addQuestion()"
+        (unlockNext)="unlockNextQuestion()"
+        (refreshState)="refreshLectureState()"
+      />
+    </div>
 
-  <app-invite-management-panel
-    [selectedLectureId]="selectedLectureId()"
-    [lastCreatedInvite]="lastCreatedInvite()"
-    [invites]="invites()"
-    (createInvite)="createInvite()"
-    (refreshInvites)="refreshInvites()"
-    (revokeInvite)="revokeInvite($event)"
-  />
+    <aside class="lq-workspace-sidebar">
+      <app-invite-management-panel
+        [selectedLectureId]="selectedLectureId()"
+        [lastCreatedInvite]="lastCreatedInvite()"
+        [invites]="invites()"
+        (createInvite)="createInvite()"
+        (refreshInvites)="refreshInvites()"
+        (revokeInvite)="revokeInvite($event)"
+      />
+    </aside>
 
-  <app-lecture-state-panel
-    [lectureState]="lectureState()"
-    [questionAnalytics]="questionAnalytics()"
-    [analyticsLoading]="analyticsLoading()"
-    [analyticsError]="analyticsError()"
-    [selectedHistoryQuestionId]="selectedHistoryQuestionId()"
-    [questionHistory]="questionHistory()"
-    [questionHistoryLoading]="questionHistoryLoading()"
-    [questionHistoryError]="questionHistoryError()"
-    (unlockQuestion)="unlockQuestion($event)"
-    (refreshAnalytics)="refreshQuestionAnalytics()"
-    (openHistory)="openQuestionAnswerHistory($event)"
-    (closeHistory)="closeQuestionAnswerHistory()"
-  />
+    <div class="lq-workspace-state">
+      <app-lecture-state-panel
+        [lectureState]="lectureState()"
+        [questionAnalytics]="questionAnalytics()"
+        [analyticsLoading]="analyticsLoading()"
+        [analyticsError]="analyticsError()"
+        [selectedHistoryQuestionId]="selectedHistoryQuestionId()"
+        [questionHistory]="questionHistory()"
+        [questionHistoryLoading]="questionHistoryLoading()"
+        [questionHistoryError]="questionHistoryError()"
+        (unlockQuestion)="unlockQuestion($event)"
+        (refreshAnalytics)="refreshQuestionAnalytics()"
+        (openHistory)="openQuestionAnswerHistory($event)"
+        (closeHistory)="closeQuestionAnswerHistory()"
+      />
+    </div>
+  </div>
 </section>
