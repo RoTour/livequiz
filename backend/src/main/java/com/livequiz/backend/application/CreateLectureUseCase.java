@@ -21,10 +21,8 @@ public class CreateLectureUseCase {
     this.currentUserService = currentUserService;
   }
 
-  public Lecture createLecture(String lectureId, String title) {
-    if (lectureId == null || lectureId.isBlank()) {
-      lectureId = UUID.randomUUID().toString();
-    }
+  public Lecture createLecture(String title) {
+    String lectureId = UUID.randomUUID().toString();
     String instructorId = this.currentUserService.requireUserId();
     Lecture lecture = new Lecture(
       new LectureId(lectureId),

@@ -60,6 +60,27 @@ public class JpaPostgresSubmissionRepository implements SubmissionRepository {
   }
 
   @Override
+  public java.util.List<Submission> findByLectureAndQuestion(
+    LectureId lectureId,
+    QuestionId questionId
+  ) {
+    return this.jpaSubmissionRepository
+      .findByLectureIdAndQuestionId(lectureId.value(), questionId.value())
+      .stream()
+      .map(entity ->
+        new Submission(
+          new SubmissionId(entity.getId()),
+          new LectureId(entity.getLectureId()),
+          new QuestionId(entity.getQuestionId()),
+          entity.getStudentId(),
+          entity.getSubmittedAt(),
+          entity.getAnswerText()
+        )
+      )
+      .toList();
+  }
+
+  @Override
   public long countByLectureQuestionAndStudent(
     LectureId lectureId,
     QuestionId questionId,

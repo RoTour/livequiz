@@ -53,7 +53,7 @@ public class LectureController {
     this.listInstructorLecturesUseCase = listInstructorLecturesUseCase;
   }
 
-  public record CreateLectureRequestDTO(String lectureId, String title) {}
+  public record CreateLectureRequestDTO(String title) {}
   public record AddQuestionRequestDTO(
     String questionId,
     String prompt,
@@ -106,10 +106,7 @@ public class LectureController {
   public Map<String, String> createLecture(
     @RequestBody CreateLectureRequestDTO createLectureRequestDTO
   ) {
-    Lecture lecture = this.createLectureUseCase.createLecture(
-      createLectureRequestDTO.lectureId(),
-      createLectureRequestDTO.title()
-    );
+    Lecture lecture = this.createLectureUseCase.createLecture(createLectureRequestDTO.title());
     return Map.of("lectureId", lecture.id().value());
   }
 

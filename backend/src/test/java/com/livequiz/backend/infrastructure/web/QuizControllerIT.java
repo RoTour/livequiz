@@ -9,6 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.nullValue;
 
+import com.livequiz.backend.domain.lecture.Lecture;
 import com.livequiz.backend.domain.lecture.LectureId;
 import com.livequiz.backend.domain.lecture.LectureRepository;
 import com.livequiz.backend.domain.lecture.QuestionId;
@@ -271,6 +272,63 @@ public class QuizControllerIT {
 
     assertEquals("instructor", persistedLecture.createdByInstructorId());
     assertNotNull(persistedLecture.createdAt());
+  }
+
+  @Test
+  void should_ignore_client_supplied_lecture_id_on_create() throws Exception {
+    String instructorToken = loginAsInstructor();
+    String firstLectureId = createLecture(instructorToken, "Original Lecture");
+
+    String maliciousCreateResponse = mockMvc
+      .perform(
+        post("/api/lectures")
+          .contentType("application/json")
+          .header("Authorization", "Bearer " + instructorToken)
+          .content(
+            """
+            {
+              "lectureId": "%s",
+              "title": "Attempted Override"
+            }
+            """.formatted(firstLectureId)
+          )
+      )
+      .andExpect(status().isOk())
+      .andReturn()
+      .getResponse()
+      .getContentAsString();
+
+    String secondLectureId = extractField(maliciousCreateResponse, "lectureId");
+
+    org.junit.jupiter.api.Assertions.assertNotEquals(firstLectureId, secondLectureId);
+    assertEquals(
+      "Original Lecture",
+      lectureRepository.findById(new LectureId(firstLectureId)).orElseThrow().title()
+    );
+    assertEquals(
+      "Attempted Override",
+      lectureRepository.findById(new LectureId(secondLectureId)).orElseThrow().title()
+    );
+  }
+
+  @Test
+  void should_reject_access_to_legacy_unowned_lecture_without_claiming() throws Exception {
+    String lectureId = "legacy-lecture-id";
+    this.lectureRepository.save(new Lecture(new LectureId(lectureId), "Legacy Lecture"));
+
+    String instructorToken = loginAsInstructor();
+
+    mockMvc
+      .perform(
+        get("/api/lectures/{lectureId}/state", lectureId)
+          .header("Authorization", "Bearer " + instructorToken)
+      )
+      .andExpect(status().isNotFound())
+      .andExpect(jsonPath("$.code").value("LECTURE_NOT_FOUND"));
+
+    var legacyLecture = lectureRepository.findById(new LectureId(lectureId)).orElseThrow();
+    org.junit.jupiter.api.Assertions.assertNull(legacyLecture.createdByInstructorId());
+    org.junit.jupiter.api.Assertions.assertNull(legacyLecture.createdAt());
   }
 
   @Test
