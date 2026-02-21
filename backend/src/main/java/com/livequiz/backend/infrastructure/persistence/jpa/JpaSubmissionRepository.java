@@ -22,6 +22,12 @@ public interface JpaSubmissionRepository
     String studentId
   );
 
+  long countByLectureIdAndQuestionIdAndStudentId(
+    String lectureId,
+    String questionId,
+    String studentId
+  );
+
   @Query(
     "select distinct s.questionId from SubmissionEntity s where s.lectureId = :lectureId and s.studentId = :studentId"
   )

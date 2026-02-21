@@ -7,6 +7,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.nullValue;
 
 import com.livequiz.backend.domain.lecture.LectureId;
 import com.livequiz.backend.domain.lecture.LectureRepository;
@@ -85,6 +86,28 @@ public class QuizControllerIT {
     String requestBody = """
       {
         "username": "instructor2",
+        "password": "password"
+      }
+      """;
+
+    String response = mockMvc
+      .perform(
+        post("/api/auth/login").contentType("application/json").content(requestBody)
+      )
+      .andExpect(status().isOk())
+      .andReturn()
+      .getResponse()
+      .getContentAsString();
+
+    int start = response.indexOf(":\"") + 2;
+    int end = response.lastIndexOf('"');
+    return response.substring(start, end);
+  }
+
+  private String loginAsSecondStudent() throws Exception {
+    String requestBody = """
+      {
+        "username": "student2",
         "password": "password"
       }
       """;
@@ -343,6 +366,18 @@ public class QuizControllerIT {
 
     mockMvc
       .perform(
+        get(
+          "/api/lectures/{lectureId}/questions/{questionId}/answers/history",
+          lectureId,
+          "missing-question"
+        )
+          .header("Authorization", "Bearer " + otherInstructorToken)
+      )
+      .andExpect(status().isNotFound())
+      .andExpect(jsonPath("$.code").value("LECTURE_NOT_FOUND"));
+
+    mockMvc
+      .perform(
         post("/api/lectures/{lectureId}/invites/{inviteId}/revoke", lectureId, inviteId)
           .header("Authorization", "Bearer " + otherInstructorToken)
       )
@@ -447,6 +482,70 @@ public class QuizControllerIT {
       .andExpect(
         jsonPath("$[?(@.questionId=='" + secondQuestionId + "')].multiAttemptCount").value(
           hasItem(0)
+        )
+      );
+  }
+
+  @Test
+  void should_return_question_student_answer_history_for_owned_lecture() throws Exception {
+    String instructorToken = loginAsInstructor();
+    String firstStudentToken = loginAsStudent();
+    String secondStudentToken = loginAsSecondStudent();
+    String lectureId = createLecture(instructorToken, "History Lecture");
+    String questionId = addQuestion(
+      instructorToken,
+      lectureId,
+      "Explain bounded context",
+      "A domain model boundary",
+      60
+    );
+
+    String joinCode = createInviteJoinCode(instructorToken, lectureId);
+    joinLectureByCode(firstStudentToken, joinCode);
+    joinLectureByCode(secondStudentToken, joinCode);
+
+    mockMvc
+      .perform(
+        post("/api/lectures/{lectureId}/questions/unlock-next", lectureId)
+          .header("Authorization", "Bearer " + instructorToken)
+      )
+      .andExpect(status().isOk());
+
+    submitAnswer(firstStudentToken, lectureId, questionId, "First attempt");
+    saveSubmission(lectureId, questionId, "student", "Second attempt");
+
+    mockMvc
+      .perform(
+        get(
+          "/api/lectures/{lectureId}/questions/{questionId}/answers/history",
+          lectureId,
+          questionId
+        )
+          .header("Authorization", "Bearer " + instructorToken)
+      )
+      .andExpect(status().isOk())
+      .andExpect(
+        jsonPath("$[?(@.studentId=='student')].attemptCount").value(hasItem(2))
+      )
+      .andExpect(
+        jsonPath("$[?(@.studentId=='student')].latestAnswerText").value(
+          hasItem("Second attempt")
+        )
+      )
+      .andExpect(
+        jsonPath("$[?(@.studentId=='student')].latestAnswerAt").isNotEmpty()
+      )
+      .andExpect(
+        jsonPath("$[?(@.studentId=='student2')].attemptCount").value(hasItem(0))
+      )
+      .andExpect(
+        jsonPath("$[?(@.studentId=='student2')].latestAnswerAt").value(
+          hasItem(nullValue())
+        )
+      )
+      .andExpect(
+        jsonPath("$[?(@.studentId=='student2')].latestAnswerText").value(
+          hasItem(nullValue())
         )
       );
   }

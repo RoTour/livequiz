@@ -4,6 +4,7 @@ import com.livequiz.backend.application.AddQuestionToLectureUseCase;
 import com.livequiz.backend.application.CreateLectureUseCase;
 import com.livequiz.backend.application.GetLectureQuestionAnalyticsUseCase;
 import com.livequiz.backend.application.GetLectureStateUseCase;
+import com.livequiz.backend.application.GetQuestionStudentAnswerHistoryUseCase;
 import com.livequiz.backend.application.ListInstructorLecturesUseCase;
 import com.livequiz.backend.application.UnlockNextQuestionUseCase;
 import com.livequiz.backend.application.UnlockQuestionUseCase;
@@ -29,6 +30,7 @@ public class LectureController {
   private final UnlockNextQuestionUseCase unlockNextQuestionUseCase;
   private final GetLectureStateUseCase getLectureStateUseCase;
   private final GetLectureQuestionAnalyticsUseCase getLectureQuestionAnalyticsUseCase;
+  private final GetQuestionStudentAnswerHistoryUseCase getQuestionStudentAnswerHistoryUseCase;
   private final ListInstructorLecturesUseCase listInstructorLecturesUseCase;
 
   public LectureController(
@@ -38,6 +40,7 @@ public class LectureController {
     UnlockNextQuestionUseCase unlockNextQuestionUseCase,
     GetLectureStateUseCase getLectureStateUseCase,
     GetLectureQuestionAnalyticsUseCase getLectureQuestionAnalyticsUseCase,
+    GetQuestionStudentAnswerHistoryUseCase getQuestionStudentAnswerHistoryUseCase,
     ListInstructorLecturesUseCase listInstructorLecturesUseCase
   ) {
     this.createLectureUseCase = createLectureUseCase;
@@ -46,6 +49,7 @@ public class LectureController {
     this.unlockNextQuestionUseCase = unlockNextQuestionUseCase;
     this.getLectureStateUseCase = getLectureStateUseCase;
     this.getLectureQuestionAnalyticsUseCase = getLectureQuestionAnalyticsUseCase;
+    this.getQuestionStudentAnswerHistoryUseCase = getQuestionStudentAnswerHistoryUseCase;
     this.listInstructorLecturesUseCase = listInstructorLecturesUseCase;
   }
 
@@ -71,6 +75,12 @@ public class LectureController {
     long answeredCount,
     long unansweredCount,
     long multiAttemptCount
+  ) {}
+  public record StudentAnswerHistoryResponse(
+    String studentId,
+    String latestAnswerAt,
+    long attemptCount,
+    String latestAnswerText
   ) {}
 
   @GetMapping
@@ -181,6 +191,26 @@ public class LectureController {
           analytics.answeredCount(),
           analytics.unansweredCount(),
           analytics.multiAttemptCount()
+        )
+      )
+      .toList();
+  }
+
+  @GetMapping("/{lectureId}/questions/{questionId}/answers/history")
+  @LogExecutionTime
+  public java.util.List<StudentAnswerHistoryResponse> getQuestionStudentAnswerHistory(
+    @PathVariable String lectureId,
+    @PathVariable String questionId
+  ) {
+    return this.getQuestionStudentAnswerHistoryUseCase
+      .execute(lectureId, questionId)
+      .stream()
+      .map(history ->
+        new StudentAnswerHistoryResponse(
+          history.studentId(),
+          history.latestAnswerAt() != null ? history.latestAnswerAt().toString() : null,
+          history.attemptCount(),
+          history.latestAnswerText()
         )
       )
       .toList();

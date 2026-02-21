@@ -31,6 +31,16 @@ public class InMemoryLectureEnrollmentRepository
   }
 
   @Override
+  public java.util.List<String> findStudentIdsByLectureId(LectureId lectureId) {
+    return this.enrollments
+      .values()
+      .stream()
+      .filter(enrollment -> enrollment.lectureId().value().equals(lectureId.value()))
+      .map(LectureEnrollment::studentId)
+      .toList();
+  }
+
+  @Override
   public boolean existsByLectureIdAndStudentId(LectureId lectureId, String studentId) {
     return this.enrollments.containsKey(key(lectureId, studentId));
   }

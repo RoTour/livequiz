@@ -60,6 +60,19 @@ public class JpaPostgresSubmissionRepository implements SubmissionRepository {
   }
 
   @Override
+  public long countByLectureQuestionAndStudent(
+    LectureId lectureId,
+    QuestionId questionId,
+    String studentId
+  ) {
+    return this.jpaSubmissionRepository.countByLectureIdAndQuestionIdAndStudentId(
+        lectureId.value(),
+        questionId.value(),
+        studentId
+      );
+  }
+
+  @Override
   public Set<String> findSubmittedQuestionIdsByLectureAndStudent(
     LectureId lectureId,
     String studentId

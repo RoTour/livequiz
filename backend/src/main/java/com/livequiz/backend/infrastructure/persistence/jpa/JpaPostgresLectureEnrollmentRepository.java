@@ -36,6 +36,15 @@ public class JpaPostgresLectureEnrollmentRepository
   }
 
   @Override
+  public java.util.List<String> findStudentIdsByLectureId(LectureId lectureId) {
+    return this.jpaLectureEnrollmentRepository
+      .findByIdLectureId(lectureId.value())
+      .stream()
+      .map(entity -> entity.getId().getStudentId())
+      .toList();
+  }
+
+  @Override
   public boolean existsByLectureIdAndStudentId(LectureId lectureId, String studentId) {
     return this.jpaLectureEnrollmentRepository.existsById(
         new LectureEnrollmentId(lectureId.value(), studentId)

@@ -5,6 +5,8 @@ public interface LectureEnrollmentRepository {
 
   long countByLectureId(LectureId lectureId);
 
+  java.util.List<String> findStudentIdsByLectureId(LectureId lectureId);
+
   boolean existsByLectureIdAndStudentId(LectureId lectureId, String studentId);
 
   java.util.Optional<LectureEnrollment> findByLectureIdAndStudentId(
