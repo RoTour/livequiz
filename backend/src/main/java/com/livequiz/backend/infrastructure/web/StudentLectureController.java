@@ -3,6 +3,7 @@ package com.livequiz.backend.infrastructure.web;
 import com.livequiz.backend.application.CurrentUserService;
 import com.livequiz.backend.application.GetNextQuestionForStudentUseCase;
 import com.livequiz.backend.application.JoinLectureUseCase;
+import com.livequiz.backend.application.ListStudentLecturesUseCase;
 import com.livequiz.backend.application.SubmitAnswerUseCase;
 import java.util.Map;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,17 +19,20 @@ public class StudentLectureController {
 
   private final JoinLectureUseCase joinLectureUseCase;
   private final GetNextQuestionForStudentUseCase getNextQuestionForStudentUseCase;
+  private final ListStudentLecturesUseCase listStudentLecturesUseCase;
   private final SubmitAnswerUseCase submitAnswerUseCase;
   private final CurrentUserService currentUserService;
 
   public StudentLectureController(
     JoinLectureUseCase joinLectureUseCase,
     GetNextQuestionForStudentUseCase getNextQuestionForStudentUseCase,
+    ListStudentLecturesUseCase listStudentLecturesUseCase,
     SubmitAnswerUseCase submitAnswerUseCase,
     CurrentUserService currentUserService
   ) {
     this.joinLectureUseCase = joinLectureUseCase;
     this.getNextQuestionForStudentUseCase = getNextQuestionForStudentUseCase;
+    this.listStudentLecturesUseCase = listStudentLecturesUseCase;
     this.submitAnswerUseCase = submitAnswerUseCase;
     this.currentUserService = currentUserService;
   }
@@ -37,12 +41,38 @@ public class StudentLectureController {
 
   public record SubmitAnswerRequest(String questionId, String answerText) {}
 
+  public record StudentLectureSummaryResponse(
+    String lectureId,
+    String title,
+    String enrolledAt,
+    int questionCount,
+    int answeredCount
+  ) {}
+
   @PostMapping("/join")
   public JoinLectureUseCase.JoinResult joinLecture(
     @RequestBody JoinLectureRequest request
   ) {
     String studentId = this.currentUserService.requireUserId();
     return this.joinLectureUseCase.execute(request.token(), request.code(), studentId);
+  }
+
+  @GetMapping("/students/me")
+  public java.util.List<StudentLectureSummaryResponse> listStudentLectures() {
+    String studentId = this.currentUserService.requireUserId();
+    return this.listStudentLecturesUseCase
+      .execute(studentId)
+      .stream()
+      .map(summary ->
+        new StudentLectureSummaryResponse(
+          summary.lectureId(),
+          summary.title(),
+          summary.enrolledAt().toString(),
+          summary.questionCount(),
+          summary.answeredCount()
+        )
+      )
+      .toList();
   }
 
   @GetMapping("/{lectureId}/students/me/next-question")

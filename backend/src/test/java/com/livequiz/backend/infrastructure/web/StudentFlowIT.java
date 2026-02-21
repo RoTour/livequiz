@@ -1,5 +1,6 @@
 package com.livequiz.backend.infrastructure.web;
 
+import static org.hamcrest.Matchers.hasItem;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -123,6 +124,91 @@ class StudentFlowIT {
       )
       .andExpect(status().isOk())
       .andExpect(jsonPath("$.hasQuestion").value(false));
+  }
+
+  @Test
+  void should_list_only_joined_lectures_for_current_student() throws Exception {
+    String instructorToken = login("instructor", "password");
+    String studentToken = login("student", "password");
+
+    String answeredLectureId = createLecture(instructorToken, "Answered Lecture");
+    String pendingLectureId = createLecture(instructorToken, "Pending Lecture");
+    String notJoinedLectureId = createLecture(instructorToken, "Not Joined Lecture");
+
+    String answeredQuestionId = addQuestion(
+      instructorToken,
+      answeredLectureId,
+      "What is eventual consistency?",
+      "Consistency model",
+      60
+    );
+
+    String answeredLectureInviteCode = extractField(
+      createInviteResponse(instructorToken, answeredLectureId),
+      "joinCode"
+    );
+    String pendingLectureInviteCode = extractField(
+      createInviteResponse(instructorToken, pendingLectureId),
+      "joinCode"
+    );
+
+    joinLectureByCode(studentToken, answeredLectureInviteCode);
+    joinLectureByCode(studentToken, pendingLectureInviteCode);
+
+    mockMvc
+      .perform(
+        post("/api/lectures/{lectureId}/questions/unlock-next", answeredLectureId)
+          .header("Authorization", "Bearer " + instructorToken)
+      )
+      .andExpect(status().isOk());
+
+    mockMvc
+      .perform(
+        post("/api/lectures/{lectureId}/submissions", answeredLectureId)
+          .header("Authorization", "Bearer " + studentToken)
+          .contentType("application/json")
+          .content(
+            "{\"questionId\":\"" +
+            answeredQuestionId +
+            "\",\"answerText\":\"Consistency over time\"}"
+          )
+      )
+      .andExpect(status().isOk());
+
+    mockMvc
+      .perform(get("/api/lectures/students/me").header("Authorization", "Bearer " + studentToken))
+      .andExpect(status().isOk())
+      .andExpect(
+        jsonPath("$[?(@.lectureId=='" + answeredLectureId + "')].title").value(
+          hasItem("Answered Lecture")
+        )
+      )
+      .andExpect(
+        jsonPath("$[?(@.lectureId=='" + answeredLectureId + "')].questionCount").value(
+          hasItem(1)
+        )
+      )
+      .andExpect(
+        jsonPath("$[?(@.lectureId=='" + answeredLectureId + "')].answeredCount").value(
+          hasItem(1)
+        )
+      )
+      .andExpect(
+        jsonPath("$[?(@.lectureId=='" + pendingLectureId + "')].title").value(
+          hasItem("Pending Lecture")
+        )
+      )
+      .andExpect(
+        jsonPath("$[?(@.lectureId=='" + pendingLectureId + "')].questionCount").value(
+          hasItem(0)
+        )
+      )
+      .andExpect(
+        jsonPath("$[?(@.lectureId=='" + pendingLectureId + "')].answeredCount").value(
+          hasItem(0)
+        )
+      )
+      .andExpect(jsonPath("$[?(@.lectureId=='" + notJoinedLectureId + "')]" ).isEmpty());
   }
 
   @Test

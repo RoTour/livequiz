@@ -7,4 +7,8 @@ public interface JpaLectureEnrollmentRepository
   long countByIdLectureId(String lectureId);
 
   java.util.List<LectureEnrollmentEntity> findByIdLectureId(String lectureId);
+
+  java.util.List<LectureEnrollmentEntity> findByIdStudentIdOrderByEnrolledAtDesc(
+    String studentId
+  );
 }

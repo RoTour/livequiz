@@ -42,6 +42,7 @@ public class SecurityConfig {
             .hasRole("INSTRUCTOR")
             .requestMatchers(
               "/api/lectures/join",
+              "/api/lectures/students/me",
               "/api/lectures/*/students/me/next-question",
               "/api/lectures/*/submissions"
             )

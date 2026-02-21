@@ -90,7 +90,7 @@ Acceptance criteria for this phase:
 - [x] Iteration 08 - Instructor per-question analytics rollup API
 - [x] Iteration 09 - Instructor per-question student answer history API
 - [x] Iteration 10 - Instructor analytics UI integration
-- [ ] Iteration 11 - Student lecture listing API
+- [x] Iteration 11 - Student lecture listing API
 - [ ] Iteration 12 - Student route scaffold (backward compatible)
 - [ ] Iteration 13 - Student lecture list page (join + re-entry)
 - [ ] Iteration 14 - Student lecture room page
