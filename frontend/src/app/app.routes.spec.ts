@@ -2,6 +2,7 @@ import { routes } from './app.routes';
 import { authGuard } from './login/auth-guard';
 import { instructorGuard, studentGuard } from './login/role-guard';
 import { InstructorHome } from './instructor/instructor-home';
+import { InstructorLectureList } from './instructor/instructor-lecture-list';
 import { StudentHome } from './student/student-home';
 import { StudentJoinToken } from './student/student-join-token';
 
@@ -18,7 +19,7 @@ describe('app routes', () => {
     const instructorListRoute = routes.find((route) => route.path === 'instructor/lectures');
     const instructorDetailRoute = routes.find((route) => route.path === 'instructor/lectures/:lectureId');
 
-    expect(instructorListRoute?.component).toBe(InstructorHome);
+    expect(instructorListRoute?.component).toBe(InstructorLectureList);
     expect(instructorDetailRoute?.component).toBe(InstructorHome);
     expect(instructorListRoute?.canActivate).toEqual([authGuard, instructorGuard]);
     expect(instructorDetailRoute?.canActivate).toEqual([authGuard, instructorGuard]);

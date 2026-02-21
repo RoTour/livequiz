@@ -11,6 +11,10 @@ export class LectureService {
     return this.http.post<{ lectureId: string }>(this.endpoint, dto);
   }
 
+  listInstructorLectures(): Observable<InstructorLectureSummaryResponse[]> {
+    return this.http.get<InstructorLectureSummaryResponse[]>(this.endpoint);
+  }
+
   addQuestion(lectureId: string, dto: AddQuestionDto): Observable<{ lectureId: string; questionId: string }> {
     return this.http.post<{ lectureId: string; questionId: string }>(
       `${this.endpoint}/${lectureId}/questions`,
@@ -78,6 +82,14 @@ export type LectureStateResponse = {
     timeLimitSeconds: number;
     unlocked: boolean;
   }>;
+};
+
+export type InstructorLectureSummaryResponse = {
+  lectureId: string;
+  title: string;
+  createdAt: string | null;
+  questionCount: number;
+  unlockedCount: number;
 };
 
 export type CreateInviteResponse = {

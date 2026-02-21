@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ActivatedRoute, convertToParamMap } from '@angular/router';
 import { vi } from 'vitest';
 import { InstructorHome } from './instructor-home';
 import { InstructorWorkspaceService } from './application/instructor-workspace.service';
@@ -42,6 +43,14 @@ describe('InstructorHome', () => {
             createInvite,
             listInvites,
             revokeInvite,
+          },
+        },
+        {
+          provide: ActivatedRoute,
+          useValue: {
+            snapshot: {
+              paramMap: convertToParamMap({}),
+            },
           },
         },
       ],

@@ -1,0 +1,46 @@
+<section class="lq-page lq-grid">
+  <header class="lq-page-header">
+    <h1 class="lq-page-title">Instructor Lectures</h1>
+    <p class="lq-page-subtitle">Create a lecture, then open it to manage questions and invites.</p>
+    <p class="lq-status-line">{{ status() }}</p>
+  </header>
+
+  <article class="lq-card lq-stack">
+    <h2 class="lq-card-title">Create Lecture</h2>
+    <form [formGroup]="createLectureForm" (ngSubmit)="createLecture()" class="lq-form-grid">
+      <label class="lq-field-label" for="title">Lecture title</label>
+      <input
+        id="title"
+        formControlName="title"
+        type="text"
+        placeholder="Distributed Systems - Week 3"
+        class="lq-input"
+      />
+      <button type="submit" class="lq-btn lq-btn-primary">Create and open</button>
+    </form>
+  </article>
+
+  <article class="lq-card lq-stack">
+    <div class="lq-row lq-row-between">
+      <h2 class="lq-card-title">Your lectures</h2>
+      <button type="button" class="lq-btn lq-btn-neutral" (click)="refreshLectures()">Refresh</button>
+    </div>
+
+    @if (lectures().length === 0) {
+      <p class="lq-muted">No lectures yet. Start by creating one.</p>
+    } @else {
+      <ul class="lq-list">
+        @for (lecture of lectures(); track lecture.lectureId) {
+          <li class="lq-list-item">
+            <button type="button" class="lq-list-action" (click)="openLecture(lecture.lectureId)">
+              <span class="lq-list-title">{{ lecture.title }}</span>
+              <span class="lq-list-meta">
+                {{ lecture.questionCount }} questions, {{ lecture.unlockedCount }} unlocked
+              </span>
+            </button>
+          </li>
+        }
+      </ul>
+    }
+  </article>
+</section>

@@ -1,4 +1,5 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CreateInviteResponse, LectureInviteResponse, LectureStateResponse } from '../lecture.service';
 import { InstructorWorkspaceService } from './application/instructor-workspace.service';
@@ -19,7 +20,8 @@ import { LectureStatePanel } from './components/lecture-state-panel/lecture-stat
   templateUrl: './instructor-home.html',
   styleUrl: './instructor-home.css',
 })
-export class InstructorHome {
+export class InstructorHome implements OnInit {
+  private readonly route = inject(ActivatedRoute);
   private readonly workspaceService = inject(InstructorWorkspaceService);
 
   protected readonly status = signal('Ready');
@@ -37,6 +39,19 @@ export class InstructorHome {
     modelAnswer: new FormControl('', [Validators.required, Validators.minLength(3)]),
     timeLimitSeconds: new FormControl(60, [Validators.required, Validators.min(10)]),
   });
+
+  async ngOnInit() {
+    const lectureId = this.route.snapshot.paramMap.get('lectureId')?.trim();
+    if (!lectureId) {
+      return;
+    }
+
+    this.selectedLectureId.set(lectureId);
+    const refreshed = await this.refreshLectureState({ preserveStatusOnError: true });
+    await this.refreshInvites({ preserveStatusOnError: true });
+
+    this.status.set(refreshed ? `Loaded lecture: ${lectureId}` : `Could not load lecture ${lectureId}.`);
+  }
 
   async createLecture() {
     if (this.createLectureForm.invalid) {

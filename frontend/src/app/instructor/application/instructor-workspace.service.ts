@@ -2,6 +2,7 @@ import { inject, Injectable } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import {
   CreateInviteResponse,
+  InstructorLectureSummaryResponse,
   LectureInviteResponse,
   LectureService,
   LectureStateResponse,
@@ -14,6 +15,10 @@ export class InstructorWorkspaceService {
   async createLecture(title: string): Promise<string> {
     const response = await firstValueFrom(this.lectureService.create({ title }));
     return response.lectureId;
+  }
+
+  async listLectures(): Promise<InstructorLectureSummaryResponse[]> {
+    return await firstValueFrom(this.lectureService.listInstructorLectures());
   }
 
   async addQuestion(

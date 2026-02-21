@@ -84,7 +84,7 @@ Acceptance criteria for this phase:
 - [x] Iteration 02 - Lecture ownership metadata write path
 - [x] Iteration 03 - Instructor lecture listing API (summary read model)
 - [x] Iteration 04 - Instructor route scaffold (backward compatible)
-- [ ] Iteration 05 - Instructor lecture list page
+- [x] Iteration 05 - Instructor lecture list page
 - [ ] Iteration 06 - Instructor detail route param source of truth
 - [ ] Iteration 07 - Instructor ownership enforcement on existing endpoints
 - [ ] Iteration 08 - Instructor per-question analytics rollup API

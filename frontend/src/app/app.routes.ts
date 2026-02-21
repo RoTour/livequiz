@@ -3,6 +3,7 @@ import { Login } from './login/login';
 import { authGuard } from './login/auth-guard';
 import { instructorGuard, studentGuard } from './login/role-guard';
 import { InstructorHome } from './instructor/instructor-home';
+import { InstructorLectureList } from './instructor/instructor-lecture-list';
 import { StudentHome } from './student/student-home';
 import { StudentJoinToken } from './student/student-join-token';
 import { DesignSystem } from './design-system/design-system';
@@ -20,7 +21,7 @@ export const routes: Routes = [
   },
   {
     path: 'instructor/lectures',
-    component: InstructorHome,
+    component: InstructorLectureList,
     canActivate: [authGuard, instructorGuard],
   },
   {
