@@ -40,7 +40,9 @@ public class JpaPostgresLectureRepository implements LectureRepository {
       lecture.id().value(),
       lecture.title(),
       questions,
-      lecture.unlockedQuestionIds().stream().toList()
+      lecture.unlockedQuestionIds().stream().toList(),
+      lecture.createdByInstructorId(),
+      lecture.createdAt()
     );
     this.jpaLectureRepository.save(entity);
   }
@@ -67,7 +69,9 @@ public class JpaPostgresLectureRepository implements LectureRepository {
               )
             )
             .toList(),
-          new java.util.LinkedHashSet<>(entity.getUnlockedQuestionIds())
+          new java.util.LinkedHashSet<>(entity.getUnlockedQuestionIds()),
+          entity.getCreatedByInstructorId(),
+          entity.getCreatedAt()
         )
       );
   }

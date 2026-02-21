@@ -4,7 +4,11 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+import com.livequiz.backend.domain.lecture.LectureId;
+import com.livequiz.backend.domain.lecture.LectureRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -19,6 +23,9 @@ public class QuizControllerIT {
 
   @Autowired
   private MockMvc mockMvc;
+
+  @Autowired
+  private LectureRepository lectureRepository;
 
   private String loginAsInstructor() throws Exception {
     String requestBody = """
@@ -173,6 +180,34 @@ public class QuizControllerIT {
     mockMvc
       .perform(get("/api/lectures/lecture-1/state"))
       .andExpect(status().isForbidden());
+  }
+
+  @Test
+  void should_store_lecture_ownership_metadata_on_create() throws Exception {
+    String instructorToken = loginAsInstructor();
+    String requestBody = """
+      {
+        "title": "Ownership Metadata"
+      }
+      """;
+
+    String createLectureResponse = mockMvc
+      .perform(
+        post("/api/lectures")
+          .contentType("application/json")
+          .header("Authorization", "Bearer " + instructorToken)
+          .content(requestBody)
+      )
+      .andExpect(status().isOk())
+      .andReturn()
+      .getResponse()
+      .getContentAsString();
+
+    String lectureId = extractField(createLectureResponse, "lectureId");
+    var persistedLecture = lectureRepository.findById(new LectureId(lectureId)).orElseThrow();
+
+    assertEquals("instructor", persistedLecture.createdByInstructorId());
+    assertNotNull(persistedLecture.createdAt());
   }
 
   private String extractField(String response, String fieldName) {

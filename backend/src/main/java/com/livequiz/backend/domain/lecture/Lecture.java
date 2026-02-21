@@ -6,13 +6,24 @@ public class Lecture {
   private final String title;
   private final java.util.List<Question> questions;
   private final java.util.Set<String> unlockedQuestionIds;
+  private final String createdByInstructorId;
+  private final java.time.Instant createdAt;
 
   public Lecture(LectureId id, String title) {
-    this(id, title, java.util.List.of(), java.util.Set.of());
+    this(id, title, java.util.List.of(), java.util.Set.of(), null, null);
+  }
+
+  public Lecture(
+    LectureId id,
+    String title,
+    String createdByInstructorId,
+    java.time.Instant createdAt
+  ) {
+    this(id, title, java.util.List.of(), java.util.Set.of(), createdByInstructorId, createdAt);
   }
 
   public Lecture(LectureId id, String title, java.util.List<Question> questions) {
-    this(id, title, questions, java.util.Set.of());
+    this(id, title, questions, java.util.Set.of(), null, null);
   }
 
   public Lecture(
@@ -20,6 +31,17 @@ public class Lecture {
     String title,
     java.util.List<Question> questions,
     java.util.Set<String> unlockedQuestionIds
+  ) {
+    this(id, title, questions, unlockedQuestionIds, null, null);
+  }
+
+  public Lecture(
+    LectureId id,
+    String title,
+    java.util.List<Question> questions,
+    java.util.Set<String> unlockedQuestionIds,
+    String createdByInstructorId,
+    java.time.Instant createdAt
   ) {
     if (id == null) {
       throw new IllegalArgumentException("Lecture ID cannot be null");
@@ -34,6 +56,19 @@ public class Lecture {
       unlockedQuestionIds != null
         ? java.util.Set.copyOf(unlockedQuestionIds)
         : java.util.Set.of();
+    this.createdByInstructorId = createdByInstructorId;
+    this.createdAt = createdAt;
+
+    boolean hasPartialOwnershipMetadata =
+      (this.createdByInstructorId == null) != (this.createdAt == null);
+    if (hasPartialOwnershipMetadata) {
+      throw new IllegalArgumentException(
+        "Lecture ownership metadata requires both createdByInstructorId and createdAt"
+      );
+    }
+    if (this.createdByInstructorId != null && this.createdByInstructorId.isBlank()) {
+      throw new IllegalArgumentException("createdByInstructorId cannot be blank");
+    }
 
     long distinctQuestionCount = this.questions.stream().map(q -> q.id().value()).distinct().count();
     if (distinctQuestionCount != this.questions.size()) {
@@ -64,6 +99,14 @@ public class Lecture {
     return unlockedQuestionIds;
   }
 
+  public String createdByInstructorId() {
+    return createdByInstructorId;
+  }
+
+  public java.time.Instant createdAt() {
+    return createdAt;
+  }
+
   public Lecture addQuestion(String questionId, String prompt, String modelAnswer, int timeLimitSeconds) {
     if (this.questions.stream().anyMatch(q -> q.id().value().equals(questionId))) {
       throw new IllegalArgumentException("Question already exists in lecture");
@@ -81,7 +124,14 @@ public class Lecture {
 
     java.util.List<Question> updatedQuestions = new java.util.ArrayList<>(this.questions);
     updatedQuestions.add(question);
-    return new Lecture(this.id, this.title, updatedQuestions, this.unlockedQuestionIds);
+    return new Lecture(
+      this.id,
+      this.title,
+      updatedQuestions,
+      this.unlockedQuestionIds,
+      this.createdByInstructorId,
+      this.createdAt
+    );
   }
 
   public Lecture unlockQuestion(String questionId) {
@@ -93,7 +143,14 @@ public class Lecture {
       this.unlockedQuestionIds
     );
     updatedUnlockedQuestions.add(questionId);
-    return new Lecture(this.id, this.title, this.questions, updatedUnlockedQuestions);
+    return new Lecture(
+      this.id,
+      this.title,
+      this.questions,
+      updatedUnlockedQuestions,
+      this.createdByInstructorId,
+      this.createdAt
+    );
   }
 
   public Lecture unlockNextQuestion() {

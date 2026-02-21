@@ -63,4 +63,26 @@ public class LectureTest {
         )
     );
   }
+
+  @Test
+  void should_preserve_ownership_metadata_across_mutations() {
+    var createdAt = java.time.Instant.parse("2026-02-21T11:00:00Z");
+    Lecture lecture = new Lecture(
+      new LectureId("lecture-123"),
+      "Physics 101",
+      "instructor-1",
+      createdAt
+    );
+
+    Lecture withQuestion = lecture.addQuestion(
+      "q-1",
+      "What is inertia?",
+      "Resistance to change in motion",
+      60
+    );
+    Lecture unlocked = withQuestion.unlockQuestion("q-1");
+
+    assertEquals("instructor-1", unlocked.createdByInstructorId());
+    assertEquals(createdAt, unlocked.createdAt());
+  }
 }

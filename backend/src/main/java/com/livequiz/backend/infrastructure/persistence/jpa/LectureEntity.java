@@ -7,6 +7,7 @@ import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
 import jakarta.persistence.Table;
 import jakarta.persistence.JoinColumn;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,6 +19,10 @@ public class LectureEntity {
   private String id;
 
   private String title;
+
+  private String createdByInstructorId;
+
+  private Instant createdAt;
 
   @ElementCollection
   @CollectionTable(
@@ -37,8 +42,7 @@ public class LectureEntity {
   public LectureEntity() {}
 
   public LectureEntity(String id, String title) {
-    this.id = id;
-    this.title = title;
+    this(id, title, new ArrayList<>(), new ArrayList<>(), null, null);
   }
 
   public LectureEntity(
@@ -47,10 +51,23 @@ public class LectureEntity {
     List<LectureQuestionEmbeddable> questions,
     List<String> unlockedQuestionIds
   ) {
+    this(id, title, questions, unlockedQuestionIds, null, null);
+  }
+
+  public LectureEntity(
+    String id,
+    String title,
+    List<LectureQuestionEmbeddable> questions,
+    List<String> unlockedQuestionIds,
+    String createdByInstructorId,
+    Instant createdAt
+  ) {
     this.id = id;
     this.title = title;
     this.questions = questions;
     this.unlockedQuestionIds = unlockedQuestionIds;
+    this.createdByInstructorId = createdByInstructorId;
+    this.createdAt = createdAt;
   }
 
   public String getId() {
@@ -67,5 +84,13 @@ public class LectureEntity {
 
   public List<String> getUnlockedQuestionIds() {
     return unlockedQuestionIds;
+  }
+
+  public String getCreatedByInstructorId() {
+    return createdByInstructorId;
+  }
+
+  public Instant getCreatedAt() {
+    return createdAt;
   }
 }
