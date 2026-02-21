@@ -48,6 +48,15 @@ public class InMemoryLectureInviteRepository implements LectureInviteRepository 
   }
 
   @Override
+  public Optional<LectureInvite> findLatestByTokenHash(String tokenHash) {
+    return this.invitesById
+      .values()
+      .stream()
+      .filter(invite -> invite.tokenHash().equals(tokenHash))
+      .max(java.util.Comparator.comparing(LectureInvite::createdAt));
+  }
+
+  @Override
   public Optional<LectureInvite> findActiveByJoinCode(String joinCode, Instant now) {
     return this.invitesById
       .values()
@@ -55,6 +64,15 @@ public class InMemoryLectureInviteRepository implements LectureInviteRepository 
       .filter(invite -> invite.joinCode().equals(joinCode))
       .filter(invite -> invite.isActiveAt(now))
       .findFirst();
+  }
+
+  @Override
+  public Optional<LectureInvite> findLatestByJoinCode(String joinCode) {
+    return this.invitesById
+      .values()
+      .stream()
+      .filter(invite -> invite.joinCode().equals(joinCode))
+      .max(java.util.Comparator.comparing(LectureInvite::createdAt));
   }
 
   @Override

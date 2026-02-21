@@ -14,10 +14,14 @@ public interface JpaLectureInviteRepository
     Instant now
   );
 
+  Optional<LectureInviteEntity> findFirstByTokenHashOrderByCreatedAtDesc(String tokenHash);
+
   Optional<LectureInviteEntity> findFirstByJoinCodeAndRevokedAtIsNullAndExpiresAtAfter(
     String joinCode,
     Instant now
   );
+
+  Optional<LectureInviteEntity> findFirstByJoinCodeOrderByCreatedAtDesc(String joinCode);
 
   boolean existsByJoinCodeAndRevokedAtIsNullAndExpiresAtAfter(String joinCode, Instant now);
 }

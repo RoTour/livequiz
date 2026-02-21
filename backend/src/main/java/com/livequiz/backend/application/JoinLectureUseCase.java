@@ -46,13 +46,14 @@ public class JoinLectureUseCase {
     if (token != null && !token.isBlank()) {
       String tokenHash = this.inviteTokenService.hashToken(token);
       invite = this.lectureInviteRepository
-        .findActiveByTokenHash(tokenHash, now)
+        .findLatestByTokenHash(tokenHash)
         .orElseThrow(() ->
           new ApiException(HttpStatus.NOT_FOUND, "INVITE_NOT_FOUND", "Invite not found")
         );
     } else {
+      String normalizedJoinCode = joinCode.trim().toUpperCase();
       invite = this.lectureInviteRepository
-        .findActiveByJoinCode(joinCode, now)
+        .findLatestByJoinCode(normalizedJoinCode)
         .orElseThrow(() ->
           new ApiException(HttpStatus.NOT_FOUND, "INVITE_NOT_FOUND", "Invite not found")
         );
@@ -70,15 +71,28 @@ public class JoinLectureUseCase {
     );
     boolean alreadyEnrolled = existingEnrollment.isPresent();
     Instant enrolledAt = existingEnrollment.map(LectureEnrollment::enrolledAt).orElse(now);
-    if (!alreadyEnrolled) {
-      LectureEnrollment enrollment = new LectureEnrollment(
-        invite.lectureId(),
-        studentId,
-        enrolledAt
-      );
-      this.lectureEnrollmentRepository.save(enrollment);
+    if (alreadyEnrolled) {
+      return new JoinResult(invite.lectureId().value(), studentId, true, enrolledAt);
     }
 
+    ensureInviteUsable(invite, now);
+
+    LectureEnrollment enrollment = new LectureEnrollment(
+      invite.lectureId(),
+      studentId,
+      enrolledAt
+    );
+    this.lectureEnrollmentRepository.save(enrollment);
+
     return new JoinResult(invite.lectureId().value(), studentId, alreadyEnrolled, enrolledAt);
+  }
+
+  private void ensureInviteUsable(LectureInvite invite, Instant now) {
+    if (invite.revokedAt() != null) {
+      throw new ApiException(HttpStatus.GONE, "INVITE_REVOKED", "Invite has been revoked");
+    }
+    if (!now.isBefore(invite.expiresAt())) {
+      throw new ApiException(HttpStatus.GONE, "INVITE_EXPIRED", "Invite has expired");
+    }
   }
 }

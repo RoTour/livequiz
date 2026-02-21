@@ -13,7 +13,11 @@ public interface LectureInviteRepository {
 
   Optional<LectureInvite> findActiveByTokenHash(String tokenHash, Instant now);
 
+  Optional<LectureInvite> findLatestByTokenHash(String tokenHash);
+
   Optional<LectureInvite> findActiveByJoinCode(String joinCode, Instant now);
+
+  Optional<LectureInvite> findLatestByJoinCode(String joinCode);
 
   boolean existsActiveByJoinCode(String joinCode, Instant now);
 }

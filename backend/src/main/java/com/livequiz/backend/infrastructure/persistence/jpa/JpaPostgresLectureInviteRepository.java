@@ -48,9 +48,23 @@ public class JpaPostgresLectureInviteRepository implements LectureInviteReposito
   }
 
   @Override
+  public Optional<LectureInvite> findLatestByTokenHash(String tokenHash) {
+    return this.jpaLectureInviteRepository
+      .findFirstByTokenHashOrderByCreatedAtDesc(tokenHash)
+      .map(this::toDomain);
+  }
+
+  @Override
   public Optional<LectureInvite> findActiveByJoinCode(String joinCode, Instant now) {
     return this.jpaLectureInviteRepository
       .findFirstByJoinCodeAndRevokedAtIsNullAndExpiresAtAfter(joinCode, now)
+      .map(this::toDomain);
+  }
+
+  @Override
+  public Optional<LectureInvite> findLatestByJoinCode(String joinCode) {
+    return this.jpaLectureInviteRepository
+      .findFirstByJoinCodeOrderByCreatedAtDesc(joinCode)
       .map(this::toDomain);
   }
 

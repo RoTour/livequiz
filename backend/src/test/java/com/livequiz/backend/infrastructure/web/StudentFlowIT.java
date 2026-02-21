@@ -6,6 +6,10 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.livequiz.backend.domain.lecture.LectureInvite;
+import com.livequiz.backend.domain.lecture.LectureInviteRepository;
+import java.time.Duration;
+import java.time.Instant;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -20,6 +24,9 @@ class StudentFlowIT {
 
   @Autowired
   private MockMvc mockMvc;
+
+  @Autowired
+  private LectureInviteRepository lectureInviteRepository;
 
   @Test
   void should_join_with_invite_and_submit_with_cooldown() throws Exception {
@@ -240,6 +247,89 @@ class StudentFlowIT {
       )
       .andExpect(status().isBadRequest())
       .andExpect(jsonPath("$.code").value("INVITE_CREDENTIALS_REQUIRED"));
+  }
+
+  @Test
+  void should_return_explicit_revoked_error_when_joining_non_active_invite() throws Exception {
+    String instructorToken = login("instructor", "password");
+    String lectureId = createLecture(instructorToken, "Distributed Systems");
+    String inviteResponse = createInviteResponse(instructorToken, lectureId);
+    String inviteId = extractField(inviteResponse, "inviteId");
+    String joinCode = extractField(inviteResponse, "joinCode");
+    String studentToken = login("student", "password");
+
+    mockMvc
+      .perform(
+        post("/api/lectures/{lectureId}/invites/{inviteId}/revoke", lectureId, inviteId)
+          .header("Authorization", "Bearer " + instructorToken)
+      )
+      .andExpect(status().isOk());
+
+    mockMvc
+      .perform(
+        post("/api/lectures/join")
+          .header("Authorization", "Bearer " + studentToken)
+          .contentType("application/json")
+          .content("{\"code\":\"" + joinCode + "\"}")
+      )
+      .andExpect(status().isGone())
+      .andExpect(jsonPath("$.code").value("INVITE_REVOKED"));
+  }
+
+  @Test
+  void should_return_explicit_expired_error_when_joining_non_active_invite() throws Exception {
+    String instructorToken = login("instructor", "password");
+    String lectureId = createLecture(instructorToken, "Distributed Systems");
+    String inviteResponse = createInviteResponse(instructorToken, lectureId);
+    String inviteId = extractField(inviteResponse, "inviteId");
+    String joinCode = extractField(inviteResponse, "joinCode");
+    String studentToken = login("student", "password");
+
+    expireInvite(inviteId);
+
+    mockMvc
+      .perform(
+        post("/api/lectures/join")
+          .header("Authorization", "Bearer " + studentToken)
+          .contentType("application/json")
+          .content("{\"code\":\"" + joinCode + "\"}")
+      )
+      .andExpect(status().isGone())
+      .andExpect(jsonPath("$.code").value("INVITE_EXPIRED"));
+  }
+
+  @Test
+  void should_keep_join_idempotent_after_invite_revocation_for_enrolled_student() throws Exception {
+    String instructorToken = login("instructor", "password");
+    String lectureId = createLecture(instructorToken, "Distributed Systems");
+    String inviteResponse = createInviteResponse(instructorToken, lectureId);
+    String inviteId = extractField(inviteResponse, "inviteId");
+    String joinCode = extractField(inviteResponse, "joinCode");
+    String studentToken = login("student", "password");
+
+    String firstJoinResponse = joinLectureByCode(studentToken, joinCode);
+
+    mockMvc
+      .perform(
+        post("/api/lectures/{lectureId}/invites/{inviteId}/revoke", lectureId, inviteId)
+          .header("Authorization", "Bearer " + instructorToken)
+      )
+      .andExpect(status().isOk());
+
+    String secondJoinResponse = joinLectureByCode(studentToken, joinCode);
+
+    org.junit.jupiter.api.Assertions.assertEquals(
+      extractField(firstJoinResponse, "alreadyEnrolled"),
+      "false"
+    );
+    org.junit.jupiter.api.Assertions.assertEquals(
+      extractField(secondJoinResponse, "alreadyEnrolled"),
+      "true"
+    );
+    org.junit.jupiter.api.Assertions.assertEquals(
+      extractField(firstJoinResponse, "enrolledAt"),
+      extractField(secondJoinResponse, "enrolledAt")
+    );
   }
 
   @Test
@@ -479,6 +569,22 @@ class StudentFlowIT {
   private String extractInviteToken(String joinUrl) {
     int tokenStart = joinUrl.lastIndexOf('/') + 1;
     return joinUrl.substring(tokenStart);
+  }
+
+  private void expireInvite(String inviteId) {
+    LectureInvite invite = this.lectureInviteRepository.findByInviteId(inviteId).orElseThrow();
+    Instant createdAt = Instant.now().minus(Duration.ofHours(2));
+    LectureInvite expiredInvite = new LectureInvite(
+      invite.inviteId(),
+      invite.lectureId(),
+      invite.createdByInstructorId(),
+      invite.joinCode(),
+      invite.tokenHash(),
+      createdAt,
+      createdAt.plus(Duration.ofMinutes(30)),
+      null
+    );
+    this.lectureInviteRepository.save(expiredInvite);
   }
 
   private String extractField(String response, String fieldName) {

@@ -94,7 +94,7 @@ Acceptance criteria for this phase:
 - [x] Iteration 12 - Student route scaffold (backward compatible)
 - [x] Iteration 13 - Student lecture list page (join + re-entry)
 - [x] Iteration 14 - Student lecture room page
-- [ ] Iteration 15 - Token/code join contract hardening (explicit invite errors)
+- [x] Iteration 15 - Token/code join contract hardening (explicit invite errors)
 - [ ] Iteration 16 - Token deep-link completion and cleanup
 
 ### Cross-cutting delivery checklist for this phase
