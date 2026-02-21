@@ -4,8 +4,8 @@ import { authGuard } from './login/auth-guard';
 import { instructorGuard, studentGuard } from './login/role-guard';
 import { InstructorHome } from './instructor/instructor-home';
 import { InstructorLectureList } from './instructor/instructor-lecture-list';
-import { StudentHome } from './student/student-home';
 import { StudentLectureList } from './student/student-lecture-list';
+import { StudentLectureRoom } from './student/student-lecture-room';
 import { StudentJoinToken } from './student/student-join-token';
 import { DesignSystem } from './design-system/design-system';
 
@@ -41,7 +41,7 @@ export const routes: Routes = [
   },
   {
     path: 'student/lectures/:lectureId',
-    component: StudentHome,
+    component: StudentLectureRoom,
     canActivate: [authGuard, studentGuard],
   },
   {

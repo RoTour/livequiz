@@ -1,0 +1,16 @@
+<section class="lq-page lq-grid">
+  <header class="lq-page-header">
+    <h1 class="lq-page-title">Student Lecture Room</h1>
+    <p class="lq-page-subtitle">Work through unlocked questions for the selected lecture.</p>
+    <p class="lq-status-line">{{ status() }}</p>
+  </header>
+
+  <app-answer-flow-panel
+    [selectedLectureId]="selectedLectureId()"
+    [nextQuestion]="nextQuestion()"
+    [submitAnswerForm]="submitAnswerForm"
+    [cooldownMessage]="cooldownMessage()"
+    (loadNextQuestion)="loadNextQuestion()"
+    (submitAnswer)="submitAnswer()"
+  />
+</section>
