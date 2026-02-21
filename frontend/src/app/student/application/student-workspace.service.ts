@@ -4,6 +4,7 @@ import {
   JoinLectureResponse,
   LectureService,
   NextQuestionResponse,
+  StudentAnswerStatusResponse,
   StudentLectureSummaryResponse,
   SubmitAnswerResponse,
 } from '../../lecture.service';
@@ -33,5 +34,9 @@ export class StudentWorkspaceService {
     payload: { questionId: string; answerText: string },
   ): Promise<SubmitAnswerResponse> {
     return await firstValueFrom(this.lectureService.submitAnswer(lectureId, payload));
+  }
+
+  async getAnswerStatuses(lectureId: string): Promise<StudentAnswerStatusResponse[]> {
+    return await firstValueFrom(this.lectureService.getAnswerStatuses(lectureId));
   }
 }

@@ -3,15 +3,18 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { Router } from '@angular/router';
 import { StudentLectureSummaryResponse } from '../lecture.service';
 import { StudentWorkspaceService } from './application/student-workspace.service';
+import { HumanDatePipe } from '../shared/date/human-date.pipe';
+import { ToastService } from '../shared/toast/toast.service';
 
 @Component({
   selector: 'app-student-lecture-list',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, HumanDatePipe],
   templateUrl: './student-lecture-list.html',
 })
 export class StudentLectureList implements OnInit {
   private readonly workspaceService = inject(StudentWorkspaceService);
   private readonly router = inject(Router);
+  private readonly toastService = inject(ToastService);
 
   protected readonly status = signal('Ready');
   protected readonly loading = signal(false);
@@ -34,6 +37,7 @@ export class StudentLectureList implements OnInit {
       this.status.set('Lectures loaded');
     } catch {
       this.status.set('Could not load your lectures. Please retry.');
+      this.toastService.show('error', 'Could not load your lectures. Please retry.');
     } finally {
       this.loading.set(false);
     }
@@ -48,11 +52,16 @@ export class StudentLectureList implements OnInit {
       const code = this.joinLectureForm.value.code!.trim().toUpperCase();
       const result = await this.workspaceService.joinLectureByCode(code);
       this.joinResult.set(result.alreadyEnrolled ? 'Already enrolled' : 'Enrolled successfully');
+      this.toastService.show(
+        'success',
+        result.alreadyEnrolled ? 'You are already enrolled in this lecture.' : 'Lecture joined successfully.',
+      );
       this.joinLectureForm.reset({ code: '' });
       await this.refreshLectures();
       await this.router.navigate(['/student/lectures', result.lectureId]);
     } catch {
       this.status.set('Could not join lecture. Verify code and retry.');
+      this.toastService.show('warning', 'Could not join lecture. Verify code and retry.');
     }
   }
 

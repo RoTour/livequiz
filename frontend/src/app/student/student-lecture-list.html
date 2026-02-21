@@ -40,7 +40,7 @@
             <div class="lq-row">
               <strong>{{ lecture.title }}</strong>
               <span class="lq-chip lq-chip-muted">{{ lecture.answeredCount }}/{{ lecture.questionCount }} answered</span>
-              <span class="lq-muted">Joined {{ lecture.enrolledAt }}</span>
+              <span class="lq-muted">Joined {{ lecture.enrolledAt | humanDate }}</span>
             </div>
             <div>
               <button type="button" class="lq-btn lq-btn-secondary" (click)="openLecture(lecture.lectureId)">

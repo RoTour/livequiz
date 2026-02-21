@@ -1,0 +1,15 @@
+<section class="lq-toast-center" aria-live="polite" aria-atomic="false">
+  @for (toast of toastService.messages(); track toast.id) {
+    <article class="lq-toast" [class]="'lq-toast lq-toast-' + toast.level">
+      <p>{{ toast.text }}</p>
+      <button
+        type="button"
+        class="lq-toast-close"
+        (click)="dismiss(toast.id)"
+        aria-label="Dismiss notification"
+      >
+        x
+      </button>
+    </article>
+  }
+</section>

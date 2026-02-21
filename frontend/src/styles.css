@@ -281,6 +281,16 @@ a:focus-visible {
   color: var(--color-lq-ink);
 }
 
+.lq-chip-danger {
+  background: color-mix(in oklab, var(--color-lq-danger) 70%, white);
+  color: #4d1021;
+}
+
+.lq-chip-info {
+  background: color-mix(in oklab, var(--color-lq-accent-primary) 55%, white);
+  color: var(--color-lq-ink);
+}
+
 .lq-muted {
   color: var(--color-lq-ink-soft);
   font-size: 0.9rem;
@@ -316,6 +326,57 @@ a:focus-visible {
   border-radius: 0.62rem;
   background: var(--color-lq-surface-raised);
   padding: 0.58rem 0.7rem;
+}
+
+.lq-toast-center {
+  position: fixed;
+  top: 0.8rem;
+  right: 0.8rem;
+  z-index: 60;
+  display: grid;
+  gap: 0.5rem;
+  width: min(22rem, calc(100% - 1.6rem));
+}
+
+.lq-toast {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.65rem;
+  border: 3px solid var(--color-lq-border);
+  border-radius: 0.7rem;
+  box-shadow: 5px 5px 0 rgba(0, 0, 0, 0.86);
+  padding: 0.52rem 0.66rem;
+  color: var(--color-lq-ink);
+  animation: lq-rise 220ms ease both;
+}
+
+.lq-toast-info {
+  background: color-mix(in oklab, var(--color-lq-accent-primary) 70%, white);
+}
+
+.lq-toast-success {
+  background: color-mix(in oklab, var(--color-lq-success) 68%, white);
+}
+
+.lq-toast-warning {
+  background: color-mix(in oklab, var(--color-lq-warning) 72%, white);
+}
+
+.lq-toast-error {
+  background: color-mix(in oklab, var(--color-lq-danger) 52%, white);
+}
+
+.lq-toast-close {
+  border: 2px solid var(--color-lq-border);
+  border-radius: 0.4rem;
+  background: color-mix(in oklab, white 84%, var(--color-lq-surface));
+  color: var(--color-lq-ink);
+  cursor: pointer;
+  font-weight: 700;
+  line-height: 1;
+  min-width: 1.6rem;
+  min-height: 1.6rem;
 }
 
 .lq-dev-ok {

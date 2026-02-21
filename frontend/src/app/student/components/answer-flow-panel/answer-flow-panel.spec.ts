@@ -19,8 +19,10 @@ describe('AnswerFlowPanel', () => {
     fixture = TestBed.createComponent(AnswerFlowPanel);
     fixture.componentRef.setInput('selectedLectureId', '');
     fixture.componentRef.setInput('nextQuestion', null);
+    fixture.componentRef.setInput('answerStatuses', []);
     fixture.componentRef.setInput('submitAnswerForm', submitAnswerForm);
     fixture.componentRef.setInput('cooldownMessage', '');
+    fixture.componentRef.setInput('manualReloadDisabled', false);
     fixture.detectChanges();
   });
 
@@ -28,13 +30,13 @@ describe('AnswerFlowPanel', () => {
     const loadNextQuestion = vi.fn();
     fixture.componentInstance.loadNextQuestion.subscribe(loadNextQuestion);
 
-    const loadButton = findButton(fixture, 'Load next question');
+    const loadButton = findButton(fixture, 'Reload next question');
     expect(loadButton.disabled).toBe(true);
 
     fixture.componentRef.setInput('selectedLectureId', 'lecture-1');
     fixture.detectChanges();
 
-    findButton(fixture, 'Load next question').click();
+    findButton(fixture, 'Reload next question').click();
     expect(loadNextQuestion).toHaveBeenCalledTimes(1);
   });
 

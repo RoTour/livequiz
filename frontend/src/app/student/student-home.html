@@ -15,8 +15,10 @@
   <app-answer-flow-panel
     [selectedLectureId]="selectedLectureId()"
     [nextQuestion]="nextQuestion()"
+    [answerStatuses]="answerStatuses()"
     [submitAnswerForm]="submitAnswerForm"
     [cooldownMessage]="cooldownMessage()"
+    [manualReloadDisabled]="manualReloadDisabled()"
     (loadNextQuestion)="loadNextQuestion()"
     (submitAnswer)="submitAnswer()"
   />

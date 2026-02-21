@@ -74,6 +74,12 @@ export class LectureService {
     return this.http.get<NextQuestionResponse>(`${this.endpoint}/${lectureId}/students/me/next-question`);
   }
 
+  getAnswerStatuses(lectureId: string): Observable<StudentAnswerStatusResponse[]> {
+    return this.http.get<StudentAnswerStatusResponse[]>(
+      `${this.endpoint}/${lectureId}/students/me/answer-statuses`,
+    );
+  }
+
   submitAnswer(lectureId: string, dto: SubmitAnswerDto): Observable<SubmitAnswerResponse> {
     return this.http.post<SubmitAnswerResponse>(`${this.endpoint}/${lectureId}/submissions`, dto);
   }
@@ -188,4 +194,16 @@ export type SubmitAnswerResponse = {
   lectureId: string;
   questionId: string;
   studentId: string;
+  answerStatus: StudentAnswerStatus;
+};
+
+export type StudentAnswerStatus = 'AWAITING_EVALUATION' | 'CORRECT' | 'INCORRECT' | 'INCOMPLETE';
+
+export type StudentAnswerStatusResponse = {
+  lectureId: string;
+  questionId: string;
+  prompt: string;
+  order: number;
+  status: StudentAnswerStatus;
+  submittedAt: string;
 };

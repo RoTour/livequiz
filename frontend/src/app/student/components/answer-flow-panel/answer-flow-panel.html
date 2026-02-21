@@ -1,8 +1,13 @@
 <article class="lq-card lq-stack">
   <h2 class="lq-card-title">Answer flow</h2>
 
-  <button type="button" (click)="loadNext()" [disabled]="!selectedLectureId" class="lq-btn lq-btn-primary">
-    Load next question
+  <button
+    type="button"
+    (click)="loadNext()"
+    [disabled]="!selectedLectureId || manualReloadDisabled"
+    class="lq-btn lq-btn-primary"
+  >
+    {{ manualReloadDisabled ? 'Refresh cooling down...' : 'Reload next question' }}
   </button>
 
   @if (nextQuestion; as question) {
@@ -31,4 +36,29 @@
   @if (cooldownMessage) {
     <p class="lq-alert lq-alert-danger">{{ cooldownMessage }}</p>
   }
+
+  <div class="lq-stack">
+    <h3 class="lq-card-title">Your answer statuses</h3>
+    @if (answerStatuses.length === 0) {
+      <p class="lq-muted">No submitted answers yet.</p>
+    } @else {
+      @for (answerStatus of answerStatuses; track answerStatus.questionId) {
+        <div class="lq-question-item">
+          <p>
+            <strong>Q{{ answerStatus.order }}</strong>
+            <span> {{ answerStatus.prompt }}</span>
+          </p>
+          <div class="lq-row">
+            <span class="lq-chip" [class.lq-chip-success]="answerStatus.status === 'CORRECT'"
+              [class.lq-chip-warning]="answerStatus.status === 'INCOMPLETE'"
+              [class.lq-chip-danger]="answerStatus.status === 'INCORRECT'"
+              [class.lq-chip-info]="answerStatus.status === 'AWAITING_EVALUATION'">
+              {{ answerStatusLabel(answerStatus.status) }}
+            </span>
+            <span class="lq-muted">Submitted {{ answerStatus.submittedAt | humanDate }}</span>
+          </div>
+        </div>
+      }
+    }
+  </div>
 </article>

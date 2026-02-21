@@ -1,9 +1,10 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CreateInviteResponse, LectureInviteResponse } from '../../../lecture.service';
+import { HumanDatePipe } from '../../../shared/date/human-date.pipe';
 
 @Component({
   selector: 'app-invite-management-panel',
-  imports: [],
+  imports: [HumanDatePipe],
   templateUrl: './invite-management-panel.html',
 })
 export class InviteManagementPanel {

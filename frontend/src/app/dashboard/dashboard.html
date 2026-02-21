@@ -36,7 +36,7 @@
     @if (invite(); as generatedInvite) {
       <p class="lq-muted">Join code: <strong>{{ generatedInvite.joinCode }}</strong></p>
       <p class="lq-muted">QR URL: <code class="lq-code">{{ generatedInvite.joinUrl }}</code></p>
-      <p class="lq-muted">Expires: {{ generatedInvite.expiresAt }}</p>
+      <p class="lq-muted">Expires: {{ generatedInvite.expiresAt | humanDate }}</p>
     }
   </article>
 

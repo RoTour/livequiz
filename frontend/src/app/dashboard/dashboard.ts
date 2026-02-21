@@ -7,10 +7,11 @@ import {
   LectureStateResponse,
   NextQuestionResponse,
 } from '../lecture.service';
+import { HumanDatePipe } from '../shared/date/human-date.pipe';
 
 @Component({
   selector: 'app-dashboard',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, HumanDatePipe],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css',
 })

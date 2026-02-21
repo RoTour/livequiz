@@ -20,7 +20,13 @@ import org.springframework.stereotype.Service;
 @Service
 public class SubmitAnswerUseCase {
 
-  public record SubmitResult(String submissionId, String lectureId, String questionId, String studentId) {}
+  public record SubmitResult(
+    String submissionId,
+    String lectureId,
+    String questionId,
+    String studentId,
+    String answerStatus
+  ) {}
 
   private final LectureRepository lectureRepository;
   private final LectureEnrollmentRepository lectureEnrollmentRepository;
@@ -67,11 +73,13 @@ public class SubmitAnswerUseCase {
       answerText
     );
     this.submissionRepository.save(submission);
+    String answerStatus = AnswerEvaluationStatus.AWAITING_EVALUATION.name();
     return new SubmitResult(
       submission.id().value(),
       lectureId,
       questionId,
-      studentId
+      studentId,
+      answerStatus
     );
   }
 

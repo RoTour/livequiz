@@ -39,6 +39,7 @@ Goal: students progress deterministically through unlocked questions.
 ## Phase 5: Hardening and Scale
 Goal: production-ready reliability, security, and observability.
 
+- [ ] Add/verify dedicated `postgres` runtime profile wiring and Postgres repository adapters so lecture data is actually persisted across restarts
 - [ ] Persist all lecture/invite/enrollment/submission models in Postgres profile
 - [ ] Replace default credentials with managed identity provider
 - [ ] Add migration tooling (`Flyway` or `Liquibase`)
@@ -102,3 +103,12 @@ Acceptance criteria for this phase:
 - [ ] Keep role authorization explicit in backend security config and frontend guards.
 - [x] Update `README.md` and this roadmap when contracts or journey behavior materially change.
 - [ ] Avoid introducing breaking changes to already completed Phase 6 steps unless intentionally planned.
+
+## Phase 8: UX Feedback and Student Flow Polish
+Goal: reduce student friction and improve clarity of classroom state.
+
+- [ ] Add student answer status labels in UI and API read models: `awaiting evaluation` (domain term for current `pending`), `correct`, `incorrect`, `incomplete`.
+- [ ] Seed in-memory profile with one default lecture and one default question for faster local/demo startup.
+- [ ] Improve `/student/lectures/:id` waiting-room refresh strategy by implementing optimized polling and/or a debounced manual refresh action.
+- [ ] Introduce a shared human-readable date component/pipe and reuse it across instructor and student screens.
+- [ ] Replace persistent inline notifications with time-based toasts and severity levels (`info`, `success`, `warning`, `error`).

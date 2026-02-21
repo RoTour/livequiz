@@ -1,6 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { NextQuestionResponse } from '../lecture.service';
+import { NextQuestionResponse, StudentAnswerStatusResponse } from '../lecture.service';
 import { StudentWorkspaceService } from './application/student-workspace.service';
 import { JoinLecturePanel } from './components/join-lecture-panel/join-lecture-panel';
 import { AnswerFlowPanel } from './components/answer-flow-panel/answer-flow-panel';
@@ -18,7 +18,9 @@ export class StudentHome {
   protected readonly selectedLectureId = signal('');
   protected readonly joinResult = signal('');
   protected readonly nextQuestion = signal<NextQuestionResponse | null>(null);
+  protected readonly answerStatuses = signal<StudentAnswerStatusResponse[]>([]);
   protected readonly cooldownMessage = signal('');
+  protected readonly manualReloadDisabled = signal(false);
 
   readonly joinLectureForm = new FormGroup({
     code: new FormControl('', [Validators.required, Validators.minLength(6), Validators.maxLength(6)]),

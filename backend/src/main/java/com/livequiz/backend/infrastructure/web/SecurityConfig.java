@@ -44,6 +44,7 @@ public class SecurityConfig {
               "/api/lectures/join",
               "/api/lectures/students/me",
               "/api/lectures/*/students/me/next-question",
+              "/api/lectures/*/students/me/answer-statuses",
               "/api/lectures/*/submissions"
             )
             .hasAnyRole("STUDENT", "INSTRUCTOR")

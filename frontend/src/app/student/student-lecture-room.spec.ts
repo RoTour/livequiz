@@ -10,11 +10,13 @@ describe('StudentLectureRoom', () => {
   let component: StudentLectureRoom;
 
   const getNextQuestion = vi.fn();
+  const getAnswerStatuses = vi.fn();
   const submitAnswer = vi.fn();
   let lectureIdParam: string | null = 'lecture-1';
 
   beforeEach(async () => {
     getNextQuestion.mockReset();
+    getAnswerStatuses.mockReset();
     submitAnswer.mockReset();
     lectureIdParam = 'lecture-1';
 
@@ -26,6 +28,7 @@ describe('StudentLectureRoom', () => {
       order: 1,
       timeLimitSeconds: 60,
     });
+    getAnswerStatuses.mockResolvedValue([]);
 
     await TestBed.configureTestingModule({
       imports: [StudentLectureRoom],
@@ -33,9 +36,10 @@ describe('StudentLectureRoom', () => {
         {
           provide: StudentWorkspaceService,
           useValue: {
-            getNextQuestion,
-            submitAnswer,
-          },
+              getNextQuestion,
+              getAnswerStatuses,
+              submitAnswer,
+            },
         },
         {
           provide: ActivatedRoute,
@@ -58,7 +62,10 @@ describe('StudentLectureRoom', () => {
     fixture.detectChanges();
   });
 
-  it('hydrates lecture room from route param and loads next question', () => {
+  it('hydrates lecture room from route param and loads next question', async () => {
+    await component.loadNextQuestion();
+    fixture.detectChanges();
+
     expect(getNextQuestion).toHaveBeenCalledWith('lecture-1');
     expect(fixture.nativeElement.textContent).toContain('Explain aggregate boundary');
   });

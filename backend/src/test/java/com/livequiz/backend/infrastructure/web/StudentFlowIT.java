@@ -107,7 +107,17 @@ class StudentFlowIT {
             "\",\"answerText\":\"Consensus is agreement\"}"
           )
       )
-      .andExpect(status().isOk());
+      .andExpect(status().isOk())
+      .andExpect(jsonPath("$.answerStatus").exists());
+
+    mockMvc
+      .perform(
+        get("/api/lectures/{lectureId}/students/me/answer-statuses", lectureId)
+          .header("Authorization", "Bearer " + studentToken)
+      )
+      .andExpect(status().isOk())
+      .andExpect(jsonPath("$[0].questionId").value(questionId))
+      .andExpect(jsonPath("$[0].status").exists());
 
     mockMvc
       .perform(
