@@ -72,6 +72,28 @@ public class QuizControllerIT {
     return response.substring(start, end);
   }
 
+  private String loginAsSecondInstructor() throws Exception {
+    String requestBody = """
+      {
+        "username": "instructor2",
+        "password": "password"
+      }
+      """;
+
+    String response = mockMvc
+      .perform(
+        post("/api/auth/login").contentType("application/json").content(requestBody)
+      )
+      .andExpect(status().isOk())
+      .andReturn()
+      .getResponse()
+      .getContentAsString();
+
+    int start = response.indexOf(":\"") + 2;
+    int end = response.lastIndexOf('"');
+    return response.substring(start, end);
+  }
+
   @Test
   void should_return_bad_request_when_lecture_title_is_empty() throws Exception {
     String token = loginAsInstructor();
@@ -246,6 +268,91 @@ public class QuizControllerIT {
       .andExpect(jsonPath("$[?(@.lectureId=='" + lectureTwoId + "')].unlockedCount").value(hasItem(0)));
   }
 
+  @Test
+  void should_enforce_instructor_ownership_on_lecture_resources() throws Exception {
+    String ownerToken = loginAsInstructor();
+    String otherInstructorToken = loginAsSecondInstructor();
+    String lectureId = createLecture(ownerToken, "Owner Lecture");
+    String inviteId = createInvite(ownerToken, lectureId);
+    String addQuestionRequestBody = """
+      {
+        "prompt": "Ownership check question",
+        "modelAnswer": "Ownership check answer",
+        "timeLimitSeconds": 60
+      }
+      """;
+
+    mockMvc
+      .perform(
+        get("/api/lectures/{lectureId}/state", lectureId)
+          .header("Authorization", "Bearer " + otherInstructorToken)
+      )
+      .andExpect(status().isNotFound())
+      .andExpect(jsonPath("$.code").value("LECTURE_NOT_FOUND"));
+
+    mockMvc
+      .perform(
+        post("/api/lectures/{lectureId}/questions", lectureId)
+          .header("Authorization", "Bearer " + otherInstructorToken)
+          .contentType("application/json")
+          .content(addQuestionRequestBody)
+      )
+      .andExpect(status().isNotFound())
+      .andExpect(jsonPath("$.code").value("LECTURE_NOT_FOUND"));
+
+    mockMvc
+      .perform(
+        post("/api/lectures/{lectureId}/questions/unlock-next", lectureId)
+          .header("Authorization", "Bearer " + otherInstructorToken)
+      )
+      .andExpect(status().isNotFound())
+      .andExpect(jsonPath("$.code").value("LECTURE_NOT_FOUND"));
+
+    mockMvc
+      .perform(
+        post("/api/lectures/{lectureId}/invites", lectureId)
+          .header("Authorization", "Bearer " + otherInstructorToken)
+      )
+      .andExpect(status().isNotFound())
+      .andExpect(jsonPath("$.code").value("LECTURE_NOT_FOUND"));
+
+    mockMvc
+      .perform(
+        get("/api/lectures/{lectureId}/invites", lectureId)
+          .header("Authorization", "Bearer " + otherInstructorToken)
+      )
+      .andExpect(status().isNotFound())
+      .andExpect(jsonPath("$.code").value("LECTURE_NOT_FOUND"));
+
+    mockMvc
+      .perform(
+        post("/api/lectures/{lectureId}/invites/{inviteId}/revoke", lectureId, inviteId)
+          .header("Authorization", "Bearer " + otherInstructorToken)
+      )
+      .andExpect(status().isNotFound())
+      .andExpect(jsonPath("$.code").value("LECTURE_NOT_FOUND"));
+  }
+
+  @Test
+  void should_list_only_owned_lectures_per_instructor() throws Exception {
+    String ownerToken = loginAsInstructor();
+    String otherInstructorToken = loginAsSecondInstructor();
+    String ownerLectureId = createLecture(ownerToken, "Owner Lecture");
+    String otherLectureId = createLecture(otherInstructorToken, "Other Lecture");
+
+    mockMvc
+      .perform(get("/api/lectures").header("Authorization", "Bearer " + ownerToken))
+      .andExpect(status().isOk())
+      .andExpect(jsonPath("$[?(@.lectureId=='" + ownerLectureId + "')].title").value(hasItem("Owner Lecture")))
+      .andExpect(jsonPath("$[?(@.lectureId=='" + otherLectureId + "')]" ).isEmpty());
+
+    mockMvc
+      .perform(get("/api/lectures").header("Authorization", "Bearer " + otherInstructorToken))
+      .andExpect(status().isOk())
+      .andExpect(jsonPath("$[?(@.lectureId=='" + otherLectureId + "')].title").value(hasItem("Other Lecture")))
+      .andExpect(jsonPath("$[?(@.lectureId=='" + ownerLectureId + "')]" ).isEmpty());
+  }
+
   private String createLecture(String token, String title) throws Exception {
     String requestBody = """
       {
@@ -291,6 +398,20 @@ public class QuizControllerIT {
           .content(requestBody)
       )
       .andExpect(status().isOk());
+  }
+
+  private String createInvite(String token, String lectureId) throws Exception {
+    String response = mockMvc
+      .perform(
+        post("/api/lectures/{lectureId}/invites", lectureId)
+          .header("Authorization", "Bearer " + token)
+      )
+      .andExpect(status().isOk())
+      .andReturn()
+      .getResponse()
+      .getContentAsString();
+
+    return extractField(response, "inviteId");
   }
 
   private String extractField(String response, String fieldName) {

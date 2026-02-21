@@ -1,20 +1,22 @@
 package com.livequiz.backend.application;
 
 import com.livequiz.backend.domain.lecture.Lecture;
-import com.livequiz.backend.domain.lecture.LectureId;
 import com.livequiz.backend.domain.lecture.LectureRepository;
-import com.livequiz.backend.infrastructure.web.ApiException;
 import java.util.UUID;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 @Service
 public class AddQuestionToLectureUseCase {
 
   private final LectureRepository lectureRepository;
+  private final InstructorLectureAccessService instructorLectureAccessService;
 
-  public AddQuestionToLectureUseCase(LectureRepository lectureRepository) {
+  public AddQuestionToLectureUseCase(
+    LectureRepository lectureRepository,
+    InstructorLectureAccessService instructorLectureAccessService
+  ) {
     this.lectureRepository = lectureRepository;
+    this.instructorLectureAccessService = instructorLectureAccessService;
   }
 
   public Lecture execute(
@@ -24,11 +26,7 @@ public class AddQuestionToLectureUseCase {
     String modelAnswer,
     int timeLimitSeconds
   ) {
-    Lecture lecture = this.lectureRepository
-      .findById(new LectureId(lectureId))
-      .orElseThrow(() ->
-        new ApiException(HttpStatus.NOT_FOUND, "LECTURE_NOT_FOUND", "Lecture not found")
-      );
+    Lecture lecture = this.instructorLectureAccessService.getOwnedLectureOrThrow(lectureId);
 
     String resolvedQuestionId =
       questionId == null || questionId.isBlank() ? UUID.randomUUID().toString() : questionId;

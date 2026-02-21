@@ -11,12 +11,19 @@ import org.springframework.stereotype.Service;
 public class RevokeLectureInviteUseCase {
 
   private final LectureInviteRepository lectureInviteRepository;
+  private final InstructorLectureAccessService instructorLectureAccessService;
 
-  public RevokeLectureInviteUseCase(LectureInviteRepository lectureInviteRepository) {
+  public RevokeLectureInviteUseCase(
+    LectureInviteRepository lectureInviteRepository,
+    InstructorLectureAccessService instructorLectureAccessService
+  ) {
     this.lectureInviteRepository = lectureInviteRepository;
+    this.instructorLectureAccessService = instructorLectureAccessService;
   }
 
   public LectureInvite execute(String lectureId, String inviteId) {
+    this.instructorLectureAccessService.getOwnedLectureOrThrow(lectureId);
+
     LectureInvite invite = this.lectureInviteRepository
       .findByInviteId(inviteId)
       .orElseThrow(() ->
