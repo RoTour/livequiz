@@ -49,30 +49,39 @@ public class JpaPostgresLectureRepository implements LectureRepository {
 
   @Override
   public Optional<Lecture> findById(LectureId lectureId) {
+    return this.jpaLectureRepository.findById(lectureId.value()).map(this::toDomain);
+  }
+
+  @Override
+  public List<Lecture> findByCreatedByInstructorId(String createdByInstructorId) {
     return this.jpaLectureRepository
-      .findById(lectureId.value())
-      .map(entity ->
-        new Lecture(
-          new LectureId(entity.getId()),
-          entity.getTitle(),
-          entity
-            .getQuestions()
-            .stream()
-            .map(question ->
-              new Question(
-                new QuestionId(question.getQuestionId()),
-                question.getPrompt(),
-                question.getModelAnswer(),
-                question.getTimeLimitSeconds(),
-                question.getQuestionOrder(),
-                java.util.List.of()
-              )
-            )
-            .toList(),
-          new java.util.LinkedHashSet<>(entity.getUnlockedQuestionIds()),
-          entity.getCreatedByInstructorId(),
-          entity.getCreatedAt()
+      .findByCreatedByInstructorIdOrderByCreatedAtDesc(createdByInstructorId)
+      .stream()
+      .map(this::toDomain)
+      .toList();
+  }
+
+  private Lecture toDomain(LectureEntity entity) {
+    return new Lecture(
+      new LectureId(entity.getId()),
+      entity.getTitle(),
+      entity
+        .getQuestions()
+        .stream()
+        .map(question ->
+          new Question(
+            new QuestionId(question.getQuestionId()),
+            question.getPrompt(),
+            question.getModelAnswer(),
+            question.getTimeLimitSeconds(),
+            question.getQuestionOrder(),
+            java.util.List.of()
+          )
         )
-      );
+        .toList(),
+      new java.util.LinkedHashSet<>(entity.getUnlockedQuestionIds()),
+      entity.getCreatedByInstructorId(),
+      entity.getCreatedAt()
+    );
   }
 }

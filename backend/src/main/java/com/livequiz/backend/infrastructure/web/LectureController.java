@@ -3,6 +3,7 @@ package com.livequiz.backend.infrastructure.web;
 import com.livequiz.backend.application.AddQuestionToLectureUseCase;
 import com.livequiz.backend.application.CreateLectureUseCase;
 import com.livequiz.backend.application.GetLectureStateUseCase;
+import com.livequiz.backend.application.ListInstructorLecturesUseCase;
 import com.livequiz.backend.application.UnlockNextQuestionUseCase;
 import com.livequiz.backend.application.UnlockQuestionUseCase;
 import com.livequiz.backend.domain.lecture.Lecture;
@@ -26,19 +27,22 @@ public class LectureController {
   private final UnlockQuestionUseCase unlockQuestionUseCase;
   private final UnlockNextQuestionUseCase unlockNextQuestionUseCase;
   private final GetLectureStateUseCase getLectureStateUseCase;
+  private final ListInstructorLecturesUseCase listInstructorLecturesUseCase;
 
   public LectureController(
     CreateLectureUseCase createLectureUseCase,
     AddQuestionToLectureUseCase addQuestionToLectureUseCase,
     UnlockQuestionUseCase unlockQuestionUseCase,
     UnlockNextQuestionUseCase unlockNextQuestionUseCase,
-    GetLectureStateUseCase getLectureStateUseCase
+    GetLectureStateUseCase getLectureStateUseCase,
+    ListInstructorLecturesUseCase listInstructorLecturesUseCase
   ) {
     this.createLectureUseCase = createLectureUseCase;
     this.addQuestionToLectureUseCase = addQuestionToLectureUseCase;
     this.unlockQuestionUseCase = unlockQuestionUseCase;
     this.unlockNextQuestionUseCase = unlockNextQuestionUseCase;
     this.getLectureStateUseCase = getLectureStateUseCase;
+    this.listInstructorLecturesUseCase = listInstructorLecturesUseCase;
   }
 
   public record CreateLectureRequestDTO(String lectureId, String title) {}
@@ -48,6 +52,31 @@ public class LectureController {
     String modelAnswer,
     int timeLimitSeconds
   ) {}
+  public record InstructorLectureSummaryResponse(
+    String lectureId,
+    String title,
+    String createdAt,
+    int questionCount,
+    int unlockedCount
+  ) {}
+
+  @GetMapping
+  @LogExecutionTime
+  public java.util.List<InstructorLectureSummaryResponse> listInstructorLectures() {
+    return this.listInstructorLecturesUseCase
+      .execute()
+      .stream()
+      .map(summary ->
+        new InstructorLectureSummaryResponse(
+          summary.lectureId(),
+          summary.title(),
+          summary.createdAt() != null ? summary.createdAt().toString() : null,
+          summary.questionCount(),
+          summary.unlockedCount()
+        )
+      )
+      .toList();
+  }
 
   @PostMapping
   @LogExecutionTime

@@ -6,6 +6,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.hamcrest.Matchers.hasItem;
 
 import com.livequiz.backend.domain.lecture.LectureId;
 import com.livequiz.backend.domain.lecture.LectureRepository;
@@ -163,6 +164,10 @@ public class QuizControllerIT {
           .header("Authorization", "Bearer " + studentToken)
       )
       .andExpect(status().isForbidden());
+
+    mockMvc
+      .perform(get("/api/lectures").header("Authorization", "Bearer " + studentToken))
+      .andExpect(status().isForbidden());
   }
 
   @Test
@@ -179,6 +184,10 @@ public class QuizControllerIT {
 
     mockMvc
       .perform(get("/api/lectures/lecture-1/state"))
+      .andExpect(status().isForbidden());
+
+    mockMvc
+      .perform(get("/api/lectures"))
       .andExpect(status().isForbidden());
   }
 
@@ -208,6 +217,80 @@ public class QuizControllerIT {
 
     assertEquals("instructor", persistedLecture.createdByInstructorId());
     assertNotNull(persistedLecture.createdAt());
+  }
+
+  @Test
+  void should_list_instructor_lectures_with_summary_fields() throws Exception {
+    String instructorToken = loginAsInstructor();
+    String lectureOneId = createLecture(instructorToken, "First Lecture");
+    String lectureTwoId = createLecture(instructorToken, "Second Lecture");
+    addQuestion(instructorToken, lectureOneId, "Q1", "A1", 60);
+    addQuestion(instructorToken, lectureOneId, "Q2", "A2", 60);
+
+    mockMvc
+      .perform(
+        post("/api/lectures/{lectureId}/questions/unlock-next", lectureOneId)
+          .header("Authorization", "Bearer " + instructorToken)
+      )
+      .andExpect(status().isOk());
+
+    mockMvc
+      .perform(get("/api/lectures").header("Authorization", "Bearer " + instructorToken))
+      .andExpect(status().isOk())
+      .andExpect(jsonPath("$[?(@.lectureId=='" + lectureOneId + "')].title").value(hasItem("First Lecture")))
+      .andExpect(jsonPath("$[?(@.lectureId=='" + lectureOneId + "')].questionCount").value(hasItem(2)))
+      .andExpect(jsonPath("$[?(@.lectureId=='" + lectureOneId + "')].unlockedCount").value(hasItem(1)))
+      .andExpect(jsonPath("$[?(@.lectureId=='" + lectureOneId + "')].createdAt").isNotEmpty())
+      .andExpect(jsonPath("$[?(@.lectureId=='" + lectureTwoId + "')].title").value(hasItem("Second Lecture")))
+      .andExpect(jsonPath("$[?(@.lectureId=='" + lectureTwoId + "')].questionCount").value(hasItem(0)))
+      .andExpect(jsonPath("$[?(@.lectureId=='" + lectureTwoId + "')].unlockedCount").value(hasItem(0)));
+  }
+
+  private String createLecture(String token, String title) throws Exception {
+    String requestBody = """
+      {
+        "title": "%s"
+      }
+      """.formatted(title);
+
+    String response = mockMvc
+      .perform(
+        post("/api/lectures")
+          .contentType("application/json")
+          .header("Authorization", "Bearer " + token)
+          .content(requestBody)
+      )
+      .andExpect(status().isOk())
+      .andReturn()
+      .getResponse()
+      .getContentAsString();
+
+    return extractField(response, "lectureId");
+  }
+
+  private void addQuestion(
+    String token,
+    String lectureId,
+    String prompt,
+    String modelAnswer,
+    int timeLimitSeconds
+  ) throws Exception {
+    String requestBody = """
+      {
+        "prompt": "%s",
+        "modelAnswer": "%s",
+        "timeLimitSeconds": %d
+      }
+      """.formatted(prompt, modelAnswer, timeLimitSeconds);
+
+    mockMvc
+      .perform(
+        post("/api/lectures/{lectureId}/questions", lectureId)
+          .contentType("application/json")
+          .header("Authorization", "Bearer " + token)
+          .content(requestBody)
+      )
+      .andExpect(status().isOk());
   }
 
   private String extractField(String response, String fieldName) {

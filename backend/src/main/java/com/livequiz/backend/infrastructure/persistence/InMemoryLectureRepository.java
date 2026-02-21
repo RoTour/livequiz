@@ -23,4 +23,19 @@ public class InMemoryLectureRepository implements LectureRepository {
   public java.util.Optional<Lecture> findById(LectureId lectureId) {
     return java.util.Optional.ofNullable(this.lectures.get(lectureId.value()));
   }
+
+  @Override
+  public java.util.List<Lecture> findByCreatedByInstructorId(String createdByInstructorId) {
+    return this.lectures
+      .values()
+      .stream()
+      .filter(lecture -> createdByInstructorId.equals(lecture.createdByInstructorId()))
+      .sorted(
+        java.util.Comparator.comparing(
+          Lecture::createdAt,
+          java.util.Comparator.nullsLast(java.util.Comparator.reverseOrder())
+        )
+      )
+      .toList();
+  }
 }

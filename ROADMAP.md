@@ -82,7 +82,7 @@ Acceptance criteria for this phase:
 ### Iteration checklist
 - [x] Iteration 01 - Baseline contract lock (no feature change)
 - [x] Iteration 02 - Lecture ownership metadata write path
-- [ ] Iteration 03 - Instructor lecture listing API (summary read model)
+- [x] Iteration 03 - Instructor lecture listing API (summary read model)
 - [ ] Iteration 04 - Instructor route scaffold (backward compatible)
 - [ ] Iteration 05 - Instructor lecture list page
 - [ ] Iteration 06 - Instructor detail route param source of truth

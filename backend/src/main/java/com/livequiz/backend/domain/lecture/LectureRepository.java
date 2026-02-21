@@ -4,4 +4,6 @@ public interface LectureRepository {
   void save(Lecture lecture);
 
   java.util.Optional<Lecture> findById(LectureId lectureId);
+
+  java.util.List<Lecture> findByCreatedByInstructorId(String createdByInstructorId);
 }
