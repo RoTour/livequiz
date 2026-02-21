@@ -18,10 +18,13 @@ This project serves as a comprehensive learning exercise for **Java Spring Boot*
 
 ## ✅ Implemented Capabilities
 - JWT authentication with instructor/student roles
+- Instructor multi-lecture workflow (list, create, open by route, refresh-safe context)
 - Lecture creation and ordered question management
 - Question unlock flow (`unlock specific` and `unlock next`)
+- Instructor analytics and per-question student answer history drilldown
 - Instructor-generated invite flow (6-char code + QR-friendly token URL, max 24h)
-- Student enrollment via invite with idempotent join behavior
+- Student route-driven journey (lecture list, room re-entry, token deep-link join)
+- Explicit invite error semantics (`INVITE_NOT_FOUND`, `INVITE_REVOKED`, `INVITE_EXPIRED`)
 - Student progression API for "next pending unlocked question"
 - Submission cooldown policy with `429` rejection and retry metadata
 

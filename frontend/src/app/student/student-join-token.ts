@@ -29,18 +29,22 @@ export class StudentJoinToken implements OnInit {
 
     try {
       const result = await this.workspaceService.joinLectureByToken(token);
-      await this.router.navigate(['/student'], {
-        queryParams: {
-          lectureId: result.lectureId,
-          autoJoined: '1',
-          alreadyEnrolled: result.alreadyEnrolled ? '1' : '0',
-        },
-      });
+      await this.router.navigate(['/student/lectures', result.lectureId]);
     } catch (error: any) {
       const errorCode = error?.error?.code;
       if (errorCode === 'INVITE_NOT_FOUND') {
         this.status.set('Invite unavailable');
-        this.errorMessage.set('This invite is invalid, revoked, or expired. Ask your instructor for a fresh link.');
+        this.errorMessage.set('This invite token is invalid. Ask your instructor for a fresh link.');
+        return;
+      }
+      if (errorCode === 'INVITE_REVOKED') {
+        this.status.set('Invite revoked');
+        this.errorMessage.set('This invite has been revoked. Ask your instructor for a new invite.');
+        return;
+      }
+      if (errorCode === 'INVITE_EXPIRED') {
+        this.status.set('Invite expired');
+        this.errorMessage.set('This invite has expired. Ask your instructor for a new invite.');
         return;
       }
 

@@ -72,12 +72,12 @@ Execution policy:
 - Preserve DDD + clean architecture boundaries across all slices.
 
 Acceptance criteria for this phase:
-- [ ] Instructor can manage more than one lecture end-to-end from UI.
-- [ ] Instructor can open any lecture and operate question unlock flow without losing context on refresh.
-- [ ] Instructor can see class response progress and per-question student answer history.
-- [ ] Student can complete full join and answer journey through UI with no manual API intervention.
-- [ ] Token deep-link path is production-usable (not placeholder).
-- [ ] Student can re-enter joined lectures and continue progression reliably.
+- [x] Instructor can manage more than one lecture end-to-end from UI.
+- [x] Instructor can open any lecture and operate question unlock flow without losing context on refresh.
+- [x] Instructor can see class response progress and per-question student answer history.
+- [x] Student can complete full join and answer journey through UI with no manual API intervention.
+- [x] Token deep-link path is production-usable (not placeholder).
+- [x] Student can re-enter joined lectures and continue progression reliably.
 
 ### Iteration checklist
 - [x] Iteration 01 - Baseline contract lock (no feature change)
@@ -95,10 +95,10 @@ Acceptance criteria for this phase:
 - [x] Iteration 13 - Student lecture list page (join + re-entry)
 - [x] Iteration 14 - Student lecture room page
 - [x] Iteration 15 - Token/code join contract hardening (explicit invite errors)
-- [ ] Iteration 16 - Token deep-link completion and cleanup
+- [x] Iteration 16 - Token deep-link completion and cleanup
 
 ### Cross-cutting delivery checklist for this phase
 - [ ] Keep terminology lecture-centric across DTOs, components, and docs.
 - [ ] Keep role authorization explicit in backend security config and frontend guards.
-- [ ] Update `README.md` and this roadmap when contracts or journey behavior materially change.
+- [x] Update `README.md` and this roadmap when contracts or journey behavior materially change.
 - [ ] Avoid introducing breaking changes to already completed Phase 6 steps unless intentionally planned.

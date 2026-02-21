@@ -1,5 +1,4 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { ActivatedRoute, convertToParamMap } from '@angular/router';
 import { vi } from 'vitest';
 import { StudentHome } from './student-home';
 import { StudentWorkspaceService } from './application/student-workspace.service';
@@ -11,15 +10,11 @@ describe('StudentHome', () => {
   const joinLectureByCode = vi.fn();
   const getNextQuestion = vi.fn();
   const submitAnswer = vi.fn();
-  let paramMap = convertToParamMap({});
-  let queryParamMap = convertToParamMap({});
 
   beforeEach(async () => {
     joinLectureByCode.mockReset();
     getNextQuestion.mockReset();
     submitAnswer.mockReset();
-    paramMap = convertToParamMap({});
-    queryParamMap = convertToParamMap({});
 
     await TestBed.configureTestingModule({
       imports: [StudentHome],
@@ -30,19 +25,6 @@ describe('StudentHome', () => {
             joinLectureByCode,
             getNextQuestion,
             submitAnswer,
-          },
-        },
-        {
-          provide: ActivatedRoute,
-          useValue: {
-            snapshot: {
-              get paramMap() {
-                return paramMap;
-              },
-              get queryParamMap() {
-                return queryParamMap;
-              },
-            },
           },
         },
       ],
@@ -271,29 +253,4 @@ describe('StudentHome', () => {
     expect(submitAnswer).not.toHaveBeenCalled();
   });
 
-  it('hydrates selected lecture from invite deep-link query params', async () => {
-    queryParamMap = convertToParamMap({
-      lectureId: 'lecture-9',
-      alreadyEnrolled: '1',
-    });
-
-    fixture = TestBed.createComponent(StudentHome);
-    component = fixture.componentInstance;
-    fixture.detectChanges();
-
-    expect(fixture.nativeElement.textContent).toContain('lecture-9');
-    expect(fixture.nativeElement.textContent).toContain('Already enrolled');
-    expect(fixture.nativeElement.textContent).toContain('Lecture joined from invite link');
-  });
-
-  it('hydrates selected lecture from student room route param', async () => {
-    paramMap = convertToParamMap({ lectureId: 'lecture-42' });
-
-    fixture = TestBed.createComponent(StudentHome);
-    component = fixture.componentInstance;
-    fixture.detectChanges();
-
-    expect(fixture.nativeElement.textContent).toContain('lecture-42');
-    expect(fixture.nativeElement.textContent).toContain('Lecture selected');
-  });
 });

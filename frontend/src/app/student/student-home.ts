@@ -1,6 +1,5 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router';
 import { NextQuestionResponse } from '../lecture.service';
 import { StudentWorkspaceService } from './application/student-workspace.service';
 import { JoinLecturePanel } from './components/join-lecture-panel/join-lecture-panel';
@@ -12,8 +11,7 @@ import { AnswerFlowPanel } from './components/answer-flow-panel/answer-flow-pane
   templateUrl: './student-home.html',
   styleUrl: './student-home.css',
 })
-export class StudentHome implements OnInit {
-  private readonly route = inject(ActivatedRoute);
+export class StudentHome {
   private readonly workspaceService = inject(StudentWorkspaceService);
 
   protected readonly status = signal('Ready');
@@ -29,30 +27,6 @@ export class StudentHome implements OnInit {
   readonly submitAnswerForm = new FormGroup({
     answerText: new FormControl('', [Validators.required, Validators.minLength(2)]),
   });
-
-  ngOnInit() {
-    const lectureIdFromRoute = this.route.snapshot.paramMap.get('lectureId')?.trim();
-    const lectureIdFromLink = this.route.snapshot.queryParamMap.get('lectureId')?.trim();
-    const initialLectureId = lectureIdFromRoute || lectureIdFromLink;
-    if (!initialLectureId) {
-      return;
-    }
-
-    this.selectedLectureId.set(initialLectureId);
-    this.nextQuestion.set(null);
-    this.submitAnswerForm.reset({ answerText: '' });
-    this.cooldownMessage.set('');
-
-    if (lectureIdFromLink) {
-      const alreadyEnrolled = this.route.snapshot.queryParamMap.get('alreadyEnrolled') === '1';
-      this.joinResult.set(alreadyEnrolled ? 'Already enrolled' : 'Enrolled successfully');
-      this.status.set('Lecture joined from invite link');
-      return;
-    }
-
-    this.joinResult.set('');
-    this.status.set('Lecture selected');
-  }
 
   async joinLecture() {
     if (this.joinLectureForm.invalid) {

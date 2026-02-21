@@ -41,7 +41,7 @@ describe('StudentJoinToken', () => {
     }).compileComponents();
   });
 
-  it('auto-joins by token and redirects to student workspace', async () => {
+  it('auto-joins by token and redirects directly to lecture room route', async () => {
     joinLectureByToken.mockResolvedValue({
       lectureId: 'lecture-1',
       studentId: 'student-1',
@@ -55,13 +55,7 @@ describe('StudentJoinToken', () => {
     await fixture.whenStable();
 
     expect(joinLectureByToken).toHaveBeenCalledWith('token-1');
-    expect(navigate).toHaveBeenCalledWith(['/student'], {
-      queryParams: {
-        lectureId: 'lecture-1',
-        autoJoined: '1',
-        alreadyEnrolled: '0',
-      },
-    });
+    expect(navigate).toHaveBeenCalledWith(['/student/lectures', 'lecture-1']);
   });
 
   it('shows actionable message when invite token is invalid', async () => {
@@ -78,6 +72,40 @@ describe('StudentJoinToken', () => {
 
     expect(navigate).not.toHaveBeenCalled();
     expect(fixture.nativeElement.textContent).toContain('Invite unavailable');
-    expect(fixture.nativeElement.textContent).toContain('invalid, revoked, or expired');
+    expect(fixture.nativeElement.textContent).toContain('token is invalid');
+  });
+
+  it('shows explicit revoked invite message', async () => {
+    joinLectureByToken.mockRejectedValue({
+      error: {
+        code: 'INVITE_REVOKED',
+      },
+    });
+
+    fixture = TestBed.createComponent(StudentJoinToken);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(navigate).not.toHaveBeenCalled();
+    expect(fixture.nativeElement.textContent).toContain('Invite revoked');
+    expect(fixture.nativeElement.textContent).toContain('has been revoked');
+  });
+
+  it('shows explicit expired invite message', async () => {
+    joinLectureByToken.mockRejectedValue({
+      error: {
+        code: 'INVITE_EXPIRED',
+      },
+    });
+
+    fixture = TestBed.createComponent(StudentJoinToken);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(navigate).not.toHaveBeenCalled();
+    expect(fixture.nativeElement.textContent).toContain('Invite expired');
+    expect(fixture.nativeElement.textContent).toContain('has expired');
   });
 });
