@@ -141,6 +141,132 @@ class StudentFlowIT {
       .andExpect(jsonPath("$.code").value("INVITE_NOT_FOUND"));
   }
 
+  @Test
+  void should_require_invite_credentials_when_joining() throws Exception {
+    String studentToken = login("student", "password");
+
+    mockMvc
+      .perform(
+        post("/api/lectures/join")
+          .header("Authorization", "Bearer " + studentToken)
+          .contentType("application/json")
+          .content("{}")
+      )
+      .andExpect(status().isBadRequest())
+      .andExpect(jsonPath("$.code").value("INVITE_CREDENTIALS_REQUIRED"));
+  }
+
+  @Test
+  void should_require_enrollment_before_next_question_and_submission() throws Exception {
+    String instructorToken = login("instructor", "password");
+    String lectureId = createLecture(instructorToken, "Distributed Systems");
+    String questionId = addQuestion(
+      instructorToken,
+      lectureId,
+      "What is consensus?",
+      "Agreement on a value",
+      60
+    );
+    String studentToken = login("student", "password");
+
+    mockMvc
+      .perform(
+        get("/api/lectures/{lectureId}/students/me/next-question", lectureId)
+          .header("Authorization", "Bearer " + studentToken)
+      )
+      .andExpect(status().isForbidden())
+      .andExpect(jsonPath("$.code").value("LECTURE_ENROLLMENT_REQUIRED"));
+
+    mockMvc
+      .perform(
+        post("/api/lectures/{lectureId}/submissions", lectureId)
+          .header("Authorization", "Bearer " + studentToken)
+          .contentType("application/json")
+          .content(
+            "{\"questionId\":\"" +
+            questionId +
+            "\",\"answerText\":\"Consensus is agreement\"}"
+          )
+      )
+      .andExpect(status().isForbidden())
+      .andExpect(jsonPath("$.code").value("LECTURE_ENROLLMENT_REQUIRED"));
+  }
+
+  @Test
+  void should_reject_submission_for_locked_or_unknown_question() throws Exception {
+    String instructorToken = login("instructor", "password");
+    String lectureId = createLecture(instructorToken, "Distributed Systems");
+    String questionId = addQuestion(
+      instructorToken,
+      lectureId,
+      "What is consensus?",
+      "Agreement on a value",
+      60
+    );
+    String inviteCode = extractField(createInviteResponse(instructorToken, lectureId), "joinCode");
+    String studentToken = login("student", "password");
+    joinLectureByCode(studentToken, inviteCode);
+
+    mockMvc
+      .perform(
+        post("/api/lectures/{lectureId}/submissions", lectureId)
+          .header("Authorization", "Bearer " + studentToken)
+          .contentType("application/json")
+          .content(
+            "{\"questionId\":\"" +
+            questionId +
+            "\",\"answerText\":\"Consensus is agreement\"}"
+          )
+      )
+      .andExpect(status().isForbidden())
+      .andExpect(jsonPath("$.code").value("QUESTION_LOCKED"));
+
+    mockMvc
+      .perform(
+        post("/api/lectures/{lectureId}/submissions", lectureId)
+          .header("Authorization", "Bearer " + studentToken)
+          .contentType("application/json")
+          .content(
+            "{\"questionId\":\"unknown-question\",\"answerText\":\"Consensus is agreement\"}"
+          )
+      )
+      .andExpect(status().isNotFound())
+      .andExpect(jsonPath("$.code").value("QUESTION_NOT_FOUND"));
+  }
+
+  @Test
+  void should_join_with_invite_token_idempotently() throws Exception {
+    String instructorToken = login("instructor", "password");
+    String lectureId = createLecture(instructorToken, "Distributed Systems");
+    String inviteResponse = createInviteResponse(instructorToken, lectureId);
+    String token = extractInviteToken(extractField(inviteResponse, "joinUrl"));
+    String studentToken = login("student", "password");
+
+    String firstJoinResponse = joinLectureByToken(studentToken, token);
+    String secondJoinResponse = joinLectureByToken(studentToken, token);
+
+    org.junit.jupiter.api.Assertions.assertEquals(
+      extractField(firstJoinResponse, "lectureId"),
+      lectureId
+    );
+    org.junit.jupiter.api.Assertions.assertEquals(
+      extractField(firstJoinResponse, "studentId"),
+      "student"
+    );
+    org.junit.jupiter.api.Assertions.assertEquals(
+      extractField(firstJoinResponse, "alreadyEnrolled"),
+      "false"
+    );
+    org.junit.jupiter.api.Assertions.assertEquals(
+      extractField(secondJoinResponse, "alreadyEnrolled"),
+      "true"
+    );
+    org.junit.jupiter.api.Assertions.assertEquals(
+      extractField(firstJoinResponse, "enrolledAt"),
+      extractField(secondJoinResponse, "enrolledAt")
+    );
+  }
+
   private String login(String username, String password) throws Exception {
     String response = this.mockMvc
       .perform(
@@ -236,10 +362,56 @@ class StudentFlowIT {
     return response.substring(start, end);
   }
 
+  private String joinLectureByCode(String studentToken, String inviteCode) throws Exception {
+    return mockMvc
+      .perform(
+        post("/api/lectures/join")
+          .header("Authorization", "Bearer " + studentToken)
+          .contentType("application/json")
+          .content("{\"code\":\"" + inviteCode + "\"}")
+      )
+      .andExpect(status().isOk())
+      .andReturn()
+      .getResponse()
+      .getContentAsString();
+  }
+
+  private String joinLectureByToken(String studentToken, String token) throws Exception {
+    return mockMvc
+      .perform(
+        post("/api/lectures/join")
+          .header("Authorization", "Bearer " + studentToken)
+          .contentType("application/json")
+          .content("{\"token\":\"" + token + "\"}")
+      )
+      .andExpect(status().isOk())
+      .andReturn()
+      .getResponse()
+      .getContentAsString();
+  }
+
+  private String extractInviteToken(String joinUrl) {
+    int tokenStart = joinUrl.lastIndexOf('/') + 1;
+    return joinUrl.substring(tokenStart);
+  }
+
   private String extractField(String response, String fieldName) {
     int keyIndex = response.indexOf("\"" + fieldName + "\"");
-    int start = response.indexOf(":\"", keyIndex) + 2;
-    int end = response.indexOf('"', start);
-    return response.substring(start, end);
+    int valueStart = response.indexOf(':', keyIndex) + 1;
+    while (Character.isWhitespace(response.charAt(valueStart))) {
+      valueStart++;
+    }
+
+    if (response.charAt(valueStart) == '"') {
+      int start = valueStart + 1;
+      int end = response.indexOf('"', start);
+      return response.substring(start, end);
+    }
+
+    int end = response.indexOf(',', valueStart);
+    if (end == -1) {
+      end = response.indexOf('}', valueStart);
+    }
+    return response.substring(valueStart, end).trim();
   }
 }

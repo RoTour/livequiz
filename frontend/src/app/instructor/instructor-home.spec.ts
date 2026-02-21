@@ -191,6 +191,66 @@ describe('InstructorHome', () => {
     expect(createLecture).not.toHaveBeenCalled();
   });
 
+  it('shows actionable message when lecture creation fails', async () => {
+    createLecture.mockRejectedValue(new Error('create failed'));
+    component.createLectureForm.setValue({ title: 'DDD' });
+
+    await component.createLecture();
+    fixture.detectChanges();
+
+    expect(getLectureState).not.toHaveBeenCalled();
+    expect(listInvites).not.toHaveBeenCalled();
+    expect(fixture.nativeElement.textContent).toContain('Could not create lecture. Please retry.');
+  });
+
+  it('shows actionable message when adding question fails', async () => {
+    createLecture.mockResolvedValue('lecture-1');
+    getLectureState.mockResolvedValue({ lectureId: 'lecture-1', title: 'DDD', questions: [] });
+    addQuestion.mockRejectedValue(new Error('add question failed'));
+    await setupLecture(component);
+    addQuestion.mockClear();
+    getLectureState.mockClear();
+
+    component.addQuestionForm.setValue({
+      prompt: 'What is an aggregate?',
+      modelAnswer: 'Boundary of consistency',
+      timeLimitSeconds: 60,
+    });
+
+    await component.addQuestion();
+    fixture.detectChanges();
+
+    expect(addQuestion).toHaveBeenCalledTimes(1);
+    expect(getLectureState).not.toHaveBeenCalled();
+    expect(fixture.nativeElement.textContent).toContain('Could not add question. Please retry.');
+  });
+
+  it('shows invite refresh error when loading invites fails', async () => {
+    createLecture.mockResolvedValue('lecture-1');
+    getLectureState.mockResolvedValue({ lectureId: 'lecture-1', title: 'DDD', questions: [] });
+    listInvites
+      .mockResolvedValueOnce([])
+      .mockRejectedValueOnce(new Error('list failed'));
+    await setupLecture(component);
+
+    await component.refreshInvites();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('Could not refresh invites. Please retry.');
+  });
+
+  it('shows state refresh error when loading lecture state fails', async () => {
+    createLecture.mockResolvedValue('lecture-1');
+    getLectureState.mockResolvedValue({ lectureId: 'lecture-1', title: 'DDD', questions: [] });
+    await setupLecture(component);
+    getLectureState.mockRejectedValueOnce(new Error('state failed'));
+
+    await component.refreshLectureState();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('Could not refresh lecture state. Please retry.');
+  });
+
   it('keeps mutation success message when refresh fails after create', async () => {
     createLecture.mockResolvedValue('lecture-1');
     getLectureState.mockRejectedValue(new Error('state endpoint unavailable'));

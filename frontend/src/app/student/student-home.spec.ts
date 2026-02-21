@@ -162,6 +162,70 @@ describe('StudentHome', () => {
     expect(fixture.nativeElement.textContent).toContain('Cooldown active: retry in 12s');
   });
 
+  it('shows actionable status when lecture join fails', async () => {
+    joinLectureByCode.mockRejectedValue(new Error('join failed'));
+    component.joinLectureForm.setValue({ code: 'abc123' });
+
+    await component.joinLecture();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('Could not join lecture. Verify code and retry.');
+  });
+
+  it('shows enrollment-required message when loading next question without enrollment', async () => {
+    joinLectureByCode.mockResolvedValue({
+      lectureId: 'lecture-1',
+      studentId: 'student-1',
+      alreadyEnrolled: false,
+      enrolledAt: '2026-02-19T10:00:00Z',
+    });
+    getNextQuestion.mockRejectedValue({
+      error: {
+        code: 'LECTURE_ENROLLMENT_REQUIRED',
+      },
+    });
+    component.joinLectureForm.setValue({ code: 'abc123' });
+    await component.joinLecture();
+
+    await component.loadNextQuestion();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('Enrollment required before loading questions.');
+  });
+
+  it('shows generic status when submission fails unexpectedly', async () => {
+    joinLectureByCode.mockResolvedValue({
+      lectureId: 'lecture-1',
+      studentId: 'student-1',
+      alreadyEnrolled: true,
+      enrolledAt: '2026-02-19T10:00:00Z',
+    });
+    getNextQuestion.mockResolvedValue({
+      hasQuestion: true,
+      lectureId: 'lecture-1',
+      questionId: 'q-1',
+      prompt: 'Explain DDD aggregate root',
+      order: 1,
+      timeLimitSeconds: 60,
+    });
+    submitAnswer.mockRejectedValue(new Error('unexpected failure'));
+    component.joinLectureForm.setValue({ code: 'abc123' });
+    await component.joinLecture();
+    await component.loadNextQuestion();
+    component.submitAnswerForm.setValue({ answerText: 'Aggregate root coordinates invariants.' });
+
+    await component.submitAnswer();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('Could not submit answer. Please retry.');
+  });
+
+  it('does not load next question when no lecture is selected', async () => {
+    await component.loadNextQuestion();
+
+    expect(getNextQuestion).not.toHaveBeenCalled();
+  });
+
   it('clears previous lecture question state when joining a new lecture', async () => {
     joinLectureByCode
       .mockResolvedValueOnce({

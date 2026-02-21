@@ -31,7 +31,7 @@ public class SecurityConfig {
       .authorizeHttpRequests(
         auth ->
           auth
-            .requestMatchers("/health", "/api/auth/**")
+            .requestMatchers("/health", "/api/health", "/api/auth/**")
             .permitAll()
             .requestMatchers(
               "/api/lectures",
