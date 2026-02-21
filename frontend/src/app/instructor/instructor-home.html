@@ -22,5 +22,18 @@
     (revokeInvite)="revokeInvite($event)"
   />
 
-  <app-lecture-state-panel [lectureState]="lectureState()" (unlockQuestion)="unlockQuestion($event)" />
+  <app-lecture-state-panel
+    [lectureState]="lectureState()"
+    [questionAnalytics]="questionAnalytics()"
+    [analyticsLoading]="analyticsLoading()"
+    [analyticsError]="analyticsError()"
+    [selectedHistoryQuestionId]="selectedHistoryQuestionId()"
+    [questionHistory]="questionHistory()"
+    [questionHistoryLoading]="questionHistoryLoading()"
+    [questionHistoryError]="questionHistoryError()"
+    (unlockQuestion)="unlockQuestion($event)"
+    (refreshAnalytics)="refreshQuestionAnalytics()"
+    (openHistory)="openQuestionAnswerHistory($event)"
+    (closeHistory)="closeQuestionAnswerHistory()"
+  />
 </section>

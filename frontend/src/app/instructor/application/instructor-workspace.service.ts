@@ -6,6 +6,8 @@ import {
   LectureInviteResponse,
   LectureService,
   LectureStateResponse,
+  QuestionAnalyticsResponse,
+  StudentAnswerHistoryResponse,
 } from '../../lecture.service';
 
 @Injectable({ providedIn: 'root' })
@@ -38,6 +40,17 @@ export class InstructorWorkspaceService {
 
   async getLectureState(lectureId: string): Promise<LectureStateResponse> {
     return await firstValueFrom(this.lectureService.getState(lectureId));
+  }
+
+  async listQuestionAnalytics(lectureId: string): Promise<QuestionAnalyticsResponse[]> {
+    return await firstValueFrom(this.lectureService.getQuestionAnalytics(lectureId));
+  }
+
+  async listQuestionAnswerHistory(
+    lectureId: string,
+    questionId: string,
+  ): Promise<StudentAnswerHistoryResponse[]> {
+    return await firstValueFrom(this.lectureService.getQuestionAnswerHistory(lectureId, questionId));
   }
 
   async createInvite(lectureId: string): Promise<CreateInviteResponse> {

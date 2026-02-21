@@ -2,7 +2,13 @@ import { Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { CreateInviteResponse, LectureInviteResponse, LectureStateResponse } from '../lecture.service';
+import {
+  CreateInviteResponse,
+  LectureInviteResponse,
+  LectureStateResponse,
+  QuestionAnalyticsResponse,
+  StudentAnswerHistoryResponse,
+} from '../lecture.service';
 import { InstructorWorkspaceService } from './application/instructor-workspace.service';
 import { QuestionFlowPanel } from './components/question-flow-panel/question-flow-panel';
 import { InviteManagementPanel } from './components/invite-management-panel/invite-management-panel';
@@ -27,6 +33,13 @@ export class InstructorHome implements OnInit {
   protected readonly status = signal('Ready');
   protected readonly selectedLectureId = signal('');
   protected readonly lectureState = signal<LectureStateResponse | null>(null);
+  protected readonly questionAnalytics = signal<QuestionAnalyticsResponse[]>([]);
+  protected readonly analyticsLoading = signal(false);
+  protected readonly analyticsError = signal('');
+  protected readonly selectedHistoryQuestionId = signal('');
+  protected readonly questionHistory = signal<StudentAnswerHistoryResponse[]>([]);
+  protected readonly questionHistoryLoading = signal(false);
+  protected readonly questionHistoryError = signal('');
   protected readonly lastCreatedInvite = signal<CreateInviteResponse | null>(null);
   protected readonly invites = signal<LectureInviteResponse[]>([]);
 
@@ -62,6 +75,7 @@ export class InstructorHome implements OnInit {
     }
 
     const refreshed = await this.refreshLectureState({ preserveStatusOnError: true });
+    await this.refreshQuestionAnalytics({ preserveStatusOnError: true });
     this.status.set(refreshed ? 'Question added' : 'Question added, but latest state could not be loaded.');
   }
 
@@ -79,6 +93,7 @@ export class InstructorHome implements OnInit {
     }
 
     const refreshed = await this.refreshLectureState({ preserveStatusOnError: true });
+    await this.refreshQuestionAnalytics({ preserveStatusOnError: true });
     this.status.set(refreshed ? 'Unlocked next question' : 'Unlocked next question, but latest state could not be loaded.');
   }
 
@@ -96,6 +111,7 @@ export class InstructorHome implements OnInit {
     }
 
     const refreshed = await this.refreshLectureState({ preserveStatusOnError: true });
+    await this.refreshQuestionAnalytics({ preserveStatusOnError: true });
     this.status.set(
       refreshed
         ? `Unlocked question ${questionId}`
@@ -119,6 +135,60 @@ export class InstructorHome implements OnInit {
       }
       return false;
     }
+  }
+
+  async refreshQuestionAnalytics(options?: { preserveStatusOnError?: boolean }) {
+    const lectureId = this.selectedLectureId();
+    if (!lectureId) {
+      this.questionAnalytics.set([]);
+      this.analyticsError.set('');
+      return false;
+    }
+
+    this.analyticsLoading.set(true);
+    this.analyticsError.set('');
+    try {
+      const analytics = await this.workspaceService.listQuestionAnalytics(lectureId);
+      this.questionAnalytics.set(analytics);
+      return true;
+    } catch {
+      this.questionAnalytics.set([]);
+      this.analyticsError.set('Could not load analytics. Question and invite actions are still available.');
+      if (!options?.preserveStatusOnError) {
+        this.status.set('Could not refresh analytics. Please retry.');
+      }
+      return false;
+    } finally {
+      this.analyticsLoading.set(false);
+    }
+  }
+
+  async openQuestionAnswerHistory(questionId: string) {
+    const lectureId = this.selectedLectureId();
+    if (!lectureId) {
+      return;
+    }
+
+    this.selectedHistoryQuestionId.set(questionId);
+    this.questionHistory.set([]);
+    this.questionHistoryError.set('');
+    this.questionHistoryLoading.set(true);
+
+    try {
+      const history = await this.workspaceService.listQuestionAnswerHistory(lectureId, questionId);
+      this.questionHistory.set(history);
+    } catch {
+      this.questionHistoryError.set('Could not load student answer history for this question.');
+    } finally {
+      this.questionHistoryLoading.set(false);
+    }
+  }
+
+  closeQuestionAnswerHistory() {
+    this.selectedHistoryQuestionId.set('');
+    this.questionHistory.set([]);
+    this.questionHistoryError.set('');
+    this.questionHistoryLoading.set(false);
   }
 
   async createInvite() {
@@ -179,6 +249,9 @@ export class InstructorHome implements OnInit {
     if (!normalizedLectureId) {
       this.selectedLectureId.set('');
       this.lectureState.set(null);
+      this.questionAnalytics.set([]);
+      this.analyticsError.set('');
+      this.closeQuestionAnswerHistory();
       this.lastCreatedInvite.set(null);
       this.invites.set([]);
       this.status.set('Lecture not selected. Return to the lecture list.');
@@ -186,10 +259,14 @@ export class InstructorHome implements OnInit {
     }
 
     this.selectedLectureId.set(normalizedLectureId);
+    this.questionAnalytics.set([]);
+    this.analyticsError.set('');
+    this.closeQuestionAnswerHistory();
     this.lastCreatedInvite.set(null);
     this.invites.set([]);
 
     const refreshed = await this.refreshLectureState({ preserveStatusOnError: true });
+    await this.refreshQuestionAnalytics({ preserveStatusOnError: true });
     await this.refreshInvites({ preserveStatusOnError: true });
     this.status.set(
       refreshed ? `Loaded lecture: ${normalizedLectureId}` : `Could not load lecture ${normalizedLectureId}.`,

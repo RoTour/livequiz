@@ -1,5 +1,19 @@
 <article class="lq-card lq-stack">
   <h2 class="lq-card-title">Lecture state</h2>
+
+  <div class="lq-row">
+    <button type="button" class="lq-btn lq-btn-neutral" (click)="refreshQuestionAnalytics()" [disabled]="!lectureState">
+      Refresh analytics
+    </button>
+    @if (analyticsLoading) {
+      <span class="lq-muted">Loading analytics…</span>
+    }
+  </div>
+
+  @if (analyticsError) {
+    <p class="lq-alert lq-alert-danger">{{ analyticsError }}</p>
+  }
+
   @if (lectureState; as state) {
     <p class="lq-muted">{{ state.title }}</p>
 
@@ -22,7 +36,52 @@
             >
               Unlock this
             </button>
+            <button
+              type="button"
+              class="lq-btn lq-btn-secondary"
+              (click)="viewHistory(question.questionId)"
+              [disabled]="analyticsLoading"
+            >
+              View answers
+            </button>
           </div>
+
+          @if (analyticsByQuestionId(question.questionId); as analytics) {
+            <div class="lq-row">
+              <span class="lq-chip lq-chip-muted">Enrolled {{ analytics.enrolledCount }}</span>
+              <span class="lq-chip lq-chip-success">Answered {{ analytics.answeredCount }}</span>
+              <span class="lq-chip lq-chip-warning">Waiting {{ analytics.unansweredCount }}</span>
+              <span class="lq-chip lq-chip-muted">Multi-attempt {{ analytics.multiAttemptCount }}</span>
+            </div>
+          }
+
+          @if (isHistoryOpen(question.questionId)) {
+            <div class="lq-stack">
+              <div class="lq-row">
+                <strong>Answer history</strong>
+                <button type="button" class="lq-btn lq-btn-neutral" (click)="dismissHistory()">Close</button>
+              </div>
+
+              @if (questionHistoryLoading) {
+                <p class="lq-muted">Loading student answers…</p>
+              } @else if (questionHistoryError) {
+                <p class="lq-alert lq-alert-danger">{{ questionHistoryError }}</p>
+              } @else if (questionHistory.length === 0) {
+                <p class="lq-muted">No enrolled students found for this lecture.</p>
+              } @else {
+                <div class="lq-stack">
+                  @for (row of questionHistory; track row.studentId) {
+                    <div class="lq-row">
+                      <strong>{{ row.studentId }}</strong>
+                      <span class="lq-chip lq-chip-muted">Attempts {{ row.attemptCount }}</span>
+                      <span class="lq-muted">Latest {{ row.latestAnswerAt ?? 'none' }}</span>
+                      <span class="lq-muted">{{ row.latestAnswerText ?? 'No answer yet' }}</span>
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          }
         </div>
       }
     </div>

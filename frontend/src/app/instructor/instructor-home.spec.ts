@@ -13,6 +13,8 @@ describe('InstructorHome', () => {
   const unlockQuestion = vi.fn();
   const unlockNextQuestion = vi.fn();
   const getLectureState = vi.fn();
+  const listQuestionAnalytics = vi.fn();
+  const listQuestionAnswerHistory = vi.fn();
   const createInvite = vi.fn();
   const listInvites = vi.fn();
   const revokeInvite = vi.fn();
@@ -23,12 +25,16 @@ describe('InstructorHome', () => {
     unlockQuestion.mockReset();
     unlockNextQuestion.mockReset();
     getLectureState.mockReset();
+    listQuestionAnalytics.mockReset();
+    listQuestionAnswerHistory.mockReset();
     createInvite.mockReset();
     listInvites.mockReset();
     revokeInvite.mockReset();
     lectureIdParam = 'lecture-1';
 
     getLectureState.mockResolvedValue({ lectureId: 'lecture-1', title: 'DDD', questions: [] });
+    listQuestionAnalytics.mockResolvedValue([]);
+    listQuestionAnswerHistory.mockResolvedValue([]);
     listInvites.mockResolvedValue([]);
 
     await TestBed.configureTestingModule({
@@ -41,6 +47,8 @@ describe('InstructorHome', () => {
             unlockQuestion,
             unlockNextQuestion,
             getLectureState,
+            listQuestionAnalytics,
+            listQuestionAnswerHistory,
             createInvite,
             listInvites,
             revokeInvite,
@@ -69,6 +77,7 @@ describe('InstructorHome', () => {
 
   it('hydrates lecture context from route param', () => {
     expect(getLectureState).toHaveBeenCalledWith('lecture-1');
+    expect(listQuestionAnalytics).toHaveBeenCalledWith('lecture-1');
     expect(listInvites).toHaveBeenCalledWith('lecture-1');
     expect(fixture.nativeElement.textContent).toContain('DDD');
   });
@@ -76,6 +85,7 @@ describe('InstructorHome', () => {
   it('shows guidance when lecture route param is missing', async () => {
     lectureIdParam = null;
     getLectureState.mockClear();
+    listQuestionAnalytics.mockClear();
     listInvites.mockClear();
     fixture = TestBed.createComponent(InstructorHome);
     component = fixture.componentInstance;
@@ -84,8 +94,25 @@ describe('InstructorHome', () => {
     fixture.detectChanges();
 
     expect(getLectureState).not.toHaveBeenCalled();
+    expect(listQuestionAnalytics).not.toHaveBeenCalled();
     expect(listInvites).not.toHaveBeenCalled();
     expect(fixture.nativeElement.textContent).toContain('Lecture not selected. Return to the lecture list.');
+  });
+
+  it('loads student answer history for selected question', async () => {
+    listQuestionAnswerHistory.mockResolvedValueOnce([
+      {
+        studentId: 'student',
+        latestAnswerAt: '2026-02-21T11:30:00Z',
+        attemptCount: 2,
+        latestAnswerText: 'Second attempt',
+      },
+    ]);
+
+    await component.openQuestionAnswerHistory('question-1');
+    fixture.detectChanges();
+
+    expect(listQuestionAnswerHistory).toHaveBeenCalledWith('lecture-1', 'question-1');
   });
 
   it('adds question and refreshes lecture state', async () => {
@@ -162,6 +189,11 @@ describe('InstructorHome', () => {
     await component.refreshInvites();
     fixture.detectChanges();
     expect(listInvites).toHaveBeenCalled();
+
+    listQuestionAnalytics.mockRejectedValueOnce(new Error('analytics failed'));
+    await component.refreshQuestionAnalytics();
+    fixture.detectChanges();
+    expect(listQuestionAnalytics).toHaveBeenCalled();
 
     getLectureState.mockRejectedValueOnce(new Error('state failed'));
     await component.refreshLectureState();

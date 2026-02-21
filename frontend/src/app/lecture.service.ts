@@ -37,6 +37,19 @@ export class LectureService {
     return this.http.get<LectureStateResponse>(`${this.endpoint}/${lectureId}/state`);
   }
 
+  getQuestionAnalytics(lectureId: string): Observable<QuestionAnalyticsResponse[]> {
+    return this.http.get<QuestionAnalyticsResponse[]>(`${this.endpoint}/${lectureId}/questions/analytics`);
+  }
+
+  getQuestionAnswerHistory(
+    lectureId: string,
+    questionId: string,
+  ): Observable<StudentAnswerHistoryResponse[]> {
+    return this.http.get<StudentAnswerHistoryResponse[]>(
+      `${this.endpoint}/${lectureId}/questions/${questionId}/answers/history`,
+    );
+  }
+
   createInvite(lectureId: string): Observable<CreateInviteResponse> {
     return this.http.post<CreateInviteResponse>(`${this.endpoint}/${lectureId}/invites`, {});
   }
@@ -90,6 +103,23 @@ export type InstructorLectureSummaryResponse = {
   createdAt: string | null;
   questionCount: number;
   unlockedCount: number;
+};
+
+export type QuestionAnalyticsResponse = {
+  questionId: string;
+  prompt: string;
+  order: number;
+  enrolledCount: number;
+  answeredCount: number;
+  unansweredCount: number;
+  multiAttemptCount: number;
+};
+
+export type StudentAnswerHistoryResponse = {
+  studentId: string;
+  latestAnswerAt: string | null;
+  attemptCount: number;
+  latestAnswerText: string | null;
 };
 
 export type CreateInviteResponse = {
