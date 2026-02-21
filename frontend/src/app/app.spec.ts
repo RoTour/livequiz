@@ -27,7 +27,8 @@ describe('App', () => {
             isAuthenticated: authenticated.asReadonly(),
             role: role.asReadonly(),
             logout,
-            routeForCurrentUser: () => (role() === 'INSTRUCTOR' ? '/instructor' : '/student'),
+            routeForCurrentUser: () =>
+              role() === 'INSTRUCTOR' ? '/instructor' : '/student/lectures',
           },
         },
         {

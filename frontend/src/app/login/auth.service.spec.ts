@@ -26,6 +26,15 @@ describe('AuthService', () => {
     expect(service.routeForCurrentUser()).toBe('/instructor');
   });
 
+  it('derives student role and route from token', () => {
+    localStorage.setItem(LocalStorageKeys.authorization, createToken('STUDENT'));
+    const service = TestBed.inject(AuthService);
+
+    expect(service.isAuthenticated()).toBe(true);
+    expect(service.role()).toBe('STUDENT');
+    expect(service.routeForCurrentUser()).toBe('/student/lectures');
+  });
+
   it('falls back to login route for malformed token payload', () => {
     localStorage.setItem(LocalStorageKeys.authorization, 'not.a.valid.jwt');
     const service = TestBed.inject(AuthService);

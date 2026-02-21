@@ -30,6 +30,16 @@ export const routes: Routes = [
   },
   {
     path: 'student',
+    redirectTo: 'student/lectures',
+    pathMatch: 'full',
+  },
+  {
+    path: 'student/lectures',
+    component: StudentHome,
+    canActivate: [authGuard, studentGuard],
+  },
+  {
+    path: 'student/lectures/:lectureId',
     component: StudentHome,
     canActivate: [authGuard, studentGuard],
   },

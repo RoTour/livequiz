@@ -31,19 +31,27 @@ export class StudentHome implements OnInit {
   });
 
   ngOnInit() {
+    const lectureIdFromRoute = this.route.snapshot.paramMap.get('lectureId')?.trim();
     const lectureIdFromLink = this.route.snapshot.queryParamMap.get('lectureId')?.trim();
-    if (!lectureIdFromLink) {
+    const initialLectureId = lectureIdFromRoute || lectureIdFromLink;
+    if (!initialLectureId) {
       return;
     }
 
-    this.selectedLectureId.set(lectureIdFromLink);
+    this.selectedLectureId.set(initialLectureId);
     this.nextQuestion.set(null);
     this.submitAnswerForm.reset({ answerText: '' });
     this.cooldownMessage.set('');
 
-    const alreadyEnrolled = this.route.snapshot.queryParamMap.get('alreadyEnrolled') === '1';
-    this.joinResult.set(alreadyEnrolled ? 'Already enrolled' : 'Enrolled successfully');
-    this.status.set('Lecture joined from invite link');
+    if (lectureIdFromLink) {
+      const alreadyEnrolled = this.route.snapshot.queryParamMap.get('alreadyEnrolled') === '1';
+      this.joinResult.set(alreadyEnrolled ? 'Already enrolled' : 'Enrolled successfully');
+      this.status.set('Lecture joined from invite link');
+      return;
+    }
+
+    this.joinResult.set('');
+    this.status.set('Lecture selected');
   }
 
   async joinLecture() {

@@ -24,13 +24,19 @@ describe('app routes', () => {
     expect(instructorDetailRoute?.canActivate).toEqual([authGuard, instructorGuard]);
   });
 
-  it('protects student routes with auth and student guards', () => {
+  it('keeps legacy student path as redirect and protects student lecture routes', () => {
     const studentRoute = routes.find((route) => route.path === 'student');
+    const studentLecturesRoute = routes.find((route) => route.path === 'student/lectures');
+    const studentLectureDetailRoute = routes.find((route) => route.path === 'student/lectures/:lectureId');
     const studentJoinRoute = routes.find((route) => route.path === 'student/join/:token');
 
-    expect(studentRoute?.component).toBe(StudentHome);
+    expect(studentRoute?.redirectTo).toBe('student/lectures');
+    expect(studentRoute?.pathMatch).toBe('full');
+    expect(studentLecturesRoute?.component).toBe(StudentHome);
+    expect(studentLectureDetailRoute?.component).toBe(StudentHome);
     expect(studentJoinRoute?.component).toBe(StudentJoinToken);
-    expect(studentRoute?.canActivate).toEqual([authGuard, studentGuard]);
+    expect(studentLecturesRoute?.canActivate).toEqual([authGuard, studentGuard]);
+    expect(studentLectureDetailRoute?.canActivate).toEqual([authGuard, studentGuard]);
     expect(studentJoinRoute?.canActivate).toEqual([authGuard, studentGuard]);
   });
 

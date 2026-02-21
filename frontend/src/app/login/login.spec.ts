@@ -65,7 +65,7 @@ describe('Login', () => {
   });
 
   it('routes to the role default page after successful login', async () => {
-    routeForCurrentUser.mockReturnValue('/student');
+    routeForCurrentUser.mockReturnValue('/student/lectures');
     login.mockReturnValue(from(Promise.resolve({ token: 'jwt' })));
     navigate.mockResolvedValue(true);
     component.form.setValue({ username: 'student', password: 'password' });
@@ -75,7 +75,7 @@ describe('Login', () => {
 
     expect(login).toHaveBeenCalledWith('student', 'password');
     expect(routeForCurrentUser).toHaveBeenCalled();
-    expect(navigate).toHaveBeenCalledWith(['/student']);
+    expect(navigate).toHaveBeenCalledWith(['/student/lectures']);
     expect(navigateByUrl).not.toHaveBeenCalled();
   });
 
@@ -95,7 +95,7 @@ describe('Login', () => {
   });
 
   it('re-enables form when post-login navigation fails', async () => {
-    routeForCurrentUser.mockReturnValue('/student');
+    routeForCurrentUser.mockReturnValue('/student/lectures');
     login.mockReturnValue(from(Promise.resolve({ token: 'jwt' })));
     navigate.mockResolvedValue(false);
     component.form.setValue({ username: 'student', password: 'password' });
@@ -103,7 +103,7 @@ describe('Login', () => {
     component.submit();
     await fixture.whenStable();
 
-    expect(navigate).toHaveBeenCalledWith(['/student']);
+    expect(navigate).toHaveBeenCalledWith(['/student/lectures']);
     expect(navigateByUrl).not.toHaveBeenCalled();
     expect(component.form.disabled).toBe(false);
     expect(component.authErrorMessage()).toContain('Could not open your dashboard');
@@ -111,7 +111,7 @@ describe('Login', () => {
 
   it('uses returnUrl when present after successful login', async () => {
     queryParamMap = convertToParamMap({ returnUrl: '/student/join/token-1' });
-    routeForCurrentUser.mockReturnValue('/student');
+    routeForCurrentUser.mockReturnValue('/student/lectures');
     login.mockReturnValue(from(Promise.resolve({ token: 'jwt' })));
     navigateByUrl.mockResolvedValue(true);
     component.form.setValue({ username: 'student', password: 'password' });

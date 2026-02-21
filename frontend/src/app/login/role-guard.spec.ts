@@ -53,7 +53,7 @@ describe('role guards', () => {
     const allowed = await executeInstructorGuard({} as never, {} as never);
 
     expect(allowed).toBe(false);
-    expect(navigate).toHaveBeenCalledWith(['/student']);
+    expect(navigate).toHaveBeenCalledWith(['/student/lectures']);
   });
 
   it('allows students into student routes', async () => {

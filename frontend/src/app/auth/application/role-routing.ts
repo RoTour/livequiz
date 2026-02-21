@@ -5,7 +5,7 @@ export function routeForRole(role: UserRole | null): string {
     return '/instructor';
   }
   if (role === 'STUDENT') {
-    return '/student';
+    return '/student/lectures';
   }
   return '/auth/login';
 }
