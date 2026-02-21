@@ -5,12 +5,6 @@
     <p class="lq-status-line">{{ status() }}</p>
   </header>
 
-  <app-create-lecture-panel
-    [form]="createLectureForm"
-    [selectedLectureId]="selectedLectureId()"
-    (createLecture)="createLecture()"
-  />
-
   <app-question-flow-panel
     [form]="addQuestionForm"
     [selectedLectureId]="selectedLectureId()"

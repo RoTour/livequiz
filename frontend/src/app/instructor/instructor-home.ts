@@ -1,9 +1,9 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CreateInviteResponse, LectureInviteResponse, LectureStateResponse } from '../lecture.service';
 import { InstructorWorkspaceService } from './application/instructor-workspace.service';
-import { CreateLecturePanel } from './components/create-lecture-panel/create-lecture-panel';
 import { QuestionFlowPanel } from './components/question-flow-panel/question-flow-panel';
 import { InviteManagementPanel } from './components/invite-management-panel/invite-management-panel';
 import { LectureStatePanel } from './components/lecture-state-panel/lecture-state-panel';
@@ -12,7 +12,6 @@ import { LectureStatePanel } from './components/lecture-state-panel/lecture-stat
   selector: 'app-instructor-home',
   imports: [
     ReactiveFormsModule,
-    CreateLecturePanel,
     QuestionFlowPanel,
     InviteManagementPanel,
     LectureStatePanel,
@@ -22,6 +21,7 @@ import { LectureStatePanel } from './components/lecture-state-panel/lecture-stat
 })
 export class InstructorHome implements OnInit {
   private readonly route = inject(ActivatedRoute);
+  private readonly destroyRef = inject(DestroyRef);
   private readonly workspaceService = inject(InstructorWorkspaceService);
 
   protected readonly status = signal('Ready');
@@ -30,10 +30,6 @@ export class InstructorHome implements OnInit {
   protected readonly lastCreatedInvite = signal<CreateInviteResponse | null>(null);
   protected readonly invites = signal<LectureInviteResponse[]>([]);
 
-  readonly createLectureForm = new FormGroup({
-    title: new FormControl('', [Validators.required, Validators.minLength(3)]),
-  });
-
   readonly addQuestionForm = new FormGroup({
     prompt: new FormControl('', [Validators.required, Validators.minLength(5)]),
     modelAnswer: new FormControl('', [Validators.required, Validators.minLength(3)]),
@@ -41,43 +37,10 @@ export class InstructorHome implements OnInit {
   });
 
   async ngOnInit() {
-    const lectureId = this.route.snapshot.paramMap.get('lectureId')?.trim();
-    if (!lectureId) {
-      return;
-    }
-
-    this.selectedLectureId.set(lectureId);
-    const refreshed = await this.refreshLectureState({ preserveStatusOnError: true });
-    await this.refreshInvites({ preserveStatusOnError: true });
-
-    this.status.set(refreshed ? `Loaded lecture: ${lectureId}` : `Could not load lecture ${lectureId}.`);
-  }
-
-  async createLecture() {
-    if (this.createLectureForm.invalid) {
-      return;
-    }
-
-    let lectureId = '';
-
-    try {
-      lectureId = await this.workspaceService.createLecture(this.createLectureForm.value.title!);
-      this.selectedLectureId.set(lectureId);
-      this.lastCreatedInvite.set(null);
-      this.invites.set([]);
-    } catch {
-      this.status.set('Could not create lecture. Please retry.');
-      return;
-    }
-
-    const refreshed = await this.refreshLectureState({ preserveStatusOnError: true });
-    await this.refreshInvites({ preserveStatusOnError: true });
-    if (refreshed) {
-      this.status.set(`Lecture created: ${lectureId}`);
-      return;
-    }
-
-    this.status.set(`Lecture created: ${lectureId}, but latest state could not be loaded.`);
+    await this.loadLectureContext(this.route.snapshot.paramMap.get('lectureId'));
+    this.route.paramMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((paramMap) => {
+      void this.loadLectureContext(paramMap.get('lectureId'));
+    });
   }
 
   async addQuestion() {
@@ -211,4 +174,25 @@ export class InstructorHome implements OnInit {
     }
   }
 
+  private async loadLectureContext(lectureId: string | null) {
+    const normalizedLectureId = lectureId?.trim() ?? '';
+    if (!normalizedLectureId) {
+      this.selectedLectureId.set('');
+      this.lectureState.set(null);
+      this.lastCreatedInvite.set(null);
+      this.invites.set([]);
+      this.status.set('Lecture not selected. Return to the lecture list.');
+      return;
+    }
+
+    this.selectedLectureId.set(normalizedLectureId);
+    this.lastCreatedInvite.set(null);
+    this.invites.set([]);
+
+    const refreshed = await this.refreshLectureState({ preserveStatusOnError: true });
+    await this.refreshInvites({ preserveStatusOnError: true });
+    this.status.set(
+      refreshed ? `Loaded lecture: ${normalizedLectureId}` : `Could not load lecture ${normalizedLectureId}.`,
+    );
+  }
 }
