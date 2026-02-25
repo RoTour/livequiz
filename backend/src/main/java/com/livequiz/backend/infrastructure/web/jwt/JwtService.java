@@ -4,6 +4,7 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 import javax.crypto.SecretKey;
 import org.springframework.beans.factory.annotation.Value;
@@ -33,9 +34,32 @@ public class JwtService {
   }
 
   public String createToken(String subject, String role) {
+    return createToken(subject, role, Map.of());
+  }
+
+  public String createStudentToken(
+    String studentId,
+    boolean anonymous,
+    boolean emailVerified
+  ) {
+    return createToken(
+      studentId,
+      "STUDENT",
+      Map.of("anonymous", anonymous, "emailVerified", emailVerified)
+    );
+  }
+
+  private String createToken(
+    String subject,
+    String role,
+    Map<String, Object> additionalClaims
+  ) {
+    Map<String, Object> claims = new HashMap<>();
+    claims.put("role", role);
+    claims.putAll(additionalClaims);
     return Jwts.builder()
       .subject(subject)
-      .claims(Map.of("role", role))
+      .claims(claims)
       .issuedAt(new Date())
       .expiration(new Date(System.currentTimeMillis() + 1000L * 60 * 60 * 10))
       .signWith(this.secret)
@@ -49,11 +73,21 @@ public class JwtService {
         .build()
         .parseSignedClaims(token)
         .getPayload();
-      return new TokenClaims(claims.getSubject(), claims.get("role", String.class));
+      return new TokenClaims(
+        claims.getSubject(),
+        claims.get("role", String.class),
+        Boolean.TRUE.equals(claims.get("anonymous", Boolean.class)),
+        Boolean.TRUE.equals(claims.get("emailVerified", Boolean.class))
+      );
     } catch (Exception e) {
       return null;
     }
   }
 
-  public record TokenClaims(String subject, String role) {}
+  public record TokenClaims(
+    String subject,
+    String role,
+    boolean anonymous,
+    boolean emailVerified
+  ) {}
 }

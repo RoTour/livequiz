@@ -31,15 +31,19 @@ public class SecurityConfig {
       .authorizeHttpRequests(
         auth ->
           auth
-            .requestMatchers("/health", "/api/health", "/api/auth/**")
+            .requestMatchers("/health", "/api/health")
             .permitAll()
             .requestMatchers(
-              "/api/lectures",
-              "/api/lectures/*/questions/**",
-              "/api/lectures/*/state",
-              "/api/lectures/*/invites/**"
+              "/api/auth/login",
+              "/api/auth/anonymous",
+              "/api/auth/students/verify-email"
             )
-            .hasRole("INSTRUCTOR")
+            .permitAll()
+            .requestMatchers(
+              "/api/auth/students/register-email",
+              "/api/auth/students/resend-verification"
+            )
+            .hasRole("STUDENT")
             .requestMatchers(
               "/api/lectures/join",
               "/api/lectures/students/me",
@@ -48,6 +52,13 @@ public class SecurityConfig {
               "/api/lectures/*/submissions"
             )
             .hasAnyRole("STUDENT", "INSTRUCTOR")
+            .requestMatchers(
+              "/api/lectures",
+              "/api/lectures/*/questions/**",
+              "/api/lectures/*/state",
+              "/api/lectures/*/invites/**"
+            )
+            .hasRole("INSTRUCTOR")
             .anyRequest()
             .authenticated()
       )
