@@ -32,3 +32,21 @@ This project serves as a comprehensive learning exercise for **Java Spring Boot*
 This repository is a monorepo containing:
 - `backend/`: Java Spring Boot application
 - `frontend/`: Angular application
+
+## 💾 Backend Persistence Profiles
+- Default runtime profile is `postgres`.
+- In-memory profiles (`in-memory`, `memory`) remain available for fast local and test flows without a database.
+- Postgres schema is managed by Flyway migrations under `backend/src/main/resources/db/migration/`.
+
+## 🐘 Run Backend with Postgres
+1. Start Postgres:
+   - `cd backend && docker compose up -d`
+2. Set JWT secret (required outside in-memory profiles):
+   - `export LIVEQUIZ_JWT_SECRET='replace-with-a-long-random-secret'`
+3. Run backend (uses `postgres` profile by default):
+   - `cd backend && ./mvnw spring-boot:run`
+
+Flyway runs automatically on startup. To override DB connection, set:
+- `SPRING_DATASOURCE_URL`
+- `SPRING_DATASOURCE_USERNAME`
+- `SPRING_DATASOURCE_PASSWORD`

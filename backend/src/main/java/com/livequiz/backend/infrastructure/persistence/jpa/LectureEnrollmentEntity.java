@@ -1,5 +1,7 @@
 package com.livequiz.backend.infrastructure.persistence.jpa;
 
+import jakarta.persistence.Basic;
+import jakarta.persistence.Column;
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
@@ -12,6 +14,8 @@ public class LectureEnrollmentEntity {
   @EmbeddedId
   private LectureEnrollmentId id;
 
+  @Basic(optional = false)
+  @Column(name = "enrolled_at", nullable = false)
   private Instant enrolledAt;
 
   public LectureEnrollmentEntity() {}

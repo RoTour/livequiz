@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Optional;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 @Repository
 @Profile("postgres")
@@ -40,7 +41,7 @@ public class JpaPostgresLectureRepository implements LectureRepository {
       lecture.id().value(),
       lecture.title(),
       questions,
-      lecture.unlockedQuestionIds().stream().toList(),
+      new java.util.LinkedHashSet<>(lecture.unlockedQuestionIds()),
       lecture.createdByInstructorId(),
       lecture.createdAt()
     );
@@ -48,25 +49,42 @@ public class JpaPostgresLectureRepository implements LectureRepository {
   }
 
   @Override
+  @Transactional(readOnly = true)
   public Optional<Lecture> findById(LectureId lectureId) {
-    return this.jpaLectureRepository.findById(lectureId.value()).map(this::toDomain);
+    return this.jpaLectureRepository.findById(lectureId.value()).map(entity ->
+      toDomain(
+        entity,
+        this.jpaLectureRepository.findQuestionRowsByLectureId(entity.getId()),
+        this.jpaLectureRepository.findUnlockedQuestionIdsByLectureId(entity.getId())
+      )
+    );
   }
 
   @Override
+  @Transactional(readOnly = true)
   public List<Lecture> findByCreatedByInstructorId(String createdByInstructorId) {
     return this.jpaLectureRepository
       .findByCreatedByInstructorIdOrderByCreatedAtDesc(createdByInstructorId)
       .stream()
-      .map(this::toDomain)
+      .map(entity ->
+        toDomain(
+          entity,
+          this.jpaLectureRepository.findQuestionRowsByLectureId(entity.getId()),
+          this.jpaLectureRepository.findUnlockedQuestionIdsByLectureId(entity.getId())
+        )
+      )
       .toList();
   }
 
-  private Lecture toDomain(LectureEntity entity) {
+  private Lecture toDomain(
+    LectureEntity entity,
+    List<JpaLectureRepository.LectureQuestionRow> questions,
+    List<String> unlockedQuestionIds
+  ) {
     return new Lecture(
       new LectureId(entity.getId()),
       entity.getTitle(),
-      entity
-        .getQuestions()
+      questions
         .stream()
         .map(question ->
           new Question(
@@ -79,7 +97,7 @@ public class JpaPostgresLectureRepository implements LectureRepository {
           )
         )
         .toList(),
-      new java.util.LinkedHashSet<>(entity.getUnlockedQuestionIds()),
+      new java.util.LinkedHashSet<>(unlockedQuestionIds),
       entity.getCreatedByInstructorId(),
       entity.getCreatedAt()
     );

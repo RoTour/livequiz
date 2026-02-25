@@ -9,6 +9,6 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - livequiz_pg_data:/var/lib/postgresql
+      - livequiz_pg_data:/var/lib/postgresql/data
 volumes:
   livequiz_pg_data:

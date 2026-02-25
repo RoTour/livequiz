@@ -39,10 +39,10 @@ Goal: students progress deterministically through unlocked questions.
 ## Phase 5: Hardening and Scale
 Goal: production-ready reliability, security, and observability.
 
-- [ ] Add/verify dedicated `postgres` runtime profile wiring and Postgres repository adapters so lecture data is actually persisted across restarts
-- [ ] Persist all lecture/invite/enrollment/submission models in Postgres profile
+- [x] Add/verify dedicated `postgres` runtime profile wiring and Postgres repository adapters so lecture data is actually persisted across restarts
+- [x] Persist all lecture/invite/enrollment/submission models in Postgres profile
 - [ ] Replace default credentials with managed identity provider
-- [ ] Add migration tooling (`Flyway` or `Liquibase`)
+- [x] Add migration tooling (`Flyway` or `Liquibase`)
 - [ ] Add role-aware instructor/student dashboards
 - [ ] Add structured audit logs and rate limiting for join/submission flows
 

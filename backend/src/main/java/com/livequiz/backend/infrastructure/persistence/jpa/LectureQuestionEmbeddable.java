@@ -6,18 +6,19 @@ import jakarta.persistence.Embeddable;
 @Embeddable
 public class LectureQuestionEmbeddable {
 
-  @Column(name = "question_id")
+  @Column(name = "question_id", length = 255, nullable = false)
   private String questionId;
 
+  @Column(columnDefinition = "text", nullable = false)
   private String prompt;
 
-  @Column(name = "model_answer")
+  @Column(name = "model_answer", columnDefinition = "text", nullable = false)
   private String modelAnswer;
 
-  @Column(name = "time_limit_seconds")
+  @Column(name = "time_limit_seconds", nullable = false)
   private int timeLimitSeconds;
 
-  @Column(name = "question_order")
+  @Column(name = "question_order", nullable = false)
   private int questionOrder;
 
   public LectureQuestionEmbeddable() {}
