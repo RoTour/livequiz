@@ -2,10 +2,12 @@ import { Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { firstValueFrom } from 'rxjs';
 import { NextQuestionResponse, StudentAnswerStatusResponse } from '../lecture.service';
 import { StudentWorkspaceService } from './application/student-workspace.service';
 import { AnswerFlowPanel } from './components/answer-flow-panel/answer-flow-panel';
 import { ToastService } from '../shared/toast/toast.service';
+import { AuthService } from '../login/auth.service';
 
 @Component({
   selector: 'app-student-lecture-room',
@@ -20,6 +22,7 @@ export class StudentLectureRoom implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
   private readonly workspaceService = inject(StudentWorkspaceService);
   private readonly toastService = inject(ToastService);
+  protected readonly authService = inject(AuthService);
   private pollTimerId: number | null = null;
   private manualReloadLocked = false;
 
@@ -29,9 +32,16 @@ export class StudentLectureRoom implements OnInit {
   protected readonly answerStatuses = signal<StudentAnswerStatusResponse[]>([]);
   protected readonly cooldownMessage = signal('');
   protected readonly manualReloadDisabled = signal(false);
+  protected readonly emailVerificationStatus = signal('');
+  protected readonly emailVerificationError = signal('');
+  protected readonly emailVerificationBusy = signal(false);
 
   readonly submitAnswerForm = new FormGroup({
     answerText: new FormControl('', [Validators.required, Validators.minLength(2)]),
+  });
+
+  readonly registerEmailForm = new FormGroup({
+    email: new FormControl('', [Validators.required, Validators.email]),
   });
 
   async ngOnInit() {
@@ -179,5 +189,76 @@ export class StudentLectureRoom implements OnInit {
 
   ngOnDestroy() {
     this.stopPolling();
+  }
+
+  async registerEmail() {
+    if (this.registerEmailForm.invalid || this.emailVerificationBusy()) {
+      this.registerEmailForm.markAllAsTouched();
+      return;
+    }
+
+    const email = this.registerEmailForm.value.email?.trim();
+    if (!email) {
+      return;
+    }
+
+    this.emailVerificationBusy.set(true);
+    this.emailVerificationStatus.set('');
+    this.emailVerificationError.set('');
+
+    try {
+      await firstValueFrom(this.authService.registerStudentEmail(email));
+      this.emailVerificationStatus.set('If allowed, a verification email has been sent.');
+      this.toastService.show('info', 'If allowed, a verification email has been sent.');
+    } catch (error: any) {
+      const message = this.resolveEmailVerificationErrorMessage(error?.error?.code);
+      this.emailVerificationError.set(message);
+      this.toastService.show('warning', message);
+    } finally {
+      this.emailVerificationBusy.set(false);
+    }
+  }
+
+  async resendVerification() {
+    if (this.emailVerificationBusy()) {
+      return;
+    }
+
+    const email = this.registerEmailForm.value.email?.trim();
+
+    this.emailVerificationBusy.set(true);
+    this.emailVerificationStatus.set('');
+    this.emailVerificationError.set('');
+
+    try {
+      await firstValueFrom(this.authService.resendStudentVerification(email || undefined));
+      this.emailVerificationStatus.set('If allowed, a verification email has been resent.');
+      this.toastService.show('info', 'If allowed, a verification email has been resent.');
+    } catch (error: any) {
+      const message = this.resolveEmailVerificationErrorMessage(error?.error?.code);
+      this.emailVerificationError.set(message);
+      this.toastService.show('warning', message);
+    } finally {
+      this.emailVerificationBusy.set(false);
+    }
+  }
+
+  private resolveEmailVerificationErrorMessage(errorCode: string | undefined): string {
+    if (errorCode === 'EMAIL_REQUIRED') {
+      return 'Email is required.';
+    }
+    if (errorCode === 'EMAIL_INVALID_FORMAT') {
+      return 'Email format is invalid.';
+    }
+    if (errorCode === 'EMAIL_DOMAIN_NOT_ALLOWED') {
+      return 'Only @ynov.com email addresses are allowed.';
+    }
+    if (errorCode === 'EMAIL_VERIFICATION_COOLDOWN') {
+      return 'Please wait before requesting another verification email.';
+    }
+    if (errorCode === 'EMAIL_VERIFICATION_RATE_LIMITED') {
+      return 'Too many verification attempts. Please try again later.';
+    }
+    return 'Could not process email verification right now. Please retry.';
   }
 }

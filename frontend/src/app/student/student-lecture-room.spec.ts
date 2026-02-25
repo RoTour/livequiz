@@ -1,9 +1,11 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { signal } from '@angular/core';
 import { ActivatedRoute, convertToParamMap } from '@angular/router';
 import { defer, of } from 'rxjs';
 import { vi } from 'vitest';
 import { StudentWorkspaceService } from './application/student-workspace.service';
 import { StudentLectureRoom } from './student-lecture-room';
+import { AuthService } from '../login/auth.service';
 
 describe('StudentLectureRoom', () => {
   let fixture: ComponentFixture<StudentLectureRoom>;
@@ -50,6 +52,15 @@ describe('StudentLectureRoom', () => {
               },
             },
             paramMap: defer(() => of(convertToParamMap({ lectureId: lectureIdParam ?? undefined }))),
+          },
+        },
+        {
+          provide: AuthService,
+          useValue: {
+            isAnonymousStudent: signal(true).asReadonly(),
+            isStudentEmailVerified: signal(false).asReadonly(),
+            registerStudentEmail: vi.fn(),
+            resendStudentVerification: vi.fn(),
           },
         },
       ],

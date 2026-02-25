@@ -3,16 +3,22 @@ import { ActivatedRoute, Router, convertToParamMap } from '@angular/router';
 import { vi } from 'vitest';
 import { StudentWorkspaceService } from './application/student-workspace.service';
 import { StudentJoinToken } from './student-join-token';
+import { AuthService } from '../login/auth.service';
 
 describe('StudentJoinToken', () => {
   let fixture: ComponentFixture<StudentJoinToken>;
 
   const joinLectureByToken = vi.fn();
+  const ensureStudentSession = vi.fn();
   const navigate = vi.fn();
+  let role: 'INSTRUCTOR' | 'STUDENT' | null = null;
 
   beforeEach(async () => {
     joinLectureByToken.mockReset();
+    ensureStudentSession.mockReset();
     navigate.mockReset();
+    role = null;
+    ensureStudentSession.mockResolvedValue(undefined);
 
     await TestBed.configureTestingModule({
       imports: [StudentJoinToken],
@@ -37,9 +43,24 @@ describe('StudentJoinToken', () => {
             navigate,
           },
         },
+        {
+          provide: AuthService,
+          useValue: {
+            ensureStudentSession,
+            role: () => role,
+          },
+        },
       ],
     }).compileComponents();
   });
+
+  async function initComponent() {
+    fixture = TestBed.createComponent(StudentJoinToken);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await fixture.whenStable();
+    fixture.detectChanges();
+  }
 
   it('auto-joins by token and redirects directly to lecture room route', async () => {
     joinLectureByToken.mockResolvedValue({
@@ -50,12 +71,22 @@ describe('StudentJoinToken', () => {
     });
     navigate.mockResolvedValue(true);
 
-    fixture = TestBed.createComponent(StudentJoinToken);
-    fixture.detectChanges();
-    await fixture.whenStable();
+    await initComponent();
 
+    expect(ensureStudentSession).toHaveBeenCalled();
     expect(joinLectureByToken).toHaveBeenCalledWith('token-1');
     expect(navigate).toHaveBeenCalledWith(['/student/lectures', 'lecture-1']);
+  });
+
+  it('redirects instructors away from student invite links', async () => {
+    role = 'INSTRUCTOR';
+    navigate.mockResolvedValue(true);
+
+    await initComponent();
+
+    expect(ensureStudentSession).not.toHaveBeenCalled();
+    expect(joinLectureByToken).not.toHaveBeenCalled();
+    expect(navigate).toHaveBeenCalledWith(['/instructor/lectures']);
   });
 
   it('shows actionable message when invite token is invalid', async () => {
@@ -65,10 +96,7 @@ describe('StudentJoinToken', () => {
       },
     });
 
-    fixture = TestBed.createComponent(StudentJoinToken);
-    fixture.detectChanges();
-    await fixture.whenStable();
-    fixture.detectChanges();
+    await initComponent();
 
     expect(navigate).not.toHaveBeenCalled();
     expect(fixture.nativeElement.textContent).toContain('Invite unavailable');
@@ -82,10 +110,7 @@ describe('StudentJoinToken', () => {
       },
     });
 
-    fixture = TestBed.createComponent(StudentJoinToken);
-    fixture.detectChanges();
-    await fixture.whenStable();
-    fixture.detectChanges();
+    await initComponent();
 
     expect(navigate).not.toHaveBeenCalled();
     expect(fixture.nativeElement.textContent).toContain('Invite revoked');
@@ -99,10 +124,7 @@ describe('StudentJoinToken', () => {
       },
     });
 
-    fixture = TestBed.createComponent(StudentJoinToken);
-    fixture.detectChanges();
-    await fixture.whenStable();
-    fixture.detectChanges();
+    await initComponent();
 
     expect(navigate).not.toHaveBeenCalled();
     expect(fixture.nativeElement.textContent).toContain('Invite expired');

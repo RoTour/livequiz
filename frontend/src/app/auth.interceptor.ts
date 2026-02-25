@@ -1,12 +1,16 @@
 import { HttpInterceptorFn } from '@angular/common/http';
 import { LocalStorageKeys } from '../LocalStorageKeys';
 
+const SKIPPED_AUTH_ENDPOINTS = [
+  '/api/auth/login',
+  '/api/auth/anonymous',
+  '/api/auth/students/verify-email',
+];
+
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const token = localStorage.getItem(LocalStorageKeys.authorization);
 
-  // Skip adding the token for the login endpoint
-  // We check for /auth/login to be safe, assuming the path structure
-  if (req.url.includes('/auth/login')) {
+  if (SKIPPED_AUTH_ENDPOINTS.some((endpoint) => req.url.includes(endpoint))) {
     return next(req);
   }
 

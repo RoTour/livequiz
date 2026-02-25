@@ -1,6 +1,7 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { StudentWorkspaceService } from './application/student-workspace.service';
+import { AuthService } from '../login/auth.service';
 
 @Component({
   selector: 'app-student-join-token',
@@ -12,6 +13,7 @@ export class StudentJoinToken implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly workspaceService = inject(StudentWorkspaceService);
+  private readonly authService = inject(AuthService);
 
   protected readonly status = signal('Preparing invite join...');
   protected readonly errorMessage = signal('');
@@ -21,6 +23,23 @@ export class StudentJoinToken implements OnInit {
     if (!token) {
       this.status.set('Invite link is invalid');
       this.errorMessage.set('Missing invite token. Ask your instructor for a new link.');
+      return;
+    }
+
+    if (this.authService.role() === 'INSTRUCTOR') {
+      this.status.set('Instructor session detected');
+      this.errorMessage.set('Invite links are for students. Redirecting to instructor workspace.');
+      await this.router.navigate(['/instructor/lectures']);
+      return;
+    }
+
+    try {
+      this.status.set('Preparing student session...');
+      this.errorMessage.set('');
+      await this.authService.ensureStudentSession();
+    } catch {
+      this.status.set('Could not start student session');
+      this.errorMessage.set('Please reload this invite link to try again.');
       return;
     }
 

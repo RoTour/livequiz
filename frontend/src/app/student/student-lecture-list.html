@@ -28,6 +28,42 @@
   </article>
 
   <article class="lq-card lq-stack">
+    <h2 class="lq-card-title">Verify school email</h2>
+    @if (authService.isStudentEmailVerified()) {
+      <p class="lq-alert lq-alert-info">Your student email is verified.</p>
+    } @else {
+      <p class="lq-muted">
+        Add your <strong>@ynov.com</strong> email to verify your account while keeping your lecture progress.
+      </p>
+      @if (authService.isAnonymousStudent()) {
+        <p class="lq-muted">You are currently using an anonymous student session.</p>
+      }
+
+      <form [formGroup]="registerEmailForm" (ngSubmit)="registerEmail()" class="lq-row">
+        <input
+          type="email"
+          formControlName="email"
+          class="lq-input"
+          placeholder="name@ynov.com"
+        />
+        <button type="submit" class="lq-btn lq-btn-primary" [disabled]="registerEmailForm.invalid || emailVerificationBusy()">
+          Send verification
+        </button>
+        <button type="button" class="lq-btn lq-btn-neutral" [disabled]="emailVerificationBusy()" (click)="resendVerification()">
+          Resend
+        </button>
+      </form>
+
+      @if (emailVerificationStatus()) {
+        <p class="lq-alert lq-alert-info">{{ emailVerificationStatus() }}</p>
+      }
+      @if (emailVerificationError()) {
+        <p class="lq-alert lq-alert-danger">{{ emailVerificationError() }}</p>
+      }
+    }
+  </article>
+
+  <article class="lq-card lq-stack">
     <h2 class="lq-card-title">Joined lectures</h2>
     @if (loading()) {
       <p class="lq-muted">Loading lectures…</p>

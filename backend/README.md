@@ -63,3 +63,23 @@ SPRING_PROFILES_ACTIVE=postgres ./mvnw spring-boot:run
   - `SPRING_DATASOURCE_URL`
   - `SPRING_DATASOURCE_USERNAME`
   - `SPRING_DATASOURCE_PASSWORD`
+
+## Student Email Verification via AWS SES (SMTP)
+
+To enable real email delivery for student verification, configure SES SMTP and enable the SMTP sender:
+
+```bash
+export LIVEQUIZ_STUDENT_EMAIL_VERIFICATION_SMTP_ENABLED=true
+export LIVEQUIZ_STUDENT_EMAIL_VERIFICATION_FROM='no-reply@your-verified-domain.com'
+export LIVEQUIZ_STUDENT_EMAIL_VERIFICATION_URL_BASE='https://your-frontend-domain/student/verify-email'
+
+export SPRING_MAIL_HOST='email-smtp.eu-west-1.amazonaws.com'
+export SPRING_MAIL_PORT='587'
+export SPRING_MAIL_USERNAME='<ses-smtp-username>'
+export SPRING_MAIL_PASSWORD='<ses-smtp-password>'
+export SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH='true'
+export SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE='true'
+```
+
+Fail-fast validation is enabled at startup when `LIVEQUIZ_STUDENT_EMAIL_VERIFICATION_SMTP_ENABLED=true`.
+The backend will refuse to start if any required SMTP property is missing/invalid.

@@ -6,6 +6,7 @@ import { InstructorLectureList } from './instructor/instructor-lecture-list';
 import { StudentLectureList } from './student/student-lecture-list';
 import { StudentLectureRoom } from './student/student-lecture-room';
 import { StudentJoinToken } from './student/student-join-token';
+import { StudentVerifyEmail } from './student/student-verify-email';
 
 describe('app routes', () => {
   it('keeps legacy instructor path as redirect', () => {
@@ -25,20 +26,23 @@ describe('app routes', () => {
     expect(instructorDetailRoute?.canActivate).toEqual([authGuard, instructorGuard]);
   });
 
-  it('keeps legacy student path as redirect and protects student lecture routes', () => {
+  it('keeps legacy student path as redirect, protects student workspace routes, and keeps deep-links public', () => {
     const studentRoute = routes.find((route) => route.path === 'student');
     const studentLecturesRoute = routes.find((route) => route.path === 'student/lectures');
     const studentLectureDetailRoute = routes.find((route) => route.path === 'student/lectures/:lectureId');
     const studentJoinRoute = routes.find((route) => route.path === 'student/join/:token');
+    const studentVerifyRoute = routes.find((route) => route.path === 'student/verify-email');
 
     expect(studentRoute?.redirectTo).toBe('student/lectures');
     expect(studentRoute?.pathMatch).toBe('full');
     expect(studentLecturesRoute?.component).toBe(StudentLectureList);
     expect(studentLectureDetailRoute?.component).toBe(StudentLectureRoom);
     expect(studentJoinRoute?.component).toBe(StudentJoinToken);
+    expect(studentVerifyRoute?.component).toBe(StudentVerifyEmail);
     expect(studentLecturesRoute?.canActivate).toEqual([authGuard, studentGuard]);
     expect(studentLectureDetailRoute?.canActivate).toEqual([authGuard, studentGuard]);
-    expect(studentJoinRoute?.canActivate).toEqual([authGuard, studentGuard]);
+    expect(studentJoinRoute?.canActivate).toBeUndefined();
+    expect(studentVerifyRoute?.canActivate).toBeUndefined();
   });
 
   it('keeps fallback redirects for dashboard root and unknown paths', () => {

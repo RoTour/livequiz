@@ -1,8 +1,11 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { vi } from 'vitest';
 import { StudentWorkspaceService } from './application/student-workspace.service';
 import { StudentLectureList } from './student-lecture-list';
+import { ToastService } from '../shared/toast/toast.service';
+import { AuthService } from '../login/auth.service';
 
 describe('StudentLectureList', () => {
   let fixture: ComponentFixture<StudentLectureList>;
@@ -11,11 +14,13 @@ describe('StudentLectureList', () => {
   const listLectures = vi.fn();
   const joinLectureByCode = vi.fn();
   const navigate = vi.fn();
+  const show = vi.fn();
 
   beforeEach(async () => {
     listLectures.mockReset();
     joinLectureByCode.mockReset();
     navigate.mockReset();
+    show.mockReset();
 
     listLectures.mockResolvedValue([]);
 
@@ -33,6 +38,21 @@ describe('StudentLectureList', () => {
           provide: Router,
           useValue: {
             navigate,
+          },
+        },
+        {
+          provide: ToastService,
+          useValue: {
+            show,
+          },
+        },
+        {
+          provide: AuthService,
+          useValue: {
+            isAnonymousStudent: signal(true).asReadonly(),
+            isStudentEmailVerified: signal(false).asReadonly(),
+            registerStudentEmail: vi.fn(),
+            resendStudentVerification: vi.fn(),
           },
         },
       ],

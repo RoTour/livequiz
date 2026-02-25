@@ -7,6 +7,7 @@ import { InstructorLectureList } from './instructor/instructor-lecture-list';
 import { StudentLectureList } from './student/student-lecture-list';
 import { StudentLectureRoom } from './student/student-lecture-room';
 import { StudentJoinToken } from './student/student-join-token';
+import { StudentVerifyEmail } from './student/student-verify-email';
 import { DesignSystem } from './design-system/design-system';
 
 export const routes: Routes = [
@@ -51,7 +52,10 @@ export const routes: Routes = [
   {
     path: 'student/join/:token',
     component: StudentJoinToken,
-    canActivate: [authGuard, studentGuard],
+  },
+  {
+    path: 'student/verify-email',
+    component: StudentVerifyEmail,
   },
   { path: 'dashboard', redirectTo: 'instructor', pathMatch: 'full' },
   { path: '', redirectTo: 'auth/login', pathMatch: 'full' },
