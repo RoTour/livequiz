@@ -2,6 +2,7 @@ package com.livequiz.backend.application;
 
 import com.livequiz.backend.domain.student.EmailVerificationChallenge;
 import com.livequiz.backend.domain.student.EmailVerificationChallengeRepository;
+import com.livequiz.backend.application.messaging.StudentVerificationEmailDispatchService;
 import com.livequiz.backend.infrastructure.web.ApiException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -13,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class EmailVerificationChallengeService {
@@ -25,21 +27,22 @@ public class EmailVerificationChallengeService {
 
   private final EmailVerificationChallengeRepository challengeRepository;
   private final StudentVerificationTokenService tokenService;
-  private final StudentVerificationEmailSender emailSender;
+  private final StudentVerificationEmailDispatchService emailDispatchService;
   private final LiveQuizProperties liveQuizProperties;
 
   public EmailVerificationChallengeService(
     EmailVerificationChallengeRepository challengeRepository,
     StudentVerificationTokenService tokenService,
-    StudentVerificationEmailSender emailSender,
+    StudentVerificationEmailDispatchService emailDispatchService,
     LiveQuizProperties liveQuizProperties
   ) {
     this.challengeRepository = challengeRepository;
     this.tokenService = tokenService;
-    this.emailSender = emailSender;
+    this.emailDispatchService = emailDispatchService;
     this.liveQuizProperties = liveQuizProperties;
   }
 
+  @Transactional
   public IssuedChallenge issueFor(String studentId, String email) {
     Instant now = Instant.now();
     ensureThrottleAllowsChallenge(studentId, now);
@@ -61,8 +64,14 @@ public class EmailVerificationChallengeService {
     );
 
     String verificationUrl = buildVerificationUrl(token);
-    this.emailSender.sendVerificationEmail(email, token, verificationUrl, expiresAt);
     this.challengeRepository.save(challenge);
+    this.emailDispatchService.dispatch(
+        email,
+        token,
+        verificationUrl,
+        expiresAt,
+        challenge.challengeId()
+      );
     LOGGER.info(
       "Issued email verification challenge for studentId={} expiresAt={}",
       studentId,

@@ -62,7 +62,7 @@ public class GetStudentAnswerStatusesUseCase {
               question.id().value(),
               question.prompt(),
               question.order(),
-              AnswerEvaluationStatus.AWAITING_EVALUATION.name(),
+              submission.answerStatus(),
               submission.timestamp()
             )
           )

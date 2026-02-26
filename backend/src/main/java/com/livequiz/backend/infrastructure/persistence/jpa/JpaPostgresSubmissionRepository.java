@@ -2,9 +2,11 @@ package com.livequiz.backend.infrastructure.persistence.jpa;
 
 import com.livequiz.backend.domain.lecture.LectureId;
 import com.livequiz.backend.domain.lecture.QuestionId;
+import com.livequiz.backend.domain.submission.Feedback;
 import com.livequiz.backend.domain.submission.Submission;
 import com.livequiz.backend.domain.submission.SubmissionId;
 import com.livequiz.backend.domain.submission.SubmissionRepository;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -30,9 +32,19 @@ public class JpaPostgresSubmissionRepository implements SubmissionRepository {
           submission.questionId().value(),
           submission.studentId(),
           submission.timestamp(),
-          submission.answerText()
+          submission.answerText(),
+          submission.answerStatus(),
+          submission.evaluationCompletedAt(),
+          submission.feedback() == null ? null : submission.feedback().isCorrect(),
+          submission.feedback() == null ? null : submission.feedback().comment(),
+          serializeMissingKeyPoints(submission.feedback())
         )
       );
+  }
+
+  @Override
+  public Optional<Submission> findById(SubmissionId submissionId) {
+    return this.jpaSubmissionRepository.findById(submissionId.value()).map(this::toDomain);
   }
 
   @Override
@@ -48,14 +60,7 @@ public class JpaPostgresSubmissionRepository implements SubmissionRepository {
         studentId
       )
       .map(entity ->
-        new Submission(
-          new SubmissionId(entity.getId()),
-          new LectureId(entity.getLectureId()),
-          new QuestionId(entity.getQuestionId()),
-          entity.getStudentId(),
-          entity.getSubmittedAt(),
-          entity.getAnswerText()
-        )
+        toDomain(entity)
       );
   }
 
@@ -67,16 +72,7 @@ public class JpaPostgresSubmissionRepository implements SubmissionRepository {
     return this.jpaSubmissionRepository
       .findByLectureIdAndQuestionId(lectureId.value(), questionId.value())
       .stream()
-      .map(entity ->
-        new Submission(
-          new SubmissionId(entity.getId()),
-          new LectureId(entity.getLectureId()),
-          new QuestionId(entity.getQuestionId()),
-          entity.getStudentId(),
-          entity.getSubmittedAt(),
-          entity.getAnswerText()
-        )
-      )
+      .map(this::toDomain)
       .toList();
   }
 
@@ -119,5 +115,44 @@ public class JpaPostgresSubmissionRepository implements SubmissionRepository {
         )
       )
       .toList();
+  }
+
+  private Submission toDomain(SubmissionEntity entity) {
+    return new Submission(
+      new SubmissionId(entity.getId()),
+      new LectureId(entity.getLectureId()),
+      new QuestionId(entity.getQuestionId()),
+      entity.getStudentId(),
+      entity.getSubmittedAt(),
+      entity.getAnswerText(),
+      entity.getAnswerStatus(),
+      entity.getEvaluationCompletedAt(),
+      mapFeedback(entity)
+    );
+  }
+
+  private Feedback mapFeedback(SubmissionEntity entity) {
+    if (entity.getFeedbackIsCorrect() == null) {
+      return null;
+    }
+    return new Feedback(
+      entity.getFeedbackIsCorrect(),
+      deserializeMissingKeyPoints(entity.getFeedbackMissingKeyPoints()),
+      entity.getFeedbackComment()
+    );
+  }
+
+  private String serializeMissingKeyPoints(Feedback feedback) {
+    if (feedback == null || feedback.missingKeyPoints().isEmpty()) {
+      return null;
+    }
+    return String.join("\n", feedback.missingKeyPoints());
+  }
+
+  private List<String> deserializeMissingKeyPoints(String raw) {
+    if (raw == null || raw.isBlank()) {
+      return List.of();
+    }
+    return java.util.Arrays.stream(raw.split("\\n")).filter(value -> !value.isBlank()).toList();
   }
 }

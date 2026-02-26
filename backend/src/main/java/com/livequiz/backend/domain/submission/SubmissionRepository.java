@@ -10,6 +10,8 @@ public interface SubmissionRepository {
 
   void save(Submission submission);
 
+  Optional<Submission> findById(SubmissionId submissionId);
+
   Optional<Submission> findLatestByLectureQuestionAndStudent(
     LectureId lectureId,
     QuestionId questionId,

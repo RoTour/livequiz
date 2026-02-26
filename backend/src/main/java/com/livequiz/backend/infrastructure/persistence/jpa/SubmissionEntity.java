@@ -29,6 +29,19 @@ public class SubmissionEntity {
   @Column(columnDefinition = "text", nullable = false)
   private String answerText;
 
+  @Column(length = 64, nullable = false)
+  private String answerStatus;
+
+  private Instant evaluationCompletedAt;
+
+  private Boolean feedbackIsCorrect;
+
+  @Column(columnDefinition = "text")
+  private String feedbackComment;
+
+  @Column(columnDefinition = "text")
+  private String feedbackMissingKeyPoints;
+
   public SubmissionEntity() {}
 
   public SubmissionEntity(
@@ -37,7 +50,12 @@ public class SubmissionEntity {
     String questionId,
     String studentId,
     Instant submittedAt,
-    String answerText
+    String answerText,
+    String answerStatus,
+    Instant evaluationCompletedAt,
+    Boolean feedbackIsCorrect,
+    String feedbackComment,
+    String feedbackMissingKeyPoints
   ) {
     this.id = id;
     this.lectureId = lectureId;
@@ -45,6 +63,11 @@ public class SubmissionEntity {
     this.studentId = studentId;
     this.submittedAt = submittedAt;
     this.answerText = answerText;
+    this.answerStatus = answerStatus;
+    this.evaluationCompletedAt = evaluationCompletedAt;
+    this.feedbackIsCorrect = feedbackIsCorrect;
+    this.feedbackComment = feedbackComment;
+    this.feedbackMissingKeyPoints = feedbackMissingKeyPoints;
   }
 
   public String getId() {
@@ -69,5 +92,25 @@ public class SubmissionEntity {
 
   public String getAnswerText() {
     return answerText;
+  }
+
+  public String getAnswerStatus() {
+    return answerStatus;
+  }
+
+  public Instant getEvaluationCompletedAt() {
+    return evaluationCompletedAt;
+  }
+
+  public Boolean getFeedbackIsCorrect() {
+    return feedbackIsCorrect;
+  }
+
+  public String getFeedbackComment() {
+    return feedbackComment;
+  }
+
+  public String getFeedbackMissingKeyPoints() {
+    return feedbackMissingKeyPoints;
   }
 }

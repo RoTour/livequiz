@@ -3,8 +3,19 @@ package com.livequiz.backend.domain.submission;
 import com.livequiz.backend.domain.lecture.LectureId;
 import com.livequiz.backend.domain.lecture.QuestionId;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 
 public class Submission {
+
+  public static final String STATUS_AWAITING_EVALUATION = "AWAITING_EVALUATION";
+  private static final Set<String> ALLOWED_STATUSES = Set.of(
+    "AWAITING_EVALUATION",
+    "CORRECT",
+    "INCORRECT",
+    "INCOMPLETE"
+  );
 
   private final SubmissionId id;
   private final LectureId lectureId;
@@ -12,6 +23,8 @@ public class Submission {
   private final String studentId; // Placeholder for StudentId if we don't have a Student aggregate yet
   private final Instant timestamp;
   private final String answerText;
+  private String answerStatus;
+  private Instant evaluationCompletedAt;
   private Feedback feedback;
 
   public Submission(
@@ -46,11 +59,61 @@ public class Submission {
     this.studentId = studentId;
     this.timestamp = timestamp;
     this.answerText = answerText;
+    this.answerStatus = STATUS_AWAITING_EVALUATION;
+    this.evaluationCompletedAt = null;
     this.feedback = null; // Initially no feedback
+  }
+
+  public Submission(
+    SubmissionId id,
+    LectureId lectureId,
+    QuestionId questionId,
+    String studentId,
+    Instant timestamp,
+    String answerText,
+    String answerStatus,
+    Instant evaluationCompletedAt,
+    Feedback feedback
+  ) {
+    this(id, lectureId, questionId, studentId, timestamp, answerText);
+    if (answerStatus == null || answerStatus.isBlank()) {
+      throw new IllegalArgumentException("Answer status cannot be null or blank");
+    }
+    if (!ALLOWED_STATUSES.contains(answerStatus)) {
+      throw new IllegalArgumentException("Answer status is invalid");
+    }
+    this.answerStatus = answerStatus;
+    this.evaluationCompletedAt = evaluationCompletedAt;
+    this.feedback = feedback;
   }
 
   public void provideFeedback(Feedback feedback) {
     this.feedback = feedback;
+  }
+
+  public void applyEvaluation(
+    String answerStatus,
+    boolean isCorrect,
+    List<String> missingKeyPoints,
+    String comment,
+    Instant completedAt
+  ) {
+    if (answerStatus == null || answerStatus.isBlank()) {
+      throw new IllegalArgumentException("Answer status cannot be null or blank");
+    }
+    if (!ALLOWED_STATUSES.contains(answerStatus)) {
+      throw new IllegalArgumentException("Answer status is invalid");
+    }
+    if (completedAt == null) {
+      throw new IllegalArgumentException("Evaluation completed date cannot be null");
+    }
+    this.answerStatus = answerStatus;
+    this.evaluationCompletedAt = completedAt;
+    this.feedback = new Feedback(
+      isCorrect,
+      missingKeyPoints == null ? List.of() : new ArrayList<>(missingKeyPoints),
+      comment
+    );
   }
 
   public SubmissionId id() {
@@ -75,6 +138,14 @@ public class Submission {
 
   public String answerText() {
     return answerText;
+  }
+
+  public String answerStatus() {
+    return answerStatus;
+  }
+
+  public Instant evaluationCompletedAt() {
+    return evaluationCompletedAt;
   }
 
   public Feedback feedback() {

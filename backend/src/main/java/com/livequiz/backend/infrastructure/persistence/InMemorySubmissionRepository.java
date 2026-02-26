@@ -3,13 +3,14 @@ package com.livequiz.backend.infrastructure.persistence;
 import com.livequiz.backend.domain.lecture.LectureId;
 import com.livequiz.backend.domain.lecture.QuestionId;
 import com.livequiz.backend.domain.submission.Submission;
+import com.livequiz.backend.domain.submission.SubmissionId;
 import com.livequiz.backend.domain.submission.SubmissionRepository;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.stream.Collectors;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 
@@ -21,7 +22,18 @@ public class InMemorySubmissionRepository implements SubmissionRepository {
 
   @Override
   public void save(Submission submission) {
+    this.submissions.removeIf(existingSubmission ->
+      existingSubmission.id().value().equals(submission.id().value())
+    );
     this.submissions.add(submission);
+  }
+
+  @Override
+  public Optional<Submission> findById(SubmissionId submissionId) {
+    return this.submissions
+      .stream()
+      .filter(submission -> submission.id().value().equals(submissionId.value()))
+      .findFirst();
   }
 
   @Override

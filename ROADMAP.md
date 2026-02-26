@@ -112,3 +112,18 @@ Goal: reduce student friction and improve clarity of classroom state.
 - [ ] Improve `/student/lectures/:id` waiting-room refresh strategy by implementing optimized polling and/or a debounced manual refresh action.
 - [ ] Introduce a shared human-readable date component/pipe and reuse it across instructor and student screens.
 - [ ] Replace persistent inline notifications with time-based toasts and severity levels (`info`, `success`, `warning`, `error`).
+
+## Phase 9: RabbitMQ-backed Async Processing
+Goal: move email delivery and submission evaluation into resilient queue workers.
+
+Related plan:
+- `plans/5-rabbitmq-email-and-submission-processing-plan.md`
+
+- [x] Add RabbitMQ exchanges/queues/DLQs in backend messaging configuration with health visibility.
+- [x] Implement transactional outbox publishing for queue-bound workflows.
+- [x] Queue student verification emails and enforce SES limits (`1 email/second`, `200/day`).
+- [x] Add retry/backoff + DLQ handling for failed email deliveries.
+- [x] Publish submission-evaluation jobs when students submit answers (non-blocking submit API).
+- [x] Add asynchronous evaluation worker with pluggable evaluator adapter (LLM-ready).
+- [x] Persist evaluation results and expose status transitions in student/instructor read models.
+- [ ] Add integration tests for publish/consume/retry/dead-letter behavior in both workflows.

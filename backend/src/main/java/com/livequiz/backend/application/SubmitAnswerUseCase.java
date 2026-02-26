@@ -9,6 +9,7 @@ import com.livequiz.backend.domain.lecture.QuestionId;
 import com.livequiz.backend.domain.submission.Submission;
 import com.livequiz.backend.domain.submission.SubmissionId;
 import com.livequiz.backend.domain.submission.SubmissionRepository;
+import com.livequiz.backend.application.messaging.SubmissionEvaluationDispatchService;
 import com.livequiz.backend.infrastructure.web.ApiException;
 import com.livequiz.backend.infrastructure.web.SubmissionCooldownException;
 import java.time.Duration;
@@ -16,6 +17,7 @@ import java.time.Instant;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class SubmitAnswerUseCase {
@@ -32,19 +34,23 @@ public class SubmitAnswerUseCase {
   private final LectureEnrollmentRepository lectureEnrollmentRepository;
   private final SubmissionRepository submissionRepository;
   private final LiveQuizProperties liveQuizProperties;
+  private final SubmissionEvaluationDispatchService submissionEvaluationDispatchService;
 
   public SubmitAnswerUseCase(
     LectureRepository lectureRepository,
     LectureEnrollmentRepository lectureEnrollmentRepository,
     SubmissionRepository submissionRepository,
-    LiveQuizProperties liveQuizProperties
+    LiveQuizProperties liveQuizProperties,
+    SubmissionEvaluationDispatchService submissionEvaluationDispatchService
   ) {
     this.lectureRepository = lectureRepository;
     this.lectureEnrollmentRepository = lectureEnrollmentRepository;
     this.submissionRepository = submissionRepository;
     this.liveQuizProperties = liveQuizProperties;
+    this.submissionEvaluationDispatchService = submissionEvaluationDispatchService;
   }
 
+  @Transactional
   public SubmitResult execute(
     String lectureId,
     String questionId,
@@ -73,6 +79,7 @@ public class SubmitAnswerUseCase {
       answerText
     );
     this.submissionRepository.save(submission);
+    this.submissionEvaluationDispatchService.dispatch(submission, submission.id().value());
     String answerStatus = AnswerEvaluationStatus.AWAITING_EVALUATION.name();
     return new SubmitResult(
       submission.id().value(),
