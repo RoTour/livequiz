@@ -18,6 +18,7 @@ This project serves as a comprehensive learning exercise for **Java Spring Boot*
 
 ## ✅ Implemented Capabilities
 - JWT authentication with instructor/student roles
+- Backend teacher registry for instructor role classification (feature-flagged rollout)
 - Instructor multi-lecture workflow (list, create, open by route, refresh-safe context)
 - Lecture creation and ordered question management
 - Question unlock flow (`unlock specific` and `unlock next`)
@@ -37,6 +38,10 @@ This repository is a monorepo containing:
 - Default runtime profile is `postgres`.
 - In-memory profiles (`in-memory`, `memory`) remain available for fast local and test flows without a database.
 - Postgres schema is managed by Flyway migrations under `backend/src/main/resources/db/migration/`.
+
+## 🔐 Role Classification Rollout
+- `LIVEQUIZ_TEACHER_ROLE_CLASSIFICATION_ENABLED=false` by default.
+- When enabled, `INSTRUCTOR` JWT role is resolved from `teacher_identities` data; otherwise login uses legacy authority-based role resolution.
 
 ## 🐘 Run Backend with Postgres
 1. Start Postgres:

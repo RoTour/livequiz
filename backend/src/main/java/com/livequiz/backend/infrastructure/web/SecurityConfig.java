@@ -94,9 +94,16 @@ public class SecurityConfig {
       .password("password")
       .roles("INSTRUCTOR")
       .build();
+
+    UserDetails instructorCandidate = User.withDefaultPasswordEncoder()
+      .username("instructor-candidate")
+      .password("password")
+      .roles("INSTRUCTOR")
+      .build();
     return new InMemoryUserDetailsManager(
       instructor,
       instructorTwo,
+      instructorCandidate,
       student,
       studentTwo
     );

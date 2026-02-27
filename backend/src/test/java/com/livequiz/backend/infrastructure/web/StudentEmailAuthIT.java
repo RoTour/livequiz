@@ -27,12 +27,14 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("in-memory")
 @Import(StudentEmailAuthIT.CapturingEmailConfig.class)
+@TestPropertySource(properties = "livequiz.teacher-role-classification-enabled=true")
 class StudentEmailAuthIT {
 
   @Autowired
@@ -60,6 +62,26 @@ class StudentEmailAuthIT {
     assertEquals(true, tokenClaims.anonymous());
     assertEquals(false, tokenClaims.emailVerified());
     org.junit.jupiter.api.Assertions.assertFalse(tokenClaims.subject().isBlank());
+  }
+
+  @Test
+  void should_classify_login_role_from_teacher_registry() throws Exception {
+    String instructorToken = login("instructor", "password");
+    String studentToken = login("student", "password");
+    String instructorCandidateToken = login("instructor-candidate", "password");
+
+    JwtService.TokenClaims instructorClaims = this.jwtService.validateToken(instructorToken);
+    JwtService.TokenClaims studentClaims = this.jwtService.validateToken(studentToken);
+    JwtService.TokenClaims instructorCandidateClaims = this.jwtService.validateToken(
+        instructorCandidateToken
+      );
+
+    assertNotNull(instructorClaims);
+    assertNotNull(studentClaims);
+    assertNotNull(instructorCandidateClaims);
+    assertEquals("INSTRUCTOR", instructorClaims.role());
+    assertEquals("STUDENT", studentClaims.role());
+    assertEquals("STUDENT", instructorCandidateClaims.role());
   }
 
   @Test

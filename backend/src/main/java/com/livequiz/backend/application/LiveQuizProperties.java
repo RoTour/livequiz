@@ -7,6 +7,7 @@ public record LiveQuizProperties(
   int submissionCooldownSeconds,
   String inviteBaseUrl,
   int inviteExpirationHours,
+  boolean teacherRoleClassificationEnabled,
   String studentEmailAllowedDomain,
   int studentEmailVerificationTtlMinutes,
   int studentEmailVerificationResendCooldownSeconds,
