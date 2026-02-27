@@ -1,0 +1,10 @@
+target
+.mvn/wrapper
+.idea
+.git
+.gitignore
+README.md
+HELP.md
+scripts
+.envrc
+docker-compose.yml

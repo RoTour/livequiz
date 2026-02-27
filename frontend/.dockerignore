@@ -1,0 +1,12 @@
+node_modules
+dist
+.angular
+coverage
+reports
+.stryker-tmp
+.idea
+.vscode
+.git
+.gitignore
+README.md
+proxy.conf.json
