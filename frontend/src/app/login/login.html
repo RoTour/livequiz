@@ -1,13 +1,13 @@
 <section class="lq-page">
   <header class="lq-page-header">
     <h1 class="lq-page-title">Auth Form</h1>
-    <p class="lq-page-subtitle">Use your instructor or student credentials to continue.</p>
+    <p class="lq-page-subtitle">Use your instructor email (or student username in local mode) and password to continue.</p>
   </header>
 
   <form [formGroup]="form" (ngSubmit)="submit()" class="lq-stack">
     <div class="lq-stack">
-      <label for="username">Username</label>
-      <input id="username" type="text" formControlName="username" placeholder="Enter your username" class="lq-input" />
+      <label for="identifier">Email or username</label>
+      <input id="identifier" type="text" formControlName="identifier" placeholder="Enter your email or username" class="lq-input" />
     </div>
 
     <div class="lq-stack">
@@ -15,8 +15,8 @@
       <input id="password" type="password" formControlName="password" placeholder="Enter your password" class="lq-input" />
     </div>
 
-    @if (form.get('username')?.invalid && form.get('username')?.touched) {
-      <p class="lq-alert lq-alert-danger">Username is required.</p>
+    @if (form.get('identifier')?.invalid && form.get('identifier')?.touched) {
+      <p class="lq-alert lq-alert-danger">Email or username is required.</p>
     }
 
     <button type="submit" [disabled]="form.invalid || form.disabled" class="lq-btn lq-btn-primary">Login</button>

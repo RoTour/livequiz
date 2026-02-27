@@ -24,7 +24,7 @@ describe('authInterceptor', () => {
   it('does not attach Authorization header for login endpoint', () => {
     localStorage.setItem(LocalStorageKeys.authorization, 'token-123');
     const request = new HttpRequest('POST', '/api/auth/login', {
-      username: 'student',
+      email: 'instructor@ynov.com',
       password: 'password',
     });
     let hasAuthorization = false;

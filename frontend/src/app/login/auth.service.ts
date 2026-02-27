@@ -26,8 +26,13 @@ export class AuthService {
     return this.claims()?.['emailVerified'] === true;
   });
 
-  login(username: string, password: string) {
-    return this.http.post<{ token: string }>('/api/auth/login', { username, password }).pipe(
+  login(identifier: string, password: string) {
+    const normalizedIdentifier = identifier.trim();
+    const payload = normalizedIdentifier.includes('@')
+      ? { email: normalizedIdentifier, password }
+      : { username: normalizedIdentifier, password };
+
+    return this.http.post<{ token: string }>('/api/auth/login', payload).pipe(
       tap((response) => {
         this.setTokenState(response.token);
       }),

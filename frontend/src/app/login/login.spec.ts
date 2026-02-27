@@ -68,12 +68,12 @@ describe('Login', () => {
     routeForCurrentUser.mockReturnValue('/student/lectures');
     login.mockReturnValue(from(Promise.resolve({ token: 'jwt' })));
     navigate.mockResolvedValue(true);
-    component.form.setValue({ username: 'student', password: 'password' });
+    component.form.setValue({ identifier: 'student@ynov.com', password: 'password' });
 
     component.submit();
     await fixture.whenStable();
 
-    expect(login).toHaveBeenCalledWith('student', 'password');
+    expect(login).toHaveBeenCalledWith('student@ynov.com', 'password');
     expect(routeForCurrentUser).toHaveBeenCalled();
     expect(navigate).toHaveBeenCalledWith(['/student/lectures']);
     expect(navigateByUrl).not.toHaveBeenCalled();
@@ -82,7 +82,7 @@ describe('Login', () => {
   it('logs out and re-enables form when role target is unknown', async () => {
     routeForCurrentUser.mockReturnValue('/auth/login');
     login.mockReturnValue(from(Promise.resolve({ token: 'jwt' })));
-    component.form.setValue({ username: 'user', password: 'password' });
+    component.form.setValue({ identifier: 'user@ynov.com', password: 'password' });
 
     component.submit();
     await fixture.whenStable();
@@ -98,7 +98,7 @@ describe('Login', () => {
     routeForCurrentUser.mockReturnValue('/student/lectures');
     login.mockReturnValue(from(Promise.resolve({ token: 'jwt' })));
     navigate.mockResolvedValue(false);
-    component.form.setValue({ username: 'student', password: 'password' });
+    component.form.setValue({ identifier: 'student@ynov.com', password: 'password' });
 
     component.submit();
     await fixture.whenStable();
@@ -114,7 +114,7 @@ describe('Login', () => {
     routeForCurrentUser.mockReturnValue('/student/lectures');
     login.mockReturnValue(from(Promise.resolve({ token: 'jwt' })));
     navigateByUrl.mockResolvedValue(true);
-    component.form.setValue({ username: 'student', password: 'password' });
+    component.form.setValue({ identifier: 'student@ynov.com', password: 'password' });
 
     component.submit();
     await fixture.whenStable();
@@ -126,7 +126,7 @@ describe('Login', () => {
   it('re-enables form when login fails', () => {
     const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined);
     login.mockReturnValue(throwError(() => new Error('invalid credentials')));
-    component.form.setValue({ username: 'instructor', password: 'password' });
+    component.form.setValue({ identifier: 'instructor@ynov.com', password: 'password' });
 
     component.submit();
 

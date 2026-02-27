@@ -15,7 +15,7 @@ export class Login {
   route = inject(ActivatedRoute);
   authErrorMessage = signal('');
   form = new FormGroup({
-    username: new FormControl('instructor', Validators.required),
+    identifier: new FormControl('instructor@ynov.com', Validators.required),
     password: new FormControl('password', [
       Validators.required,
       Validators.minLength(6),
@@ -29,7 +29,7 @@ export class Login {
     this.authErrorMessage.set('');
     this.form.disable();
 
-    this.authService.login(this.form.value.username!, this.form.value.password!).subscribe({
+    this.authService.login(this.form.value.identifier!, this.form.value.password!).subscribe({
       next: async () => {
         const roleRoute = this.authService.routeForCurrentUser();
 
@@ -51,7 +51,7 @@ export class Login {
       },
       error: (error) => {
         console.error('Login failed:', error);
-        this.authErrorMessage.set('Invalid username or password.');
+        this.authErrorMessage.set('Invalid email or username, or password.');
         this.form.enable();
       },
     });
