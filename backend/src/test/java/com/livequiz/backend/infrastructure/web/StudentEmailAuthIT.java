@@ -66,9 +66,9 @@ class StudentEmailAuthIT {
 
   @Test
   void should_classify_login_role_from_teacher_registry() throws Exception {
-    String instructorToken = login("instructor", "password");
+    String instructorToken = login("instructor@ynov.com", "password");
     String studentToken = login("student", "password");
-    String instructorCandidateToken = login("instructor-candidate", "password");
+    String instructorCandidateToken = login("instructor-candidate@ynov.com", "password");
 
     JwtService.TokenClaims instructorClaims = this.jwtService.validateToken(instructorToken);
     JwtService.TokenClaims studentClaims = this.jwtService.validateToken(studentToken);
@@ -120,7 +120,7 @@ class StudentEmailAuthIT {
 
   @Test
   void should_keep_enrollment_and_submission_continuity_after_email_verification() throws Exception {
-    String instructorToken = login("instructor", "password");
+    String instructorToken = login("instructor@ynov.com", "password");
     String lectureId = createLecture(instructorToken, "Identity Continuity Lecture");
     String questionId = addQuestion(
       instructorToken,
@@ -304,14 +304,15 @@ class StudentEmailAuthIT {
     return extractField(response, "token");
   }
 
-  private String login(String username, String password) throws Exception {
+  private String login(String identifier, String password) throws Exception {
+    String payload = identifier.contains("@")
+      ? "{\"email\":\"" + identifier + "\",\"password\":\"" + password + "\"}"
+      : "{\"username\":\"" + identifier + "\",\"password\":\"" + password + "\"}";
     String response = this.mockMvc
       .perform(
         post("/api/auth/login")
           .contentType("application/json")
-          .content(
-            "{\"username\":\"" + username + "\",\"password\":\"" + password + "\"}"
-          )
+          .content(payload)
       )
       .andExpect(status().isOk())
       .andReturn()

@@ -3,6 +3,7 @@ package com.livequiz.backend.infrastructure.web.jwt;
 import com.livequiz.backend.application.LiveQuizProperties;
 import com.livequiz.backend.application.ResolveUserRoleUseCase;
 import com.livequiz.backend.infrastructure.web.ApiException;
+import java.util.Locale;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,23 +42,37 @@ public class JwtController {
     this.liveQuizProperties = liveQuizProperties;
   }
 
-  public record LoginDto(String username, String password) {}
+  public record LoginDto(String email, String username, String password) {}
 
   @PostMapping("/login")
   public Map<String, String> login(@RequestBody LoginDto dto) {
-    String username = dto.username;
+    String email = normalizeLoginIdentifier(dto);
     String password = dto.password;
 
     try {
       Authentication authentication = authService.authenticate(
-        new UsernamePasswordAuthenticationToken(username, password)
+        new UsernamePasswordAuthenticationToken(email, password)
       );
-      String role = resolveRole(authentication, username);
-      String token = jwtService.createToken(username, role);
+      String role = resolveRole(authentication, email);
+      String token = jwtService.createToken(email, role);
       return Map.of("token", token);
     } catch (AuthenticationException e) {
       throw new ApiException(HttpStatus.UNAUTHORIZED, "INVALID_CREDENTIALS", "Invalid credentials");
     }
+  }
+
+  private String normalizeLoginIdentifier(LoginDto dto) {
+    String email = dto.email;
+    if (email != null && !email.isBlank()) {
+      return email.trim().toLowerCase(Locale.ROOT);
+    }
+
+    String username = dto.username;
+    if (username != null && !username.isBlank()) {
+      return username.trim().toLowerCase(Locale.ROOT);
+    }
+
+    return "";
   }
 
   private String resolveRole(Authentication authentication, String username) {

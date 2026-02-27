@@ -20,7 +20,7 @@ public class InMemoryTeacherIdentitySeeder {
   @PostConstruct
   public void seedDefaultTeachers() {
     Instant now = Instant.now();
-    this.teacherIdentityRepository.save(TeacherIdentity.active("instructor", now));
-    this.teacherIdentityRepository.save(TeacherIdentity.active("instructor2", now));
+    this.teacherIdentityRepository.save(TeacherIdentity.active("instructor@ynov.com", now));
+    this.teacherIdentityRepository.save(TeacherIdentity.active("instructor2@ynov.com", now));
   }
 }

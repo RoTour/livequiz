@@ -30,7 +30,7 @@ class StudentFlowIT {
 
   @Test
   void should_join_with_invite_and_submit_with_cooldown() throws Exception {
-    String instructorToken = login("instructor", "password");
+    String instructorToken = login("instructor@ynov.com", "password");
     String lectureId = createLecture(instructorToken, "Distributed Systems");
     String questionId = addQuestion(
       instructorToken,
@@ -145,7 +145,7 @@ class StudentFlowIT {
 
   @Test
   void should_list_only_joined_lectures_for_current_student() throws Exception {
-    String instructorToken = login("instructor", "password");
+    String instructorToken = login("instructor@ynov.com", "password");
     String studentToken = login("student", "password");
 
     String answeredLectureId = createLecture(instructorToken, "Answered Lecture");
@@ -230,7 +230,7 @@ class StudentFlowIT {
 
   @Test
   void should_reject_revoke_when_lecture_path_does_not_match_invite_lecture() throws Exception {
-    String instructorToken = login("instructor", "password");
+    String instructorToken = login("instructor@ynov.com", "password");
     String lectureA = createLecture(instructorToken, "Lecture A");
     String lectureB = createLecture(instructorToken, "Lecture B");
     String inviteId = createInviteAndGetInviteId(instructorToken, lectureA);
@@ -261,7 +261,7 @@ class StudentFlowIT {
 
   @Test
   void should_return_explicit_revoked_error_when_joining_non_active_invite() throws Exception {
-    String instructorToken = login("instructor", "password");
+    String instructorToken = login("instructor@ynov.com", "password");
     String lectureId = createLecture(instructorToken, "Distributed Systems");
     String inviteResponse = createInviteResponse(instructorToken, lectureId);
     String inviteId = extractField(inviteResponse, "inviteId");
@@ -288,7 +288,7 @@ class StudentFlowIT {
 
   @Test
   void should_return_explicit_expired_error_when_joining_non_active_invite() throws Exception {
-    String instructorToken = login("instructor", "password");
+    String instructorToken = login("instructor@ynov.com", "password");
     String lectureId = createLecture(instructorToken, "Distributed Systems");
     String inviteResponse = createInviteResponse(instructorToken, lectureId);
     String inviteId = extractField(inviteResponse, "inviteId");
@@ -310,7 +310,7 @@ class StudentFlowIT {
 
   @Test
   void should_keep_join_idempotent_after_invite_revocation_for_enrolled_student() throws Exception {
-    String instructorToken = login("instructor", "password");
+    String instructorToken = login("instructor@ynov.com", "password");
     String lectureId = createLecture(instructorToken, "Distributed Systems");
     String inviteResponse = createInviteResponse(instructorToken, lectureId);
     String inviteId = extractField(inviteResponse, "inviteId");
@@ -344,7 +344,7 @@ class StudentFlowIT {
 
   @Test
   void should_require_enrollment_before_next_question_and_submission() throws Exception {
-    String instructorToken = login("instructor", "password");
+    String instructorToken = login("instructor@ynov.com", "password");
     String lectureId = createLecture(instructorToken, "Distributed Systems");
     String questionId = addQuestion(
       instructorToken,
@@ -380,7 +380,7 @@ class StudentFlowIT {
 
   @Test
   void should_reject_submission_for_locked_or_unknown_question() throws Exception {
-    String instructorToken = login("instructor", "password");
+    String instructorToken = login("instructor@ynov.com", "password");
     String lectureId = createLecture(instructorToken, "Distributed Systems");
     String questionId = addQuestion(
       instructorToken,
@@ -422,7 +422,7 @@ class StudentFlowIT {
 
   @Test
   void should_join_with_invite_token_idempotently() throws Exception {
-    String instructorToken = login("instructor", "password");
+    String instructorToken = login("instructor@ynov.com", "password");
     String lectureId = createLecture(instructorToken, "Distributed Systems");
     String inviteResponse = createInviteResponse(instructorToken, lectureId);
     String token = extractInviteToken(extractField(inviteResponse, "joinUrl"));
@@ -453,14 +453,15 @@ class StudentFlowIT {
     );
   }
 
-  private String login(String username, String password) throws Exception {
+  private String login(String identifier, String password) throws Exception {
+    String payload = identifier.contains("@")
+      ? "{\"email\":\"" + identifier + "\",\"password\":\"" + password + "\"}"
+      : "{\"username\":\"" + identifier + "\",\"password\":\"" + password + "\"}";
     String response = this.mockMvc
       .perform(
         post("/api/auth/login")
           .contentType("application/json")
-          .content(
-            "{\"username\":\"" + username + "\",\"password\":\"" + password + "\"}"
-          )
+          .content(payload)
       )
       .andExpect(status().isOk())
       .andReturn()

@@ -30,21 +30,19 @@ class AuthRoleClassificationToggleIT {
   @Test
   void should_fallback_to_authority_role_when_teacher_classification_toggle_is_disabled()
     throws Exception {
-    String token = login("instructor-candidate", "password");
+    String token = login("instructor-candidate@ynov.com", "password");
 
     JwtService.TokenClaims claims = this.jwtService.validateToken(token);
     assertNotNull(claims);
     assertEquals("INSTRUCTOR", claims.role());
   }
 
-  private String login(String username, String password) throws Exception {
+  private String login(String email, String password) throws Exception {
     String response = this.mockMvc
       .perform(
         post("/api/auth/login")
           .contentType("application/json")
-          .content(
-            "{\"username\":\"" + username + "\",\"password\":\"" + password + "\"}"
-          )
+          .content("{\"email\":\"" + email + "\",\"password\":\"" + password + "\"}")
       )
       .andExpect(status().isOk())
       .andReturn()

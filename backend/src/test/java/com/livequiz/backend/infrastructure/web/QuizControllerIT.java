@@ -42,7 +42,7 @@ public class QuizControllerIT {
   private String loginAsInstructor() throws Exception {
     String requestBody = """
       {
-        "username": "instructor",
+        "email": "instructor@ynov.com",
         "password": "password"
       }
       """;
@@ -86,7 +86,7 @@ public class QuizControllerIT {
   private String loginAsSecondInstructor() throws Exception {
     String requestBody = """
       {
-        "username": "instructor2",
+        "email": "instructor2@ynov.com",
         "password": "password"
       }
       """;
@@ -270,7 +270,7 @@ public class QuizControllerIT {
     String lectureId = extractField(createLectureResponse, "lectureId");
     var persistedLecture = lectureRepository.findById(new LectureId(lectureId)).orElseThrow();
 
-    assertEquals("instructor", persistedLecture.createdByInstructorId());
+    assertEquals("instructor@ynov.com", persistedLecture.createdByInstructorId());
     assertNotNull(persistedLecture.createdAt());
   }
 

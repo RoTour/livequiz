@@ -3,6 +3,7 @@ package com.livequiz.backend.infrastructure.web;
 import com.livequiz.backend.infrastructure.web.jwt.JwtAuthenticationFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -11,6 +12,8 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
@@ -70,34 +73,35 @@ public class SecurityConfig {
   }
 
   @Bean
-  public InMemoryUserDetailsManager userDetailsService() {
-    UserDetails instructor = User.withDefaultPasswordEncoder()
-      .username("instructor")
-      .password("password")
+  @Profile({ "in-memory", "memory" })
+  public InMemoryUserDetailsManager userDetailsService(PasswordEncoder passwordEncoder) {
+    UserDetails instructor = User.builder()
+      .username("instructor@ynov.com")
+      .password(passwordEncoder.encode("password"))
       .roles("INSTRUCTOR")
       .build();
 
-    UserDetails student = User.withDefaultPasswordEncoder()
+    UserDetails student = User.builder()
       .username("student")
-      .password("password")
+      .password(passwordEncoder.encode("password"))
       .roles("STUDENT")
       .build();
 
-    UserDetails studentTwo = User.withDefaultPasswordEncoder()
+    UserDetails studentTwo = User.builder()
       .username("student2")
-      .password("password")
+      .password(passwordEncoder.encode("password"))
       .roles("STUDENT")
       .build();
 
-    UserDetails instructorTwo = User.withDefaultPasswordEncoder()
-      .username("instructor2")
-      .password("password")
+    UserDetails instructorTwo = User.builder()
+      .username("instructor2@ynov.com")
+      .password(passwordEncoder.encode("password"))
       .roles("INSTRUCTOR")
       .build();
 
-    UserDetails instructorCandidate = User.withDefaultPasswordEncoder()
-      .username("instructor-candidate")
-      .password("password")
+    UserDetails instructorCandidate = User.builder()
+      .username("instructor-candidate@ynov.com")
+      .password(passwordEncoder.encode("password"))
       .roles("INSTRUCTOR")
       .build();
     return new InMemoryUserDetailsManager(
@@ -107,6 +111,11 @@ public class SecurityConfig {
       student,
       studentTwo
     );
+  }
+
+  @Bean
+  public PasswordEncoder passwordEncoder() {
+    return new BCryptPasswordEncoder();
   }
 
   @Bean

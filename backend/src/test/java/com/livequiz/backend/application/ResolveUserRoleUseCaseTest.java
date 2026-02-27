@@ -36,10 +36,10 @@ class ResolveUserRoleUseCaseTest {
   @Test
   void should_return_student_when_teacher_identity_is_inactive() {
     InMemoryTeacherRepository repository = new InMemoryTeacherRepository();
-    repository.save(new TeacherIdentity("instructor", false, Instant.now(), Instant.now()));
+    repository.save(new TeacherIdentity("instructor@ynov.com", false, Instant.now(), Instant.now()));
     ResolveUserRoleUseCase useCase = new ResolveUserRoleUseCase(repository);
 
-    String role = useCase.execute("instructor");
+    String role = useCase.execute("instructor@ynov.com");
 
     assertEquals(ResolveUserRoleUseCase.STUDENT_ROLE, role);
   }
