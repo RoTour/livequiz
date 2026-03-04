@@ -1,9 +1,10 @@
 <section class="lq-page">
   <header class="lq-page-header">
-    <h1 class="lq-page-title">Auth Form</h1>
-    <p class="lq-page-subtitle">Use your instructor email (or student username in local mode) and password to continue.</p>
+    <h1 class="lq-page-title">Authentication</h1>
+    <p class="lq-page-subtitle">Instructors sign in with password. Students can request a secure return link by school email.</p>
   </header>
 
+  <h2 class="lq-section-title">Instructor sign-in</h2>
   <form [formGroup]="form" (ngSubmit)="submit()" class="lq-stack">
     <div class="lq-stack">
       <label for="identifier">Email or username</label>
@@ -23,6 +24,30 @@
 
     @if (authErrorMessage()) {
       <p class="lq-alert lq-alert-danger">{{ authErrorMessage() }}</p>
+    }
+  </form>
+
+  <h2 class="lq-section-title">Student return access</h2>
+  <form [formGroup]="studentMagicLinkForm" (ngSubmit)="requestStudentMagicLink()" class="lq-stack">
+    <div class="lq-stack">
+      <label for="student-email">School email</label>
+      <input id="student-email" type="email" formControlName="email" placeholder="name@ynov.com" class="lq-input" />
+    </div>
+
+    @if (studentMagicLinkForm.get('email')?.invalid && studentMagicLinkForm.get('email')?.touched) {
+      <p class="lq-alert lq-alert-danger">A valid school email is required.</p>
+    }
+
+    <button type="submit" [disabled]="studentMagicLinkForm.invalid || studentMagicLinkForm.disabled" class="lq-btn lq-btn-secondary">
+      Send student access link
+    </button>
+
+    @if (studentMagicLinkStatusMessage()) {
+      <p class="lq-alert lq-alert-info">{{ studentMagicLinkStatusMessage() }}</p>
+    }
+
+    @if (studentMagicLinkErrorMessage()) {
+      <p class="lq-alert lq-alert-danger">{{ studentMagicLinkErrorMessage() }}</p>
     }
   </form>
 </section>

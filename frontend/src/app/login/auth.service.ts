@@ -51,6 +51,10 @@ export class AuthService {
     return this.http.post<{ status: string }>('/api/auth/students/register-email', { email });
   }
 
+  requestStudentMagicLogin(email: string) {
+    return this.http.post<{ status: string }>('/api/auth/students/request-login', { email });
+  }
+
   resendStudentVerification(email?: string) {
     const payload = email ? { email } : {};
     return this.http.post<{ status: string }>('/api/auth/students/resend-verification', payload);

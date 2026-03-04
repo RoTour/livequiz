@@ -26,9 +26,17 @@ This project serves as a comprehensive learning exercise for **Java Spring Boot*
 - Instructor analytics and per-question student answer history drilldown
 - Instructor-generated invite flow (6-char code + QR-friendly token URL, max 24h)
 - Student route-driven journey (lecture list, room re-entry, token deep-link join)
+- Student return authentication via school-email magic link (`request-login` -> secure link -> JWT)
 - Explicit invite error semantics (`INVITE_NOT_FOUND`, `INVITE_REVOKED`, `INVITE_EXPIRED`)
 - Student progression API for "next pending unlocked question"
 - Submission cooldown policy with `429` rejection and retry metadata
+
+## 🔐 Student Return Access
+
+- Students can request a return link from `/auth/login` using their `@ynov.com` email.
+- Backend endpoint: `POST /api/auth/students/request-login` (generic non-enumerating response).
+- Link consumption endpoint: `POST /api/auth/students/verify-email` returns a student JWT.
+- For `REGISTERED_UNVERIFIED` students, the same link both verifies email and signs them in.
 
 ## 📂 Project Structure
 This repository is a monorepo containing:

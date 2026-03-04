@@ -1,5 +1,5 @@
 <section class="lq-page lq-stack">
-  <h1 class="lq-page-title">Verify school email</h1>
+  <h1 class="lq-page-title">Student access link</h1>
   <p class="lq-status-line">{{ status() }}</p>
 
   @if (errorMessage()) {
@@ -8,8 +8,8 @@
       Go to login
     </button>
   } @else if (verified()) {
-    <p class="lq-alert lq-alert-info">Email verified. Redirecting to your student lectures...</p>
+    <p class="lq-alert lq-alert-info">Email confirmed and session restored. Redirecting to your student lectures...</p>
   } @else {
-    <p class="lq-alert lq-alert-info">Please wait while we validate your verification link.</p>
+    <p class="lq-alert lq-alert-info">Please wait while we validate your secure student link.</p>
   }
 </section>

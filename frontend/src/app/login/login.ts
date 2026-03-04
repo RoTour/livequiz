@@ -14,6 +14,8 @@ export class Login {
   router = inject(Router);
   route = inject(ActivatedRoute);
   authErrorMessage = signal('');
+  studentMagicLinkStatusMessage = signal('');
+  studentMagicLinkErrorMessage = signal('');
   form = new FormGroup({
     identifier: new FormControl('instructor@ynov.com', Validators.required),
     password: new FormControl('password', [
@@ -21,6 +23,9 @@ export class Login {
       Validators.minLength(6),
       Validators.maxLength(64),
     ]),
+  });
+  studentMagicLinkForm = new FormGroup({
+    email: new FormControl('', [Validators.required, Validators.email]),
   });
 
   submit() {
@@ -55,5 +60,53 @@ export class Login {
         this.form.enable();
       },
     });
+  }
+
+  requestStudentMagicLink() {
+    if (this.studentMagicLinkForm.invalid || this.studentMagicLinkForm.disabled) {
+      this.studentMagicLinkForm.markAllAsTouched();
+      return;
+    }
+
+    const email = this.studentMagicLinkForm.value.email?.trim();
+    if (!email) {
+      return;
+    }
+
+    this.studentMagicLinkStatusMessage.set('');
+    this.studentMagicLinkErrorMessage.set('');
+    this.studentMagicLinkForm.disable();
+
+    this.authService.requestStudentMagicLogin(email).subscribe({
+      next: () => {
+        this.studentMagicLinkStatusMessage.set(
+          'If allowed, we sent you a student access link. It also verifies your email when needed.',
+        );
+        this.studentMagicLinkForm.enable();
+      },
+      error: (error) => {
+        this.studentMagicLinkErrorMessage.set(this.resolveStudentMagicLinkError(error?.error?.code));
+        this.studentMagicLinkForm.enable();
+      },
+    });
+  }
+
+  private resolveStudentMagicLinkError(errorCode: string | undefined): string {
+    if (errorCode === 'EMAIL_REQUIRED') {
+      return 'Email is required.';
+    }
+    if (errorCode === 'EMAIL_INVALID_FORMAT') {
+      return 'Email format is invalid.';
+    }
+    if (errorCode === 'EMAIL_DOMAIN_NOT_ALLOWED') {
+      return 'Only @ynov.com email addresses are allowed.';
+    }
+    if (errorCode === 'EMAIL_VERIFICATION_COOLDOWN') {
+      return 'Please wait before requesting another access link.';
+    }
+    if (errorCode === 'EMAIL_VERIFICATION_RATE_LIMITED') {
+      return 'Too many requests. Please try again later.';
+    }
+    return 'Could not request a student access link right now. Please retry.';
   }
 }
