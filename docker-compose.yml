@@ -6,10 +6,11 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
     restart: unless-stopped
-    environment:
-      API_UPSTREAM: ${API_UPSTREAM:-http://backend:8080}
+    depends_on:
+      backend:
+        condition: service_started
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost/readyz || exit 1"]
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1/readyz || exit 1"]
       interval: 30s
       timeout: 5s
       retries: 5
@@ -49,7 +50,7 @@ services:
       - "8080"
     healthcheck:
       test:
-        ["CMD-SHELL", "wget -qO- http://localhost:8080/api/health || exit 1"]
+        ["CMD-SHELL", "wget -qO- http://127.0.0.1:8080/api/health || exit 1"]
       interval: 30s
       timeout: 5s
       retries: 5
