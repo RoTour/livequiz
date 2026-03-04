@@ -116,6 +116,17 @@ describe('AuthService', () => {
     });
   });
 
+  it('calls student request-login endpoint with provided school email', async () => {
+    post.mockReturnValue(of({ status: 'VERIFICATION_EMAIL_SENT_IF_ALLOWED' }));
+    const service = TestBed.inject(AuthService);
+
+    await firstValueFrom(service.requestStudentMagicLogin('student@ynov.com'));
+
+    expect(post).toHaveBeenCalledWith('/api/auth/students/request-login', {
+      email: 'student@ynov.com',
+    });
+  });
+
   it('posts login payload with email key for email identifiers', async () => {
     post.mockReturnValue(of({ token: createToken({ role: 'INSTRUCTOR' }) }));
     const service = TestBed.inject(AuthService);

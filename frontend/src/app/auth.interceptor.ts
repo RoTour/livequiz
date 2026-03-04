@@ -4,6 +4,7 @@ import { LocalStorageKeys } from '../LocalStorageKeys';
 const SKIPPED_AUTH_ENDPOINTS = [
   '/api/auth/login',
   '/api/auth/anonymous',
+  '/api/auth/students/request-login',
   '/api/auth/students/verify-email',
 ];
 

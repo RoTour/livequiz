@@ -3,6 +3,7 @@ package com.livequiz.backend.infrastructure.web.jwt;
 import com.livequiz.backend.application.CurrentUserService;
 import com.livequiz.backend.application.IssueAnonymousStudentTokenUseCase;
 import com.livequiz.backend.application.RegisterStudentEmailUseCase;
+import com.livequiz.backend.application.RequestStudentMagicLoginUseCase;
 import com.livequiz.backend.application.ResendStudentVerificationUseCase;
 import com.livequiz.backend.application.VerifyStudentEmailUseCase;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -22,10 +23,13 @@ public class StudentAuthController {
 
   public record ResendVerificationRequest(String email) {}
 
+  public record RequestStudentLoginRequest(String email) {}
+
   public record VerifyEmailRequest(String token) {}
 
   private final IssueAnonymousStudentTokenUseCase issueAnonymousStudentTokenUseCase;
   private final RegisterStudentEmailUseCase registerStudentEmailUseCase;
+  private final RequestStudentMagicLoginUseCase requestStudentMagicLoginUseCase;
   private final ResendStudentVerificationUseCase resendStudentVerificationUseCase;
   private final VerifyStudentEmailUseCase verifyStudentEmailUseCase;
   private final CurrentUserService currentUserService;
@@ -33,12 +37,14 @@ public class StudentAuthController {
   public StudentAuthController(
     IssueAnonymousStudentTokenUseCase issueAnonymousStudentTokenUseCase,
     RegisterStudentEmailUseCase registerStudentEmailUseCase,
+    RequestStudentMagicLoginUseCase requestStudentMagicLoginUseCase,
     ResendStudentVerificationUseCase resendStudentVerificationUseCase,
     VerifyStudentEmailUseCase verifyStudentEmailUseCase,
     CurrentUserService currentUserService
   ) {
     this.issueAnonymousStudentTokenUseCase = issueAnonymousStudentTokenUseCase;
     this.registerStudentEmailUseCase = registerStudentEmailUseCase;
+    this.requestStudentMagicLoginUseCase = requestStudentMagicLoginUseCase;
     this.resendStudentVerificationUseCase = resendStudentVerificationUseCase;
     this.verifyStudentEmailUseCase = verifyStudentEmailUseCase;
     this.currentUserService = currentUserService;
@@ -48,6 +54,17 @@ public class StudentAuthController {
   public TokenResponse issueAnonymousToken() {
     IssueAnonymousStudentTokenUseCase.AnonymousAuthResult result = this.issueAnonymousStudentTokenUseCase.execute();
     return new TokenResponse(result.token());
+  }
+
+  @PostMapping("/students/request-login")
+  public GenericAuthResponse requestStudentLogin(
+    @RequestBody(required = false) RequestStudentLoginRequest request
+  ) {
+    String email = request == null ? null : request.email();
+    RequestStudentMagicLoginUseCase.RequestLoginResult result = this.requestStudentMagicLoginUseCase.execute(
+        email
+      );
+    return new GenericAuthResponse(result.status());
   }
 
   @PostMapping("/students/register-email")

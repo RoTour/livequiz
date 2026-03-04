@@ -13,25 +13,25 @@ export class StudentVerifyEmail implements OnInit {
   private readonly router = inject(Router);
   private readonly authService = inject(AuthService);
 
-  protected readonly status = signal('Preparing email verification...');
+  protected readonly status = signal('Preparing secure student access...');
   protected readonly errorMessage = signal('');
   protected readonly verified = signal(false);
 
   async ngOnInit() {
     const token = this.route.snapshot.queryParamMap.get('token')?.trim();
     if (!token) {
-      this.status.set('Verification link is invalid');
+      this.status.set('Access link is invalid');
       this.errorMessage.set('Missing verification token. Request a new verification email from the student workspace.');
       return;
     }
 
-    this.status.set('Verifying your school email...');
+    this.status.set('Verifying your school email and restoring your session...');
     this.errorMessage.set('');
 
     try {
       await firstValueFrom(this.authService.verifyStudentEmail(token));
       this.verified.set(true);
-      this.status.set('Email verified');
+      this.status.set('Student access granted');
       const navigated = await this.router.navigate(['/student/lectures']);
       if (!navigated) {
         this.errorMessage.set('Email verified, but we could not open your student workspace automatically.');
@@ -54,12 +54,12 @@ export class StudentVerifyEmail implements OnInit {
         return;
       }
       if (errorCode === 'EMAIL_VERIFICATION_TOKEN_REQUIRED') {
-        this.status.set('Verification link is invalid');
+        this.status.set('Access link is invalid');
         this.errorMessage.set('Missing verification token. Request a new verification email from the student workspace.');
         return;
       }
 
-      this.status.set('Could not verify email');
+      this.status.set('Could not verify your student access');
       this.errorMessage.set('Please try the same verification link again.');
     }
   }

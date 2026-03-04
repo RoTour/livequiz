@@ -41,6 +41,7 @@ Goal: production-ready reliability, security, and observability.
 
 - [x] Add/verify dedicated `postgres` runtime profile wiring and Postgres repository adapters so lecture data is actually persisted across restarts
 - [x] Persist all lecture/invite/enrollment/submission models in Postgres profile
+- [x] Add student return authentication via school-email magic link (unverified link also verifies + signs in)
 - [ ] Replace default credentials with managed identity provider
 - [x] Add migration tooling (`Flyway` or `Liquibase`)
 - [ ] Add role-aware instructor/student dashboards

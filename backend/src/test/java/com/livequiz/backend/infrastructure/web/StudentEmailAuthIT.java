@@ -17,7 +17,9 @@ import com.livequiz.backend.infrastructure.web.jwt.JwtService;
 import java.time.Instant;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -52,6 +54,11 @@ class StudentEmailAuthIT {
   @Autowired
   private StudentVerificationTokenService studentVerificationTokenService;
 
+  @AfterEach
+  void clearFailingEmailDispatches() {
+    this.capturingStudentVerificationEmailSender.clearFailures();
+  }
+
   @Test
   void should_issue_anonymous_student_token_with_expected_claims() throws Exception {
     String anonymousToken = issueAnonymousToken();
@@ -85,7 +92,8 @@ class StudentEmailAuthIT {
   }
 
   @Test
-  void should_require_student_authentication_for_register_and_resend() throws Exception {
+  void should_require_student_authentication_for_register_and_resend_but_allow_public_request_login()
+    throws Exception {
     this.mockMvc
       .perform(
         post("/api/auth/students/register-email")
@@ -101,6 +109,15 @@ class StudentEmailAuthIT {
           .content("{}")
       )
       .andExpect(status().isForbidden());
+
+    this.mockMvc
+      .perform(
+        post("/api/auth/students/request-login")
+          .contentType("application/json")
+          .content("{\"email\":\"student@ynov.com\"}")
+      )
+      .andExpect(status().isOk())
+      .andExpect(jsonPath("$.status").value("VERIFICATION_EMAIL_SENT_IF_ALLOWED"));
   }
 
   @Test
@@ -116,6 +133,103 @@ class StudentEmailAuthIT {
       )
       .andExpect(status().isBadRequest())
       .andExpect(jsonPath("$.code").value("EMAIL_DOMAIN_NOT_ALLOWED"));
+  }
+
+  @Test
+  void should_keep_request_login_generic_when_existing_student_is_under_cooldown() throws Exception {
+    String anonymousToken = issueAnonymousToken();
+
+    this.mockMvc
+      .perform(
+        post("/api/auth/students/register-email")
+          .header("Authorization", "Bearer " + anonymousToken)
+          .contentType("application/json")
+          .content("{\"email\":\"cooldown-login@ynov.com\"}")
+      )
+      .andExpect(status().isOk())
+      .andExpect(jsonPath("$.status").value("VERIFICATION_EMAIL_SENT_IF_ALLOWED"));
+
+    this.mockMvc
+      .perform(
+        post("/api/auth/students/request-login")
+          .contentType("application/json")
+          .content("{\"email\":\"cooldown-login@ynov.com\"}")
+      )
+      .andExpect(status().isOk())
+      .andExpect(jsonPath("$.status").value("VERIFICATION_EMAIL_SENT_IF_ALLOWED"));
+  }
+
+  @Test
+  void should_keep_request_login_response_parity_between_known_and_unknown_emails() throws Exception {
+    String anonymousToken = issueAnonymousToken();
+    JwtService.TokenClaims anonymousClaims = this.jwtService.validateToken(anonymousToken);
+    assertNotNull(anonymousClaims);
+
+    this.mockMvc
+      .perform(
+        post("/api/auth/students/register-email")
+          .header("Authorization", "Bearer " + anonymousToken)
+          .contentType("application/json")
+          .content("{\"email\":\"known-parity@ynov.com\"}")
+      )
+      .andExpect(status().isOk())
+      .andExpect(jsonPath("$.status").value("VERIFICATION_EMAIL_SENT_IF_ALLOWED"));
+
+    ageLatestChallengeForStudent(anonymousClaims.subject(), 120);
+
+    String knownResponse = this.mockMvc
+      .perform(
+        post("/api/auth/students/request-login")
+          .contentType("application/json")
+          .content("{\"email\":\"known-parity@ynov.com\"}")
+      )
+      .andExpect(status().isOk())
+      .andReturn()
+      .getResponse()
+      .getContentAsString();
+
+    String unknownResponse = this.mockMvc
+      .perform(
+        post("/api/auth/students/request-login")
+          .contentType("application/json")
+          .content("{\"email\":\"unknown-parity@ynov.com\"}")
+      )
+      .andExpect(status().isOk())
+      .andReturn()
+      .getResponse()
+      .getContentAsString();
+
+    assertEquals(knownResponse, unknownResponse);
+  }
+
+  @Test
+  void should_keep_request_login_generic_when_email_dispatch_fails_for_existing_student()
+    throws Exception {
+    String anonymousToken = issueAnonymousToken();
+    JwtService.TokenClaims anonymousClaims = this.jwtService.validateToken(anonymousToken);
+    assertNotNull(anonymousClaims);
+
+    this.mockMvc
+      .perform(
+        post("/api/auth/students/register-email")
+          .header("Authorization", "Bearer " + anonymousToken)
+          .contentType("application/json")
+          .content("{\"email\":\"dispatch-failure@ynov.com\"}")
+      )
+      .andExpect(status().isOk())
+      .andExpect(jsonPath("$.status").value("VERIFICATION_EMAIL_SENT_IF_ALLOWED"));
+
+    ageLatestChallengeForStudent(anonymousClaims.subject(), 120);
+    this.capturingStudentVerificationEmailSender.failForEmail("dispatch-failure@ynov.com");
+
+    this.mockMvc
+      .perform(
+        post("/api/auth/students/request-login")
+          .contentType("application/json")
+          .content("{\"email\":\"dispatch-failure@ynov.com\"}")
+      )
+      .andExpect(status().isOk())
+      .andExpect(jsonPath("$.status").value("VERIFICATION_EMAIL_SENT_IF_ALLOWED"));
   }
 
   @Test
@@ -220,6 +334,113 @@ class StudentEmailAuthIT {
   }
 
   @Test
+  void should_verify_and_authenticate_unverified_student_when_login_link_is_requested() throws Exception {
+    String anonymousToken = issueAnonymousToken();
+    JwtService.TokenClaims anonymousClaims = this.jwtService.validateToken(anonymousToken);
+    assertNotNull(anonymousClaims);
+
+    this.mockMvc
+      .perform(
+        post("/api/auth/students/register-email")
+          .header("Authorization", "Bearer " + anonymousToken)
+          .contentType("application/json")
+          .content("{\"email\":\"pending-login@ynov.com\"}")
+      )
+      .andExpect(status().isOk())
+      .andExpect(jsonPath("$.status").value("VERIFICATION_EMAIL_SENT_IF_ALLOWED"));
+
+    ageLatestChallengeForStudent(anonymousClaims.subject(), 120);
+
+    this.mockMvc
+      .perform(
+        post("/api/auth/students/request-login")
+          .contentType("application/json")
+          .content("{\"email\":\"pending-login@ynov.com\"}")
+      )
+      .andExpect(status().isOk())
+      .andExpect(jsonPath("$.status").value("VERIFICATION_EMAIL_SENT_IF_ALLOWED"));
+
+    String loginToken = this.capturingStudentVerificationEmailSender.tokenForEmail(
+        "pending-login@ynov.com"
+      );
+    assertNotNull(loginToken);
+
+    String verifyResponse = this.mockMvc
+      .perform(
+        post("/api/auth/students/verify-email")
+          .contentType("application/json")
+          .content("{\"token\":\"" + loginToken + "\"}")
+      )
+      .andExpect(status().isOk())
+      .andReturn()
+      .getResponse()
+      .getContentAsString();
+
+    String studentJwt = extractField(verifyResponse, "token");
+    JwtService.TokenClaims claims = this.jwtService.validateToken(studentJwt);
+    assertNotNull(claims);
+    assertEquals(anonymousClaims.subject(), claims.subject());
+    assertEquals("STUDENT", claims.role());
+    assertFalse(claims.anonymous());
+    assertEquals(true, claims.emailVerified());
+  }
+
+  @Test
+  void should_authenticate_already_verified_student_with_requested_login_link() throws Exception {
+    String anonymousToken = issueAnonymousToken();
+    JwtService.TokenClaims anonymousClaims = this.jwtService.validateToken(anonymousToken);
+    assertNotNull(anonymousClaims);
+
+    String firstVerificationToken = registerEmailAndCaptureToken(
+      anonymousToken,
+      "verified-login@ynov.com"
+    );
+
+    this.mockMvc
+      .perform(
+        post("/api/auth/students/verify-email")
+          .contentType("application/json")
+          .content("{\"token\":\"" + firstVerificationToken + "\"}")
+      )
+      .andExpect(status().isOk());
+
+    ageLatestChallengeForStudent(anonymousClaims.subject(), 120);
+
+    this.mockMvc
+      .perform(
+        post("/api/auth/students/request-login")
+          .contentType("application/json")
+          .content("{\"email\":\"verified-login@ynov.com\"}")
+      )
+      .andExpect(status().isOk())
+      .andExpect(jsonPath("$.status").value("VERIFICATION_EMAIL_SENT_IF_ALLOWED"));
+
+    String loginToken = this.capturingStudentVerificationEmailSender.tokenForEmail(
+        "verified-login@ynov.com"
+      );
+    assertNotNull(loginToken);
+
+    String verifyResponse = this.mockMvc
+      .perform(
+        post("/api/auth/students/verify-email")
+          .contentType("application/json")
+          .content("{\"token\":\"" + loginToken + "\"}")
+      )
+      .andExpect(status().isOk())
+      .andReturn()
+      .getResponse()
+      .getContentAsString();
+
+    String studentJwt = extractField(verifyResponse, "token");
+    JwtService.TokenClaims claims = this.jwtService.validateToken(studentJwt);
+    assertNotNull(claims);
+    assertEquals(anonymousClaims.subject(), claims.subject());
+    assertEquals("STUDENT", claims.role());
+    assertFalse(claims.anonymous());
+    assertEquals(true, claims.emailVerified());
+  }
+
+  @Test
   void should_reject_consumed_verification_token() throws Exception {
     String anonymousToken = issueAnonymousToken();
     String verificationToken = registerEmailAndCaptureToken(
@@ -292,6 +513,25 @@ class StudentEmailAuthIT {
     String token = this.capturingStudentVerificationEmailSender.tokenForEmail(email);
     assertNotNull(token);
     return token;
+  }
+
+  private void ageLatestChallengeForStudent(String studentId, long seconds) {
+    EmailVerificationChallenge latestChallenge = this.emailVerificationChallengeRepository
+      .findByStudentId(studentId)
+      .stream()
+      .findFirst()
+      .orElseThrow();
+
+    EmailVerificationChallenge agedChallenge = new EmailVerificationChallenge(
+      latestChallenge.challengeId(),
+      latestChallenge.studentId(),
+      latestChallenge.email(),
+      latestChallenge.tokenHash(),
+      latestChallenge.expiresAt(),
+      latestChallenge.consumedAt(),
+      latestChallenge.createdAt().minusSeconds(seconds)
+    );
+    this.emailVerificationChallengeRepository.save(agedChallenge);
   }
 
   private String issueAnonymousToken() throws Exception {
@@ -411,6 +651,7 @@ class StudentEmailAuthIT {
     implements StudentVerificationEmailSender {
 
     private final Map<String, String> tokenByEmail = new ConcurrentHashMap<>();
+    private final Set<String> failingEmails = ConcurrentHashMap.newKeySet();
 
     @Override
     public void sendVerificationEmail(
@@ -419,11 +660,23 @@ class StudentEmailAuthIT {
       String verificationUrl,
       Instant expiresAt
     ) {
-      this.tokenByEmail.put(normalize(email), token);
+      String normalizedEmail = normalize(email);
+      if (this.failingEmails.contains(normalizedEmail)) {
+        throw new RuntimeException("Simulated email dispatch failure");
+      }
+      this.tokenByEmail.put(normalizedEmail, token);
     }
 
     String tokenForEmail(String email) {
       return this.tokenByEmail.get(normalize(email));
+    }
+
+    void failForEmail(String email) {
+      this.failingEmails.add(normalize(email));
+    }
+
+    void clearFailures() {
+      this.failingEmails.clear();
     }
 
     private String normalize(String email) {

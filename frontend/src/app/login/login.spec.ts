@@ -10,6 +10,7 @@ describe('Login', () => {
   let component: Login;
   let fixture: ComponentFixture<Login>;
   const login = vi.fn();
+  const requestStudentMagicLogin = vi.fn();
   const routeForCurrentUser = vi.fn();
   const logout = vi.fn();
   const navigate = vi.fn();
@@ -18,6 +19,7 @@ describe('Login', () => {
 
   beforeEach(async () => {
     login.mockReset();
+    requestStudentMagicLogin.mockReset();
     routeForCurrentUser.mockReset();
     logout.mockReset();
     navigate.mockReset();
@@ -31,6 +33,7 @@ describe('Login', () => {
           provide: AuthService,
           useValue: {
             login,
+            requestStudentMagicLogin,
             routeForCurrentUser,
             logout,
           },
@@ -132,5 +135,32 @@ describe('Login', () => {
 
     expect(component.form.disabled).toBe(false);
     consoleError.mockRestore();
+  });
+
+  it('requests student magic link and shows generic status message', async () => {
+    requestStudentMagicLogin.mockReturnValue(from(Promise.resolve({ status: 'VERIFICATION_EMAIL_SENT_IF_ALLOWED' })));
+    component.studentMagicLinkForm.setValue({ email: 'student@ynov.com' });
+
+    component.requestStudentMagicLink();
+    await fixture.whenStable();
+
+    expect(requestStudentMagicLogin).toHaveBeenCalledWith('student@ynov.com');
+    expect(component.studentMagicLinkStatusMessage()).toContain('If allowed, we sent you a student access link');
+    expect(component.studentMagicLinkErrorMessage()).toBe('');
+    expect(component.studentMagicLinkForm.disabled).toBe(false);
+  });
+
+  it('shows actionable error when student magic link request fails with domain policy error', async () => {
+    requestStudentMagicLogin.mockReturnValue(
+      throwError(() => ({ error: { code: 'EMAIL_DOMAIN_NOT_ALLOWED' } })),
+    );
+    component.studentMagicLinkForm.setValue({ email: 'student@gmail.com' });
+
+    component.requestStudentMagicLink();
+    await fixture.whenStable();
+
+    expect(component.studentMagicLinkErrorMessage()).toBe('Only @ynov.com email addresses are allowed.');
+    expect(component.studentMagicLinkStatusMessage()).toBe('');
+    expect(component.studentMagicLinkForm.disabled).toBe(false);
   });
 });

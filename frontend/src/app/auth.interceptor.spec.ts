@@ -62,4 +62,19 @@ describe('authInterceptor', () => {
 
     expect(hasAuthorization).toBe(false);
   });
+
+  it('does not attach Authorization header for student request-login endpoint', () => {
+    localStorage.setItem(LocalStorageKeys.authorization, 'token-123');
+    const request = new HttpRequest('POST', '/api/auth/students/request-login', {
+      email: 'student@ynov.com',
+    });
+    let hasAuthorization = false;
+
+    authInterceptor(request, (nextRequest) => {
+      hasAuthorization = nextRequest.headers.has('Authorization');
+      return of(new HttpResponse({ status: 200 }));
+    }).subscribe();
+
+    expect(hasAuthorization).toBe(false);
+  });
 });
