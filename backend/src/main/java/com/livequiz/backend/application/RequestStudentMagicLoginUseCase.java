@@ -49,17 +49,26 @@ public class RequestStudentMagicLoginUseCase {
 
     try {
       this.emailVerificationChallengeService.issueFor(identity.studentId(), normalizedEmail);
-    } catch (ApiException e) {
-      if (isNonEnumeratingThrottleError(e.code())) {
-        LOGGER.info(
-          "Student magic-link request throttled studentId={} email={} code={}",
-          identity.studentId(),
-          normalizedEmail,
-          e.code()
-        );
-        return GENERIC_SUCCESS;
+    } catch (RuntimeException e) {
+      if (e instanceof ApiException apiException) {
+        if (isNonEnumeratingThrottleError(apiException.code())) {
+          LOGGER.info(
+            "Student magic-link request throttled studentId={} email={} code={}",
+            identity.studentId(),
+            normalizedEmail,
+            apiException.code()
+          );
+          return GENERIC_SUCCESS;
+        }
       }
-      throw e;
+
+      LOGGER.warn(
+        "Student magic-link request failed but returned generic response studentId={} email={}",
+        identity.studentId(),
+        normalizedEmail,
+        e
+      );
+      return GENERIC_SUCCESS;
     }
     return GENERIC_SUCCESS;
   }
