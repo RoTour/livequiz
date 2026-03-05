@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap } from '@angular/router';
+import QRCode from 'qrcode';
 import { defer, of } from 'rxjs';
 import { vi } from 'vitest';
 import { InstructorHome } from './instructor-home';
@@ -20,7 +21,14 @@ describe('InstructorHome', () => {
   const revokeInvite = vi.fn();
   let lectureIdParam: string | null = 'lecture-1';
 
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   beforeEach(async () => {
+    const qrCode = QRCode as unknown as { toDataURL: (...args: unknown[]) => Promise<string> };
+    vi.spyOn(qrCode, 'toDataURL').mockResolvedValue('data:image/png;base64,qr-test');
+
     addQuestion.mockReset();
     unlockQuestion.mockReset();
     unlockNextQuestion.mockReset();

@@ -20,6 +20,8 @@
       <app-invite-management-panel
         [selectedLectureId]="selectedLectureId()"
         [lastCreatedInvite]="lastCreatedInvite()"
+        [qrCodeDataUrl]="inviteQrCodeDataUrl()"
+        [qrCodeError]="inviteQrCodeError()"
         [invites]="invites()"
         (createInvite)="createInvite()"
         (refreshInvites)="refreshInvites()"

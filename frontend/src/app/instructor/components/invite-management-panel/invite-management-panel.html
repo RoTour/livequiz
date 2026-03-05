@@ -14,6 +14,20 @@
     <div class="lq-alert lq-alert-info lq-stack">
       <p>New code: <strong>{{ invite.joinCode }}</strong></p>
       <p class="lq-code">{{ invite.joinUrl }}</p>
+      @if (qrCodeDataUrl) {
+        <figure class="lq-stack">
+          <img
+            [src]="qrCodeDataUrl"
+            [alt]="'QR code to join lecture with code ' + invite.joinCode"
+            width="220"
+            height="220"
+          />
+          <figcaption class="lq-muted">Scan to open the join link instantly.</figcaption>
+        </figure>
+      }
+      @if (qrCodeError) {
+        <p class="lq-muted">{{ qrCodeError }}</p>
+      }
     </div>
   }
 

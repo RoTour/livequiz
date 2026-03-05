@@ -13,6 +13,8 @@ describe('InviteManagementPanel', () => {
     fixture = TestBed.createComponent(InviteManagementPanel);
     fixture.componentRef.setInput('selectedLectureId', 'lecture-1');
     fixture.componentRef.setInput('lastCreatedInvite', null);
+    fixture.componentRef.setInput('qrCodeDataUrl', '');
+    fixture.componentRef.setInput('qrCodeError', '');
     fixture.componentRef.setInput('invites', []);
     fixture.detectChanges();
   });
@@ -30,7 +32,7 @@ describe('InviteManagementPanel', () => {
     expect(refreshInvites).toHaveBeenCalledTimes(1);
   });
 
-  it('renders invite states and emits revoke only for active invite', () => {
+  it('renders QR code for new invite and emits revoke only for active invite', () => {
     const revokeInvite = vi.fn();
     fixture.componentInstance.revokeInvite.subscribe(revokeInvite);
 
@@ -42,6 +44,8 @@ describe('InviteManagementPanel', () => {
       expiresAt: '2026-02-21T12:00:00Z',
       active: true,
     });
+    fixture.componentRef.setInput('qrCodeDataUrl', 'data:image/png;base64,qr-test');
+    fixture.componentRef.setInput('qrCodeError', '');
     fixture.componentRef.setInput('invites', [
       {
         inviteId: 'inv-active',
@@ -76,6 +80,9 @@ describe('InviteManagementPanel', () => {
     const compiled = fixture.nativeElement as HTMLElement;
     expect(compiled.textContent).toContain('NEW123');
     expect(compiled.textContent).toContain('https://example.com/student/join/t-new');
+    const qrImage = compiled.querySelector('img');
+    expect(qrImage).not.toBeNull();
+    expect(qrImage?.getAttribute('src')).toBe('data:image/png;base64,qr-test');
     expect(compiled.textContent).toContain('active');
     expect(compiled.textContent).toContain('revoked');
     expect(compiled.textContent).toContain('expired');
@@ -88,6 +95,25 @@ describe('InviteManagementPanel', () => {
 
     revokeButtons[0].click();
     expect(revokeInvite).toHaveBeenCalledWith('inv-active');
+  });
+
+  it('shows fallback message when QR generation fails', () => {
+    fixture.componentRef.setInput('lastCreatedInvite', {
+      inviteId: 'inv-new',
+      lectureId: 'lecture-1',
+      joinCode: 'NEW123',
+      joinUrl: 'https://example.com/student/join/t-new',
+      expiresAt: '2026-02-21T12:00:00Z',
+      active: true,
+    });
+    fixture.componentRef.setInput('qrCodeDataUrl', '');
+    fixture.componentRef.setInput('qrCodeError', 'Could not generate QR code. Share the link directly instead.');
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    expect(compiled.querySelector('img')).toBeNull();
+    expect(compiled.textContent).toContain('Could not generate QR code. Share the link directly instead.');
+    expect(compiled.textContent).toContain('https://example.com/student/join/t-new');
   });
 });
 

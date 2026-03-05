@@ -10,6 +10,8 @@ import { HumanDatePipe } from '../../../shared/date/human-date.pipe';
 export class InviteManagementPanel {
   @Input({ required: true }) selectedLectureId!: string;
   @Input({ required: true }) lastCreatedInvite!: CreateInviteResponse | null;
+  @Input({ required: true }) qrCodeDataUrl!: string;
+  @Input({ required: true }) qrCodeError!: string;
   @Input({ required: true }) invites!: LectureInviteResponse[];
   @Output() createInvite = new EventEmitter<void>();
   @Output() refreshInvites = new EventEmitter<void>();
