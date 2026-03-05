@@ -2,6 +2,7 @@ import { routes } from './app.routes';
 import { authGuard } from './login/auth-guard';
 import { instructorGuard, studentGuard } from './login/role-guard';
 import { InstructorHome } from './instructor/instructor-home';
+import { InstructorInviteQr } from './instructor/instructor-invite-qr';
 import { InstructorLectureList } from './instructor/instructor-lecture-list';
 import { StudentLectureList } from './student/student-lecture-list';
 import { StudentLectureRoom } from './student/student-lecture-room';
@@ -19,11 +20,14 @@ describe('app routes', () => {
   it('protects instructor lecture routes with auth and instructor guards', () => {
     const instructorListRoute = routes.find((route) => route.path === 'instructor/lectures');
     const instructorDetailRoute = routes.find((route) => route.path === 'instructor/lectures/:lectureId');
+    const instructorInviteQrRoute = routes.find((route) => route.path === 'instructor/invites/:inviteId/qr');
 
     expect(instructorListRoute?.component).toBe(InstructorLectureList);
     expect(instructorDetailRoute?.component).toBe(InstructorHome);
+    expect(instructorInviteQrRoute?.component).toBe(InstructorInviteQr);
     expect(instructorListRoute?.canActivate).toEqual([authGuard, instructorGuard]);
     expect(instructorDetailRoute?.canActivate).toEqual([authGuard, instructorGuard]);
+    expect(instructorInviteQrRoute?.canActivate).toEqual([authGuard, instructorGuard]);
   });
 
   it('keeps legacy student path as redirect, protects student workspace routes, and keeps deep-links public', () => {

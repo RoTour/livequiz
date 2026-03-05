@@ -1,0 +1,13 @@
+<section class="lq-qr-preview-page">
+  @if (qrCodeDataUrl()) {
+    <img
+      class="lq-qr-preview-image"
+      [src]="qrCodeDataUrl()"
+      [alt]="'Invite QR code for lecture code ' + joinCode()"
+    />
+  } @else if (errorMessage()) {
+    <p class="lq-qr-preview-message">{{ errorMessage() }}</p>
+  } @else {
+    <p class="lq-qr-preview-message">Preparing QR code...</p>
+  }
+</section>

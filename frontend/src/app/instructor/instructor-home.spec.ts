@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { ActivatedRoute, convertToParamMap } from '@angular/router';
+import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
 import QRCode from 'qrcode';
 import { defer, of } from 'rxjs';
 import { vi } from 'vitest';
@@ -9,6 +9,7 @@ import { InstructorWorkspaceService } from './application/instructor-workspace.s
 describe('InstructorHome', () => {
   let component: InstructorHome;
   let fixture: ComponentFixture<InstructorHome>;
+  let qrPreviewWindow: Window;
 
   const addQuestion = vi.fn();
   const unlockQuestion = vi.fn();
@@ -22,12 +23,22 @@ describe('InstructorHome', () => {
   let lectureIdParam: string | null = 'lecture-1';
 
   afterEach(() => {
+    window.localStorage.clear();
     vi.restoreAllMocks();
   });
 
   beforeEach(async () => {
+    qrPreviewWindow = {
+      closed: false,
+      location: {
+        href: '',
+      } as Location,
+      close: vi.fn(),
+    } as unknown as Window;
+
     const qrCode = QRCode as unknown as { toDataURL: (...args: unknown[]) => Promise<string> };
     vi.spyOn(qrCode, 'toDataURL').mockResolvedValue('data:image/png;base64,qr-test');
+    vi.spyOn(window, 'open').mockReturnValue(qrPreviewWindow);
 
     addQuestion.mockReset();
     unlockQuestion.mockReset();
@@ -48,6 +59,7 @@ describe('InstructorHome', () => {
     await TestBed.configureTestingModule({
       imports: [InstructorHome],
       providers: [
+        provideRouter([]),
         {
           provide: InstructorWorkspaceService,
           useValue: {
@@ -178,6 +190,8 @@ describe('InstructorHome', () => {
     await component.revokeInvite('inv-1');
 
     expect(createInvite).toHaveBeenCalledWith('lecture-1');
+    expect(window.open).toHaveBeenCalledWith('', '_blank');
+    expect(qrPreviewWindow.location.href.startsWith('/instructor/invites/inv-1/qr#')).toBe(true);
     expect(revokeInvite).toHaveBeenCalledWith('lecture-1', 'inv-1');
     expect(listInvites).toHaveBeenCalled();
   });

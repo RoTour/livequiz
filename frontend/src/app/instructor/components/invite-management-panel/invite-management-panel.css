@@ -1,0 +1,16 @@
+:host {
+  display: block;
+}
+
+.lq-invite-qr-preview {
+  justify-items: center;
+  text-align: center;
+}
+
+.lq-invite-qr-preview img {
+  display: block;
+  border: 2px solid var(--color-lq-border);
+  border-radius: 0.6rem;
+  background: white;
+  padding: 0.35rem;
+}
