@@ -579,6 +579,16 @@ public class QuizControllerIT {
         now
       )
     );
+    this.studentIdentityRepository.save(
+      new StudentIdentity(
+        "student2",
+        "student.unverified@example.com",
+        StudentIdentityStatus.REGISTERED_UNVERIFIED,
+        null,
+        now,
+        now
+      )
+    );
 
     mockMvc
       .perform(

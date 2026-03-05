@@ -37,7 +37,7 @@ Non-goals:
   - Infrastructure: Extend `LectureController.StudentAnswerHistoryResponse` DTO mapping with `studentEmail`.
   - Interface: N/A.
   - Risks/open questions:
-    - Additional repository lookup per enrolled student (acceptable at current scope; can batch later if needed).
+    - Batched identity lookup by enrolled student IDs is in place; monitor payload size if enrollments grow significantly.
   - Acceptance criteria:
     - API response contains `studentEmail` when student identity is verified.
     - API response contains `studentEmail = null` for anonymous/unverified students.
