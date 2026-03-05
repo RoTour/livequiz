@@ -22,41 +22,45 @@
         <section class="lq-question-item lq-question-shell">
           <header class="lq-question-head">
             <div class="lq-question-main">
-              <p class="lq-question-kicker">Question #{{ question.order }}</p>
+              <div class="lq-question-title-row">
+                <p class="lq-question-kicker">Question #{{ question.order }}</p>
+                <span class="lq-chip" [class.lq-chip-success]="question.unlocked" [class.lq-chip-muted]="!question.unlocked">
+                  {{ question.unlocked ? 'unlocked' : 'locked' }}
+                </span>
+              </div>
               <p class="lq-question-prompt">{{ question.prompt }}</p>
             </div>
-            <span class="lq-chip" [class.lq-chip-success]="question.unlocked" [class.lq-chip-muted]="!question.unlocked">
-              {{ question.unlocked ? 'unlocked' : 'locked' }}
-            </span>
           </header>
 
-          <div class="lq-question-actions">
-            <button
-              type="button"
-              class="lq-btn lq-btn-neutral"
-              (click)="unlock(question.questionId)"
-              [disabled]="question.unlocked"
-            >
-              Unlock this
-            </button>
-            <button
-              type="button"
-              class="lq-btn lq-btn-secondary"
-              (click)="viewHistory(question.questionId)"
-              [disabled]="analyticsLoading"
-            >
-              View answers
-            </button>
-          </div>
+          <div class="lq-question-footer">
+            @if (analyticsByQuestionId(question.questionId); as analytics) {
+              <p class="lq-question-stats">
+                Enrolled {{ analytics.enrolledCount }} · Answered {{ analytics.answeredCount }} · Waiting {{ analytics.unansweredCount }} · Multi-attempt {{ analytics.multiAttemptCount }}
+              </p>
+            } @else {
+              <p class="lq-question-stats">Analytics unavailable for this question.</p>
+            }
 
-          @if (analyticsByQuestionId(question.questionId); as analytics) {
-            <div class="lq-row lq-analytics-row">
-              <span class="lq-chip lq-chip-muted">Enrolled {{ analytics.enrolledCount }}</span>
-              <span class="lq-chip lq-chip-success">Answered {{ analytics.answeredCount }}</span>
-              <span class="lq-chip lq-chip-warning">Waiting {{ analytics.unansweredCount }}</span>
-              <span class="lq-chip lq-chip-muted">Multi-attempt {{ analytics.multiAttemptCount }}</span>
+            <div class="lq-question-actions">
+              @if (!question.unlocked) {
+                <button
+                  type="button"
+                  class="lq-btn lq-btn-neutral"
+                  (click)="unlock(question.questionId)"
+                >
+                  Unlock this
+                </button>
+              }
+              <button
+                type="button"
+                class="lq-btn lq-btn-secondary"
+                (click)="viewHistory(question.questionId)"
+                [disabled]="analyticsLoading"
+              >
+                View answers
+              </button>
             </div>
-          }
+          </div>
 
           @if (isHistoryOpen(question.questionId)) {
             <div class="lq-history-panel">
@@ -79,14 +83,17 @@
                 <div class="lq-history-list">
                   @for (row of questionReviews; track row.studentId) {
                     <article class="lq-history-item">
-                      <div class="lq-history-identity">
-                        <strong>{{ studentDisplayLabel(row) }}</strong>
-                        @if (hasVerifiedEmail(row)) {
-                          <span class="lq-chip lq-chip-info">Verified email</span>
-                        } @else {
-                          <span class="lq-chip lq-chip-muted">Student ID</span>
-                        }
-                        <span class="lq-chip lq-chip-muted">Attempts {{ row.attempts.length }}</span>
+                      <div class="lq-student-head">
+                        <strong class="lq-student-name">{{ studentDisplayLabel(row) }}</strong>
+                        <p class="lq-student-meta">
+                          @if (hasVerifiedEmail(row)) {
+                            <span class="lq-student-meta-tag lq-student-meta-tag-verified">Verified email</span>
+                          } @else {
+                            <span class="lq-student-meta-tag lq-student-meta-tag-id">Student ID</span>
+                          }
+                          <span aria-hidden="true">•</span>
+                          <span>{{ row.attempts.length }} attempt{{ row.attempts.length === 1 ? '' : 's' }}</span>
+                        </p>
                       </div>
 
                       @if (row.attempts.length === 0) {
@@ -97,17 +104,21 @@
                             <details class="lq-attempt-item">
                               <summary class="lq-attempt-summary">
                                 <div class="lq-attempt-summary-content">
-                                  <span class="lq-chip lq-chip-muted">{{ attempt.answeredAt | humanDate }}</span>
+                                  <span class="lq-attempt-time">{{ attempt.answeredAt | humanDate }}</span>
                                   <span
-                                    class="lq-chip"
-                                    [class.lq-chip-success]="attempt.reviewStatus === 'CORRECT'"
-                                    [class.lq-chip-warning]="attempt.reviewStatus === 'INCOMPLETE'"
-                                    [class.lq-chip-danger]="attempt.reviewStatus === 'NEEDS_IMPROVEMENT'"
-                                    [class.lq-chip-info]="attempt.reviewStatus === 'AWAITING_REVIEW'"
+                                    class="lq-attempt-state"
+                                    [class.lq-attempt-state-correct]="attempt.reviewStatus === 'CORRECT'"
+                                    [class.lq-attempt-state-incomplete]="attempt.reviewStatus === 'INCOMPLETE'"
+                                    [class.lq-attempt-state-needs-work]="attempt.reviewStatus === 'NEEDS_IMPROVEMENT'"
+                                    [class.lq-attempt-state-awaiting]="attempt.reviewStatus === 'AWAITING_REVIEW'"
                                   >
                                     {{ reviewStatusLabel(attempt.reviewStatus) }}
                                   </span>
-                                  <span class="lq-chip" [class.lq-chip-success]="attempt.reviewPublished" [class.lq-chip-muted]="!attempt.reviewPublished">
+                                  <span
+                                    class="lq-attempt-publish"
+                                    [class.lq-attempt-publish-ready]="attempt.reviewPublished"
+                                    [class.lq-attempt-publish-draft]="!attempt.reviewPublished"
+                                  >
                                     {{ attempt.reviewPublished ? 'Published' : 'Draft' }}
                                   </span>
                                 </div>

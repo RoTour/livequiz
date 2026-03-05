@@ -77,9 +77,10 @@ describe('LectureStatePanel', () => {
     expect(compiled.textContent).toContain('Answered 1');
 
     const unlockButtons = Array.from(compiled.querySelectorAll('.lq-question-item button')) as HTMLButtonElement[];
-    expect(unlockButtons).toHaveLength(4);
+    expect(unlockButtons).toHaveLength(3);
     expect(unlockButtons[0].disabled).toBe(false);
-    expect(unlockButtons[2].disabled).toBe(true);
+    expect(unlockButtons[2].disabled).toBe(false);
+    expect(compiled.textContent?.match(/Unlock this/g)?.length ?? 0).toBe(1);
 
     unlockButtons[0].click();
     unlockButtons[1].click();
