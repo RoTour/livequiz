@@ -105,6 +105,7 @@ describe('Login', () => {
 
     component.submit();
     await fixture.whenStable();
+    await Promise.resolve();
 
     expect(navigate).toHaveBeenCalledWith(['/student/lectures']);
     expect(navigateByUrl).not.toHaveBeenCalled();

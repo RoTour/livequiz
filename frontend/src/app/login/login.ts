@@ -13,6 +13,7 @@ export class Login {
   authService = inject(AuthService);
   router = inject(Router);
   route = inject(ActivatedRoute);
+  showInstructorLogin = signal(false);
   authErrorMessage = signal('');
   studentMagicLinkStatusMessage = signal('');
   studentMagicLinkErrorMessage = signal('');
@@ -56,10 +57,20 @@ export class Login {
       },
       error: (error) => {
         console.error('Login failed:', error);
-        this.authErrorMessage.set('Invalid email or username, or password.');
+        this.authErrorMessage.set(
+          'Invalid instructor credentials. If you are a student, use the student access link form.',
+        );
         this.form.enable();
       },
     });
+  }
+
+  toggleInstructorLogin() {
+    this.showInstructorLogin.update((current) => !current);
+  }
+
+  closeInstructorLogin() {
+    this.showInstructorLogin.set(false);
   }
 
   requestStudentMagicLink() {
