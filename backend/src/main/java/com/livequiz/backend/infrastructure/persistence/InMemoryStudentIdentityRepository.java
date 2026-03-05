@@ -2,6 +2,8 @@ package com.livequiz.backend.infrastructure.persistence;
 
 import com.livequiz.backend.domain.student.StudentIdentity;
 import com.livequiz.backend.domain.student.StudentIdentityRepository;
+import java.util.Collection;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
@@ -32,6 +34,18 @@ public class InMemoryStudentIdentityRepository implements StudentIdentityReposit
   @Override
   public Optional<StudentIdentity> findByStudentId(String studentId) {
     return Optional.ofNullable(this.identitiesByStudentId.get(studentId));
+  }
+
+  @Override
+  public List<StudentIdentity> findByStudentIds(Collection<String> studentIds) {
+    if (studentIds == null || studentIds.isEmpty()) {
+      return List.of();
+    }
+    return studentIds
+      .stream()
+      .map(this.identitiesByStudentId::get)
+      .filter(java.util.Objects::nonNull)
+      .toList();
   }
 
   @Override

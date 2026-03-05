@@ -3,11 +3,15 @@ package com.livequiz.backend.application;
 import com.livequiz.backend.domain.lecture.Lecture;
 import com.livequiz.backend.domain.lecture.LectureEnrollmentRepository;
 import com.livequiz.backend.domain.lecture.QuestionId;
+import com.livequiz.backend.domain.student.StudentIdentity;
+import com.livequiz.backend.domain.student.StudentIdentityRepository;
+import com.livequiz.backend.domain.student.StudentIdentityStatus;
 import com.livequiz.backend.domain.submission.Submission;
 import com.livequiz.backend.domain.submission.SubmissionRepository;
 import com.livequiz.backend.infrastructure.web.ApiException;
 import java.time.Instant;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import org.springframework.http.HttpStatus;
@@ -18,6 +22,7 @@ public class GetQuestionStudentAnswerHistoryUseCase {
 
   public record StudentAnswerHistory(
     String studentId,
+    String studentEmail,
     Instant latestAnswerAt,
     long attemptCount,
     String latestAnswerText
@@ -25,15 +30,18 @@ public class GetQuestionStudentAnswerHistoryUseCase {
 
   private final InstructorLectureAccessService instructorLectureAccessService;
   private final LectureEnrollmentRepository lectureEnrollmentRepository;
+  private final StudentIdentityRepository studentIdentityRepository;
   private final SubmissionRepository submissionRepository;
 
   public GetQuestionStudentAnswerHistoryUseCase(
     InstructorLectureAccessService instructorLectureAccessService,
     LectureEnrollmentRepository lectureEnrollmentRepository,
+    StudentIdentityRepository studentIdentityRepository,
     SubmissionRepository submissionRepository
   ) {
     this.instructorLectureAccessService = instructorLectureAccessService;
     this.lectureEnrollmentRepository = lectureEnrollmentRepository;
+    this.studentIdentityRepository = studentIdentityRepository;
     this.submissionRepository = submissionRepository;
   }
 
@@ -57,10 +65,22 @@ public class GetQuestionStudentAnswerHistoryUseCase {
       .stream()
       .collect(Collectors.groupingBy(Submission::studentId));
 
-    return this.lectureEnrollmentRepository
+    List<String> enrolledStudentIds = this.lectureEnrollmentRepository
       .findStudentIdsByLectureId(lecture.id())
       .stream()
       .sorted()
+      .toList();
+
+    Map<String, String> verifiedStudentEmails = this.studentIdentityRepository
+      .findByStudentIds(enrolledStudentIds)
+      .stream()
+      .filter(identity -> identity.status() == StudentIdentityStatus.REGISTERED_VERIFIED)
+      .collect(
+        Collectors.toMap(StudentIdentity::studentId, StudentIdentity::email, (first, ignored) -> first)
+      );
+
+    return enrolledStudentIds
+      .stream()
       .map(studentId -> {
         java.util.List<Submission> submissions = submissionsByStudent.getOrDefault(
           studentId,
@@ -72,6 +92,7 @@ public class GetQuestionStudentAnswerHistoryUseCase {
           .max(Comparator.comparing(Submission::timestamp));
         return new StudentAnswerHistory(
           studentId,
+          verifiedStudentEmails.get(studentId),
           latestSubmission.map(submission -> submission.timestamp()).orElse(null),
           attemptCount,
           latestSubmission.map(submission -> submission.answerText()).orElse(null)

@@ -13,6 +13,9 @@ import com.livequiz.backend.domain.lecture.Lecture;
 import com.livequiz.backend.domain.lecture.LectureId;
 import com.livequiz.backend.domain.lecture.LectureRepository;
 import com.livequiz.backend.domain.lecture.QuestionId;
+import com.livequiz.backend.domain.student.StudentIdentity;
+import com.livequiz.backend.domain.student.StudentIdentityRepository;
+import com.livequiz.backend.domain.student.StudentIdentityStatus;
 import com.livequiz.backend.domain.submission.Submission;
 import com.livequiz.backend.domain.submission.SubmissionId;
 import com.livequiz.backend.domain.submission.SubmissionRepository;
@@ -38,6 +41,9 @@ public class QuizControllerIT {
 
   @Autowired
   private SubmissionRepository submissionRepository;
+
+  @Autowired
+  private StudentIdentityRepository studentIdentityRepository;
 
   private String loginAsInstructor() throws Exception {
     String requestBody = """
@@ -562,6 +568,18 @@ public class QuizControllerIT {
     joinLectureByCode(firstStudentToken, joinCode);
     joinLectureByCode(secondStudentToken, joinCode);
 
+    Instant now = Instant.now();
+    this.studentIdentityRepository.save(
+      new StudentIdentity(
+        "student",
+        "student.verified@example.com",
+        StudentIdentityStatus.REGISTERED_VERIFIED,
+        now,
+        now,
+        now
+      )
+    );
+
     mockMvc
       .perform(
         post("/api/lectures/{lectureId}/questions/unlock-next", lectureId)
@@ -594,7 +612,17 @@ public class QuizControllerIT {
         jsonPath("$[?(@.studentId=='student')].latestAnswerAt").isNotEmpty()
       )
       .andExpect(
+        jsonPath("$[?(@.studentId=='student')].studentEmail").value(
+          hasItem("student.verified@example.com")
+        )
+      )
+      .andExpect(
         jsonPath("$[?(@.studentId=='student2')].attemptCount").value(hasItem(0))
+      )
+      .andExpect(
+        jsonPath("$[?(@.studentId=='student2')].studentEmail").value(
+          hasItem(nullValue())
+        )
       )
       .andExpect(
         jsonPath("$[?(@.studentId=='student2')].latestAnswerAt").value(

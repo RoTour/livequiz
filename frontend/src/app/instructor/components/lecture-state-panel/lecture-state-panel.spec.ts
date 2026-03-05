@@ -113,4 +113,45 @@ describe('LectureStatePanel', () => {
     expect(compiled.textContent).toContain('Could not load analytics.');
     expect(compiled.textContent).toContain('Loading student answers…');
   });
+
+  it('prefers verified email and formats answer history timestamps', () => {
+    fixture.componentRef.setInput('lectureState', {
+      lectureId: 'lecture-1',
+      title: 'DDD Session',
+      questions: [
+        {
+          questionId: 'q-1',
+          prompt: 'Define aggregate root',
+          order: 1,
+          timeLimitSeconds: 60,
+          unlocked: true,
+        },
+      ],
+    });
+    fixture.componentRef.setInput('selectedHistoryQuestionId', 'q-1');
+    fixture.componentRef.setInput('questionHistory', [
+      {
+        studentId: 'uuid-1',
+        studentEmail: 'student@example.com',
+        latestAnswerAt: '2026-02-21T11:30:00Z',
+        attemptCount: 2,
+        latestAnswerText: 'Second attempt',
+      },
+      {
+        studentId: 'uuid-2',
+        studentEmail: null,
+        latestAnswerAt: null,
+        attemptCount: 0,
+        latestAnswerText: null,
+      },
+    ]);
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    expect(compiled.textContent).toContain('student@example.com');
+    expect(compiled.textContent).toContain('Student ID');
+    expect(compiled.textContent).toContain('No submission yet');
+    expect(compiled.textContent).toContain('Second attempt');
+    expect(compiled.textContent).not.toContain('2026-02-21T11:30:00Z');
+  });
 });

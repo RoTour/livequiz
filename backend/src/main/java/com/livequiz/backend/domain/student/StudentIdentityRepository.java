@@ -7,5 +7,9 @@ public interface StudentIdentityRepository {
 
   Optional<StudentIdentity> findByStudentId(String studentId);
 
+  java.util.List<StudentIdentity> findByStudentIds(
+    java.util.Collection<String> studentIds
+  );
+
   Optional<StudentIdentity> findByEmail(String email);
 }

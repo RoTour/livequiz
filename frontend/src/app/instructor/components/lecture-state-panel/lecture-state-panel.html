@@ -56,9 +56,10 @@
           }
 
           @if (isHistoryOpen(question.questionId)) {
-            <div class="lq-stack">
-              <div class="lq-row">
+            <div class="lq-history-panel">
+              <div class="lq-history-header">
                 <strong>Answer history</strong>
+                <span class="lq-muted">Grouped by enrolled student</span>
                 <button type="button" class="lq-btn lq-btn-neutral" (click)="dismissHistory()">Close</button>
               </div>
 
@@ -69,14 +70,24 @@
               } @else if (questionHistory.length === 0) {
                 <p class="lq-muted">No enrolled students found for this lecture.</p>
               } @else {
-                <div class="lq-stack">
+                <div class="lq-history-list">
                   @for (row of questionHistory; track row.studentId) {
-                    <div class="lq-row">
-                      <strong>{{ row.studentId }}</strong>
-                      <span class="lq-chip lq-chip-muted">Attempts {{ row.attemptCount }}</span>
-                      <span class="lq-muted">Latest {{ row.latestAnswerAt ?? 'none' }}</span>
-                      <span class="lq-muted">{{ row.latestAnswerText ?? 'No answer yet' }}</span>
-                    </div>
+                    <article class="lq-history-item">
+                      <div class="lq-history-identity">
+                        <strong>{{ studentDisplayLabel(row) }}</strong>
+                        @if (hasVerifiedEmail(row)) {
+                          <span class="lq-chip lq-chip-info">Verified email</span>
+                        } @else {
+                          <span class="lq-chip lq-chip-muted">Student ID</span>
+                        }
+                        <span class="lq-chip lq-chip-muted">Attempts {{ row.attemptCount }}</span>
+                      </div>
+                      <p class="lq-muted">
+                        Latest
+                        {{ row.latestAnswerAt ? (row.latestAnswerAt | humanDate) : 'No submission yet' }}
+                      </p>
+                      <p class="lq-history-answer">{{ row.latestAnswerText ?? 'No answer yet' }}</p>
+                    </article>
                   }
                 </div>
               }
