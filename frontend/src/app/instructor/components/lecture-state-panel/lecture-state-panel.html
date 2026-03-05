@@ -27,6 +27,7 @@
               {{ question.unlocked ? 'unlocked' : 'locked' }}
             </span>
           </div>
+
           <div>
             <button
               type="button"
@@ -47,7 +48,7 @@
           </div>
 
           @if (analyticsByQuestionId(question.questionId); as analytics) {
-            <div class="lq-row">
+            <div class="lq-row lq-analytics-row">
               <span class="lq-chip lq-chip-muted">Enrolled {{ analytics.enrolledCount }}</span>
               <span class="lq-chip lq-chip-success">Answered {{ analytics.answeredCount }}</span>
               <span class="lq-chip lq-chip-warning">Waiting {{ analytics.unansweredCount }}</span>
@@ -58,8 +59,10 @@
           @if (isHistoryOpen(question.questionId)) {
             <div class="lq-history-panel">
               <div class="lq-history-header">
-                <strong>Answer history</strong>
-                <span class="lq-muted">Grouped by enrolled student</span>
+                <div class="lq-history-title-wrap">
+                  <strong>Answer review queue</strong>
+                  <span class="lq-muted">Grouped by student. Open only the attempt you want to review.</span>
+                </div>
                 <button type="button" class="lq-btn lq-btn-neutral" (click)="dismissHistory()">Close</button>
               </div>
 
@@ -88,74 +91,88 @@
                       } @else {
                         <div class="lq-attempt-list">
                           @for (attempt of row.attempts; track attempt.submissionId) {
-                            <section class="lq-attempt-item">
-                              <div class="lq-history-identity">
-                                <span class="lq-chip lq-chip-muted">{{ attempt.answeredAt | humanDate }}</span>
-                                <span
-                                  class="lq-chip"
-                                  [class.lq-chip-success]="attempt.reviewStatus === 'CORRECT'"
-                                  [class.lq-chip-warning]="attempt.reviewStatus === 'INCOMPLETE'"
-                                  [class.lq-chip-danger]="attempt.reviewStatus === 'NEEDS_IMPROVEMENT'"
-                                  [class.lq-chip-info]="attempt.reviewStatus === 'AWAITING_REVIEW'"
-                                >
-                                  {{ reviewStatusLabel(attempt.reviewStatus) }}
-                                </span>
-                                <span class="lq-chip" [class.lq-chip-success]="attempt.reviewPublished" [class.lq-chip-muted]="!attempt.reviewPublished">
-                                  {{ attempt.reviewPublished ? 'Published' : 'Draft' }}
-                                </span>
-                              </div>
+                            <details class="lq-attempt-item">
+                              <summary class="lq-attempt-summary">
+                                <div class="lq-attempt-summary-content">
+                                  <span class="lq-chip lq-chip-muted">{{ attempt.answeredAt | humanDate }}</span>
+                                  <span
+                                    class="lq-chip"
+                                    [class.lq-chip-success]="attempt.reviewStatus === 'CORRECT'"
+                                    [class.lq-chip-warning]="attempt.reviewStatus === 'INCOMPLETE'"
+                                    [class.lq-chip-danger]="attempt.reviewStatus === 'NEEDS_IMPROVEMENT'"
+                                    [class.lq-chip-info]="attempt.reviewStatus === 'AWAITING_REVIEW'"
+                                  >
+                                    {{ reviewStatusLabel(attempt.reviewStatus) }}
+                                  </span>
+                                  <span class="lq-chip" [class.lq-chip-success]="attempt.reviewPublished" [class.lq-chip-muted]="!attempt.reviewPublished">
+                                    {{ attempt.reviewPublished ? 'Published' : 'Draft' }}
+                                  </span>
+                                </div>
+                                <span class="lq-attempt-summary-action">Review</span>
+                              </summary>
 
-                              <p class="lq-history-answer">{{ attempt.answerText }}</p>
+                              <div class="lq-attempt-body">
+                                <p class="lq-history-answer">{{ attempt.answerText }}</p>
 
-                              @if (attempt.reviewComment) {
-                                <p class="lq-muted">Current review: {{ attempt.reviewComment }}</p>
-                              }
+                                @if (attempt.reviewComment) {
+                                  <p class="lq-muted">Current review: {{ attempt.reviewComment }}</p>
+                                }
 
-                              <div class="lq-review-controls">
-                                <select #reviewStatus class="lq-input" [value]="attempt.reviewStatus === 'AWAITING_REVIEW' ? 'NEEDS_IMPROVEMENT' : attempt.reviewStatus">
-                                  <option value="CORRECT">Correct</option>
-                                  <option value="INCOMPLETE">Incomplete</option>
-                                  <option value="NEEDS_IMPROVEMENT">Needs improvement</option>
-                                </select>
-                                <textarea #reviewComment class="lq-textarea" rows="2" [value]="attempt.reviewComment ?? ''" placeholder="Write review comment"></textarea>
-                                <label class="lq-muted lq-checkbox-inline">
-                                  <input #reviewPublished type="checkbox" [checked]="attempt.reviewPublished" />
-                                  Publish for student
-                                </label>
-                                <button
-                                  type="button"
-                                  class="lq-btn lq-btn-secondary"
-                                  (click)="saveReviewForAttempt(attempt.submissionId, reviewStatus.value, reviewComment.value, reviewPublished.checked)"
-                                >
-                                  Save review
-                                </button>
-                              </div>
+                                <div class="lq-review-controls">
+                                  <div class="lq-review-controls-top">
+                                    <select #reviewStatus class="lq-input" [value]="attempt.reviewStatus === 'AWAITING_REVIEW' ? 'NEEDS_IMPROVEMENT' : attempt.reviewStatus">
+                                      <option value="CORRECT">Correct</option>
+                                      <option value="INCOMPLETE">Incomplete</option>
+                                      <option value="NEEDS_IMPROVEMENT">Needs improvement</option>
+                                    </select>
 
-                              @if (hasLlmSuggestion(attempt.llmSuggestedStatus)) {
-                                <div class="lq-ai-suggestion">
-                                  <p class="lq-muted">
-                                    AI suggestion {{ reviewStatusLabel(attempt.llmSuggestedStatus ?? '') }}
-                                    @if (attempt.llmSuggestedModel) {
-                                      <span>({{ attempt.llmSuggestedModel }})</span>
-                                    }
-                                  </p>
-                                  @if (attempt.llmSuggestedComment) {
-                                    <p class="lq-muted">{{ attempt.llmSuggestedComment }}</p>
-                                  }
-                                  <label class="lq-muted lq-checkbox-inline">
-                                    <input #llmPublish type="checkbox" [checked]="attempt.reviewPublished" />
-                                    Publish when accepting
-                                  </label>
+                                    <label class="lq-muted lq-checkbox-inline">
+                                      <input #reviewPublished type="checkbox" [checked]="attempt.reviewPublished" />
+                                      Publish for student
+                                    </label>
+                                  </div>
+
+                                  <textarea #reviewComment class="lq-textarea" rows="2" [value]="attempt.reviewComment ?? ''" placeholder="Write review comment"></textarea>
+
                                   <button
                                     type="button"
-                                    class="lq-btn lq-btn-neutral"
-                                    (click)="acceptLlmForAttempt(attempt.submissionId, llmPublish.checked)"
+                                    class="lq-btn lq-btn-secondary"
+                                    (click)="saveReviewForAttempt(attempt.submissionId, reviewStatus.value, reviewComment.value, reviewPublished.checked)"
                                   >
-                                    Accept AI review
+                                    Save review
                                   </button>
                                 </div>
-                              }
-                            </section>
+
+                                @if (hasLlmSuggestion(attempt.llmSuggestedStatus)) {
+                                  <div class="lq-ai-suggestion">
+                                    <p class="lq-muted">
+                                      AI suggestion {{ reviewStatusLabel(attempt.llmSuggestedStatus ?? '') }}
+                                      @if (attempt.llmSuggestedModel) {
+                                        <span>({{ attempt.llmSuggestedModel }})</span>
+                                      }
+                                    </p>
+
+                                    @if (attempt.llmSuggestedComment) {
+                                      <p class="lq-muted">{{ attempt.llmSuggestedComment }}</p>
+                                    }
+
+                                    <div class="lq-ai-actions">
+                                      <label class="lq-muted lq-checkbox-inline">
+                                        <input #llmPublish type="checkbox" [checked]="attempt.reviewPublished" />
+                                        Publish when accepting
+                                      </label>
+                                      <button
+                                        type="button"
+                                        class="lq-btn lq-btn-neutral"
+                                        (click)="acceptLlmForAttempt(attempt.submissionId, llmPublish.checked)"
+                                      >
+                                        Accept AI review
+                                      </button>
+                                    </div>
+                                  </div>
+                                }
+                              </div>
+                            </details>
                           }
                         </div>
                       }
