@@ -307,6 +307,20 @@ class GetQuestionStudentAnswerHistoryUseCaseTest {
     }
 
     @Override
+    public List<Submission> findByLectureQuestionAndStudent(
+      LectureId lectureId,
+      QuestionId questionId,
+      String studentId
+    ) {
+      return this.submissions
+        .stream()
+        .filter(submission -> submission.lectureId().equals(lectureId))
+        .filter(submission -> submission.questionId().equals(questionId))
+        .filter(submission -> submission.studentId().equals(studentId))
+        .toList();
+    }
+
+    @Override
     public long countByLectureQuestionAndStudent(
       LectureId lectureId,
       QuestionId questionId,

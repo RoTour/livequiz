@@ -35,9 +35,21 @@ public class JpaPostgresSubmissionRepository implements SubmissionRepository {
           submission.answerText(),
           submission.answerStatus(),
           submission.evaluationCompletedAt(),
+          submission.reviewPublished(),
+          submission.reviewCreatedAt(),
+          submission.reviewPublishedAt(),
+          submission.reviewedByInstructorId(),
+          submission.reviewOrigin(),
           submission.feedback() == null ? null : submission.feedback().isCorrect(),
           submission.feedback() == null ? null : submission.feedback().comment(),
-          serializeMissingKeyPoints(submission.feedback())
+          serializeMissingKeyPoints(submission.feedback()),
+          submission.llmSuggestedStatus(),
+          submission.llmSuggestedFeedback() == null ? null : submission.llmSuggestedFeedback().comment(),
+          serializeMissingKeyPoints(submission.llmSuggestedFeedback()),
+          submission.llmSuggestedAt(),
+          submission.llmSuggestedModel(),
+          submission.llmAcceptedAt(),
+          submission.llmAcceptedByInstructorId()
         )
       );
   }
@@ -71,6 +83,23 @@ public class JpaPostgresSubmissionRepository implements SubmissionRepository {
   ) {
     return this.jpaSubmissionRepository
       .findByLectureIdAndQuestionId(lectureId.value(), questionId.value())
+      .stream()
+      .map(this::toDomain)
+      .toList();
+  }
+
+  @Override
+  public java.util.List<Submission> findByLectureQuestionAndStudent(
+    LectureId lectureId,
+    QuestionId questionId,
+    String studentId
+  ) {
+    return this.jpaSubmissionRepository
+      .findByLectureIdAndQuestionIdAndStudentIdOrderBySubmittedAtDesc(
+        lectureId.value(),
+        questionId.value(),
+        studentId
+      )
       .stream()
       .map(this::toDomain)
       .toList();
@@ -127,7 +156,18 @@ public class JpaPostgresSubmissionRepository implements SubmissionRepository {
       entity.getAnswerText(),
       entity.getAnswerStatus(),
       entity.getEvaluationCompletedAt(),
-      mapFeedback(entity)
+      mapFeedback(entity),
+      entity.isReviewPublished(),
+      entity.getReviewCreatedAt(),
+      entity.getReviewPublishedAt(),
+      entity.getReviewedByInstructorId(),
+      entity.getReviewOrigin(),
+      entity.getLlmSuggestedStatus(),
+      mapLlmSuggestedFeedback(entity),
+      entity.getLlmSuggestedAt(),
+      entity.getLlmSuggestedModel(),
+      entity.getLlmAcceptedAt(),
+      entity.getLlmAcceptedByInstructorId()
     );
   }
 
@@ -139,6 +179,17 @@ public class JpaPostgresSubmissionRepository implements SubmissionRepository {
       entity.getFeedbackIsCorrect(),
       deserializeMissingKeyPoints(entity.getFeedbackMissingKeyPoints()),
       entity.getFeedbackComment()
+    );
+  }
+
+  private Feedback mapLlmSuggestedFeedback(SubmissionEntity entity) {
+    if (entity.getLlmSuggestedStatus() == null || entity.getLlmSuggestedStatus().isBlank()) {
+      return null;
+    }
+    return new Feedback(
+      "CORRECT".equals(entity.getLlmSuggestedStatus()),
+      deserializeMissingKeyPoints(entity.getLlmSuggestedMissingKeyPoints()),
+      entity.getLlmSuggestedComment()
     );
   }
 

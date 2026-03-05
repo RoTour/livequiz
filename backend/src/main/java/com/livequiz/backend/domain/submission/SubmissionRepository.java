@@ -23,6 +23,12 @@ public interface SubmissionRepository {
     QuestionId questionId
   );
 
+  java.util.List<Submission> findByLectureQuestionAndStudent(
+    LectureId lectureId,
+    QuestionId questionId,
+    String studentId
+  );
+
   long countByLectureQuestionAndStudent(
     LectureId lectureId,
     QuestionId questionId,

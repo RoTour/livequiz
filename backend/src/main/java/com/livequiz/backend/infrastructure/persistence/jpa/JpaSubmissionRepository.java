@@ -27,6 +27,12 @@ public interface JpaSubmissionRepository
     String questionId
   );
 
+  List<SubmissionEntity> findByLectureIdAndQuestionIdAndStudentIdOrderBySubmittedAtDesc(
+    String lectureId,
+    String questionId,
+    String studentId
+  );
+
   long countByLectureIdAndQuestionIdAndStudentId(
     String lectureId,
     String questionId,

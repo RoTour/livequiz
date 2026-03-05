@@ -1,11 +1,14 @@
 package com.livequiz.backend.infrastructure.web;
 
 import com.livequiz.backend.application.AddQuestionToLectureUseCase;
+import com.livequiz.backend.application.AcceptSubmissionLlmReviewUseCase;
 import com.livequiz.backend.application.CreateLectureUseCase;
 import com.livequiz.backend.application.GetLectureQuestionAnalyticsUseCase;
+import com.livequiz.backend.application.GetQuestionSubmissionReviewsUseCase;
 import com.livequiz.backend.application.GetLectureStateUseCase;
 import com.livequiz.backend.application.GetQuestionStudentAnswerHistoryUseCase;
 import com.livequiz.backend.application.ListInstructorLecturesUseCase;
+import com.livequiz.backend.application.UpsertSubmissionManualReviewUseCase;
 import com.livequiz.backend.application.UnlockNextQuestionUseCase;
 import com.livequiz.backend.application.UnlockQuestionUseCase;
 import com.livequiz.backend.domain.lecture.Lecture;
@@ -15,6 +18,7 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -31,6 +35,9 @@ public class LectureController {
   private final GetLectureStateUseCase getLectureStateUseCase;
   private final GetLectureQuestionAnalyticsUseCase getLectureQuestionAnalyticsUseCase;
   private final GetQuestionStudentAnswerHistoryUseCase getQuestionStudentAnswerHistoryUseCase;
+  private final GetQuestionSubmissionReviewsUseCase getQuestionSubmissionReviewsUseCase;
+  private final UpsertSubmissionManualReviewUseCase upsertSubmissionManualReviewUseCase;
+  private final AcceptSubmissionLlmReviewUseCase acceptSubmissionLlmReviewUseCase;
   private final ListInstructorLecturesUseCase listInstructorLecturesUseCase;
 
   public LectureController(
@@ -41,6 +48,9 @@ public class LectureController {
     GetLectureStateUseCase getLectureStateUseCase,
     GetLectureQuestionAnalyticsUseCase getLectureQuestionAnalyticsUseCase,
     GetQuestionStudentAnswerHistoryUseCase getQuestionStudentAnswerHistoryUseCase,
+    GetQuestionSubmissionReviewsUseCase getQuestionSubmissionReviewsUseCase,
+    UpsertSubmissionManualReviewUseCase upsertSubmissionManualReviewUseCase,
+    AcceptSubmissionLlmReviewUseCase acceptSubmissionLlmReviewUseCase,
     ListInstructorLecturesUseCase listInstructorLecturesUseCase
   ) {
     this.createLectureUseCase = createLectureUseCase;
@@ -50,6 +60,9 @@ public class LectureController {
     this.getLectureStateUseCase = getLectureStateUseCase;
     this.getLectureQuestionAnalyticsUseCase = getLectureQuestionAnalyticsUseCase;
     this.getQuestionStudentAnswerHistoryUseCase = getQuestionStudentAnswerHistoryUseCase;
+    this.getQuestionSubmissionReviewsUseCase = getQuestionSubmissionReviewsUseCase;
+    this.upsertSubmissionManualReviewUseCase = upsertSubmissionManualReviewUseCase;
+    this.acceptSubmissionLlmReviewUseCase = acceptSubmissionLlmReviewUseCase;
     this.listInstructorLecturesUseCase = listInstructorLecturesUseCase;
   }
 
@@ -82,6 +95,44 @@ public class LectureController {
     String latestAnswerAt,
     long attemptCount,
     String latestAnswerText
+  ) {}
+  public record UpsertSubmissionReviewRequestDTO(
+    String reviewStatus,
+    String reviewComment,
+    Boolean published
+  ) {}
+  public record AcceptSubmissionLlmReviewRequestDTO(Boolean published) {}
+  public record SubmissionReviewCommandResponse(
+    String submissionId,
+    String reviewStatus,
+    boolean reviewPublished,
+    String reviewUpdatedAt,
+    String reviewedByInstructorId,
+    String llmAcceptedAt
+  ) {}
+  public record SubmissionAttemptReviewResponse(
+    String submissionId,
+    String answeredAt,
+    String answerText,
+    String reviewStatus,
+    boolean reviewPublished,
+    String reviewComment,
+    String reviewUpdatedAt,
+    String reviewCreatedAt,
+    String reviewPublishedAt,
+    String reviewedByInstructorId,
+    String reviewOrigin,
+    String llmSuggestedStatus,
+    String llmSuggestedComment,
+    String llmSuggestedAt,
+    String llmSuggestedModel,
+    String llmAcceptedAt,
+    String llmAcceptedByInstructorId
+  ) {}
+  public record StudentSubmissionReviewsResponse(
+    String studentId,
+    String studentEmail,
+    java.util.List<SubmissionAttemptReviewResponse> attempts
   ) {}
 
   @GetMapping
@@ -213,6 +264,99 @@ public class LectureController {
         )
       )
       .toList();
+  }
+
+  @GetMapping("/{lectureId}/questions/{questionId}/answers/reviews")
+  @LogExecutionTime
+  public java.util.List<StudentSubmissionReviewsResponse> getQuestionSubmissionReviews(
+    @PathVariable String lectureId,
+    @PathVariable String questionId
+  ) {
+    return this.getQuestionSubmissionReviewsUseCase
+      .execute(lectureId, questionId)
+      .stream()
+      .map(studentReviews ->
+        new StudentSubmissionReviewsResponse(
+          studentReviews.studentId(),
+          studentReviews.studentEmail(),
+          studentReviews
+            .attempts()
+            .stream()
+            .map(attempt ->
+              new SubmissionAttemptReviewResponse(
+                attempt.submissionId(),
+                attempt.answeredAt() != null ? attempt.answeredAt().toString() : null,
+                attempt.answerText(),
+                attempt.reviewStatus(),
+                attempt.reviewPublished(),
+                attempt.reviewComment(),
+                attempt.reviewUpdatedAt() != null ? attempt.reviewUpdatedAt().toString() : null,
+                attempt.reviewCreatedAt() != null ? attempt.reviewCreatedAt().toString() : null,
+                attempt.reviewPublishedAt() != null ? attempt.reviewPublishedAt().toString() : null,
+                attempt.reviewedByInstructorId(),
+                attempt.reviewOrigin(),
+                attempt.llmSuggestedStatus(),
+                attempt.llmSuggestedComment(),
+                attempt.llmSuggestedAt() != null ? attempt.llmSuggestedAt().toString() : null,
+                attempt.llmSuggestedModel(),
+                attempt.llmAcceptedAt() != null ? attempt.llmAcceptedAt().toString() : null,
+                attempt.llmAcceptedByInstructorId()
+              )
+            )
+            .toList()
+        )
+      )
+      .toList();
+  }
+
+  @PutMapping("/{lectureId}/questions/{questionId}/answers/{submissionId}/review")
+  @LogExecutionTime
+  public SubmissionReviewCommandResponse upsertSubmissionReview(
+    @PathVariable String lectureId,
+    @PathVariable String questionId,
+    @PathVariable String submissionId,
+    @RequestBody UpsertSubmissionReviewRequestDTO request
+  ) {
+    UpsertSubmissionManualReviewUseCase.Result result = this.upsertSubmissionManualReviewUseCase.execute(
+        lectureId,
+        questionId,
+        submissionId,
+        request.reviewStatus(),
+        request.reviewComment(),
+        request.published() != null && request.published()
+      );
+    return new SubmissionReviewCommandResponse(
+      result.submissionId(),
+      result.reviewStatus(),
+      result.reviewPublished(),
+      result.reviewUpdatedAt() != null ? result.reviewUpdatedAt().toString() : null,
+      result.reviewedByInstructorId(),
+      null
+    );
+  }
+
+  @PostMapping("/{lectureId}/questions/{questionId}/answers/{submissionId}/llm-review/accept")
+  @LogExecutionTime
+  public SubmissionReviewCommandResponse acceptSubmissionLlmReview(
+    @PathVariable String lectureId,
+    @PathVariable String questionId,
+    @PathVariable String submissionId,
+    @RequestBody AcceptSubmissionLlmReviewRequestDTO request
+  ) {
+    AcceptSubmissionLlmReviewUseCase.Result result = this.acceptSubmissionLlmReviewUseCase.execute(
+        lectureId,
+        questionId,
+        submissionId,
+        request.published() != null && request.published()
+      );
+    return new SubmissionReviewCommandResponse(
+      result.submissionId(),
+      result.reviewStatus(),
+      result.reviewPublished(),
+      result.reviewUpdatedAt() != null ? result.reviewUpdatedAt().toString() : null,
+      result.reviewedByInstructorId(),
+      result.llmAcceptedAt() != null ? result.llmAcceptedAt().toString() : null
+    );
   }
 
   public record LectureStateResponse(

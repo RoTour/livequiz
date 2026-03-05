@@ -34,13 +34,15 @@
         [analyticsLoading]="analyticsLoading()"
         [analyticsError]="analyticsError()"
         [selectedHistoryQuestionId]="selectedHistoryQuestionId()"
-        [questionHistory]="questionHistory()"
+        [questionReviews]="questionReviews()"
         [questionHistoryLoading]="questionHistoryLoading()"
         [questionHistoryError]="questionHistoryError()"
         (unlockQuestion)="unlockQuestion($event)"
         (refreshAnalytics)="refreshQuestionAnalytics()"
         (openHistory)="openQuestionAnswerHistory($event)"
         (closeHistory)="closeQuestionAnswerHistory()"
+        (saveReview)="saveSubmissionReview($event.submissionId, $event.reviewStatus, $event.reviewComment, $event.published)"
+        (acceptLlmReview)="acceptSubmissionLlmReview($event.submissionId, $event.published)"
       />
     </div>
   </div>

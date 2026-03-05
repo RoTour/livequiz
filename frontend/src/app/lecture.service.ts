@@ -50,6 +50,39 @@ export class LectureService {
     );
   }
 
+  getQuestionSubmissionReviews(
+    lectureId: string,
+    questionId: string,
+  ): Observable<StudentSubmissionReviewsResponse[]> {
+    return this.http.get<StudentSubmissionReviewsResponse[]>(
+      `${this.endpoint}/${lectureId}/questions/${questionId}/answers/reviews`,
+    );
+  }
+
+  upsertSubmissionReview(
+    lectureId: string,
+    questionId: string,
+    submissionId: string,
+    dto: UpsertSubmissionReviewDto,
+  ): Observable<SubmissionReviewCommandResponse> {
+    return this.http.put<SubmissionReviewCommandResponse>(
+      `${this.endpoint}/${lectureId}/questions/${questionId}/answers/${submissionId}/review`,
+      dto,
+    );
+  }
+
+  acceptSubmissionLlmReview(
+    lectureId: string,
+    questionId: string,
+    submissionId: string,
+    dto: AcceptSubmissionLlmReviewDto,
+  ): Observable<SubmissionReviewCommandResponse> {
+    return this.http.post<SubmissionReviewCommandResponse>(
+      `${this.endpoint}/${lectureId}/questions/${questionId}/answers/${submissionId}/llm-review/accept`,
+      dto,
+    );
+  }
+
   createInvite(lectureId: string): Observable<CreateInviteResponse> {
     return this.http.post<CreateInviteResponse>(`${this.endpoint}/${lectureId}/invites`, {});
   }
@@ -133,6 +166,53 @@ export type StudentAnswerHistoryResponse = {
   latestAnswerText: string | null;
 };
 
+export type ReviewStatus = 'AWAITING_REVIEW' | 'CORRECT' | 'INCOMPLETE' | 'NEEDS_IMPROVEMENT';
+
+export type SubmissionAttemptReviewResponse = {
+  submissionId: string;
+  answeredAt: string;
+  answerText: string;
+  reviewStatus: ReviewStatus;
+  reviewPublished: boolean;
+  reviewComment: string | null;
+  reviewUpdatedAt: string | null;
+  reviewCreatedAt: string | null;
+  reviewPublishedAt: string | null;
+  reviewedByInstructorId: string | null;
+  reviewOrigin: string | null;
+  llmSuggestedStatus: Exclude<ReviewStatus, 'AWAITING_REVIEW'> | null;
+  llmSuggestedComment: string | null;
+  llmSuggestedAt: string | null;
+  llmSuggestedModel: string | null;
+  llmAcceptedAt: string | null;
+  llmAcceptedByInstructorId: string | null;
+};
+
+export type StudentSubmissionReviewsResponse = {
+  studentId: string;
+  studentEmail: string | null;
+  attempts: SubmissionAttemptReviewResponse[];
+};
+
+type UpsertSubmissionReviewDto = {
+  reviewStatus: Exclude<ReviewStatus, 'AWAITING_REVIEW'>;
+  reviewComment: string;
+  published: boolean;
+};
+
+type AcceptSubmissionLlmReviewDto = {
+  published: boolean;
+};
+
+export type SubmissionReviewCommandResponse = {
+  submissionId: string;
+  reviewStatus: Exclude<ReviewStatus, 'AWAITING_REVIEW'>;
+  reviewPublished: boolean;
+  reviewUpdatedAt: string | null;
+  reviewedByInstructorId: string | null;
+  llmAcceptedAt: string | null;
+};
+
 export type CreateInviteResponse = {
   inviteId: string;
   lectureId: string;
@@ -198,7 +278,7 @@ export type SubmitAnswerResponse = {
   answerStatus: StudentAnswerStatus;
 };
 
-export type StudentAnswerStatus = 'AWAITING_EVALUATION' | 'CORRECT' | 'INCORRECT' | 'INCOMPLETE';
+export type StudentAnswerStatus = ReviewStatus;
 
 export type StudentAnswerStatusResponse = {
   lectureId: string;

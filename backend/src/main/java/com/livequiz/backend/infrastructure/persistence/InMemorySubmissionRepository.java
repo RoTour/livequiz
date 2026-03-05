@@ -63,6 +63,21 @@ public class InMemorySubmissionRepository implements SubmissionRepository {
   }
 
   @Override
+  public List<Submission> findByLectureQuestionAndStudent(
+    LectureId lectureId,
+    QuestionId questionId,
+    String studentId
+  ) {
+    return this.submissions
+      .stream()
+      .filter(submission -> submission.lectureId().value().equals(lectureId.value()))
+      .filter(submission -> submission.questionId().value().equals(questionId.value()))
+      .filter(submission -> submission.studentId().equals(studentId))
+      .sorted(Comparator.comparing(Submission::timestamp).reversed())
+      .toList();
+  }
+
+  @Override
   public long countByLectureQuestionAndStudent(
     LectureId lectureId,
     QuestionId questionId,

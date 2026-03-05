@@ -51,8 +51,8 @@
           <div class="lq-row">
             <span class="lq-chip" [class.lq-chip-success]="answerStatus.status === 'CORRECT'"
               [class.lq-chip-warning]="answerStatus.status === 'INCOMPLETE'"
-              [class.lq-chip-danger]="answerStatus.status === 'INCORRECT'"
-              [class.lq-chip-info]="answerStatus.status === 'AWAITING_EVALUATION'">
+              [class.lq-chip-danger]="answerStatus.status === 'NEEDS_IMPROVEMENT'"
+              [class.lq-chip-info]="answerStatus.status === 'AWAITING_REVIEW'">
               {{ answerStatusLabel(answerStatus.status) }}
             </span>
             <span class="lq-muted">Submitted {{ answerStatus.submittedAt | humanDate }}</span>

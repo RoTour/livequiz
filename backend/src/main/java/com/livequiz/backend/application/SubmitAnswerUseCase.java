@@ -80,7 +80,7 @@ public class SubmitAnswerUseCase {
     );
     this.submissionRepository.save(submission);
     this.submissionEvaluationDispatchService.dispatch(submission, submission.id().value());
-    String answerStatus = AnswerEvaluationStatus.AWAITING_EVALUATION.name();
+    String answerStatus = AnswerEvaluationStatus.AWAITING_REVIEW.name();
     return new SubmitResult(
       submission.id().value(),
       lectureId,

@@ -50,6 +50,38 @@
   overflow-wrap: anywhere;
 }
 
+.lq-attempt-list {
+  display: grid;
+  gap: 0.56rem;
+}
+
+.lq-attempt-item {
+  display: grid;
+  gap: 0.42rem;
+  border: 1px solid var(--color-lq-border);
+  border-radius: 0.54rem;
+  padding: 0.52rem;
+  background: color-mix(in oklab, white 97%, var(--color-lq-info));
+}
+
+.lq-review-controls {
+  display: grid;
+  gap: 0.42rem;
+}
+
+.lq-checkbox-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.lq-ai-suggestion {
+  display: grid;
+  gap: 0.3rem;
+  border-top: 1px dashed var(--color-lq-border);
+  padding-top: 0.4rem;
+}
+
 @media (max-width: 640px) {
   .lq-history-panel {
     padding: 0.56rem;

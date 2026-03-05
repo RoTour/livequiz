@@ -7,7 +7,8 @@ import {
   LectureInviteResponse,
   LectureStateResponse,
   QuestionAnalyticsResponse,
-  StudentAnswerHistoryResponse,
+  ReviewStatus,
+  StudentSubmissionReviewsResponse,
 } from '../lecture.service';
 import { InstructorWorkspaceService } from './application/instructor-workspace.service';
 import { QuestionFlowPanel } from './components/question-flow-panel/question-flow-panel';
@@ -37,7 +38,7 @@ export class InstructorHome implements OnInit {
   protected readonly analyticsLoading = signal(false);
   protected readonly analyticsError = signal('');
   protected readonly selectedHistoryQuestionId = signal('');
-  protected readonly questionHistory = signal<StudentAnswerHistoryResponse[]>([]);
+  protected readonly questionReviews = signal<StudentSubmissionReviewsResponse[]>([]);
   protected readonly questionHistoryLoading = signal(false);
   protected readonly questionHistoryError = signal('');
   protected readonly lastCreatedInvite = signal<CreateInviteResponse | null>(null);
@@ -170,23 +171,70 @@ export class InstructorHome implements OnInit {
     }
 
     this.selectedHistoryQuestionId.set(questionId);
-    this.questionHistory.set([]);
+    this.questionReviews.set([]);
     this.questionHistoryError.set('');
     this.questionHistoryLoading.set(true);
 
     try {
-      const history = await this.workspaceService.listQuestionAnswerHistory(lectureId, questionId);
-      this.questionHistory.set(history);
+      const reviews = await this.workspaceService.listQuestionSubmissionReviews(lectureId, questionId);
+      this.questionReviews.set(reviews);
     } catch {
-      this.questionHistoryError.set('Could not load student answer history for this question.');
+      this.questionHistoryError.set('Could not load student answer reviews for this question.');
     } finally {
       this.questionHistoryLoading.set(false);
     }
   }
 
+  async saveSubmissionReview(
+    submissionId: string,
+    reviewStatus: Exclude<ReviewStatus, 'AWAITING_REVIEW'>,
+    reviewComment: string,
+    published: boolean,
+  ) {
+    const lectureId = this.selectedLectureId();
+    const questionId = this.selectedHistoryQuestionId();
+    if (!lectureId || !questionId) {
+      return;
+    }
+
+    try {
+      await this.workspaceService.upsertSubmissionReview(lectureId, questionId, submissionId, {
+        reviewStatus,
+        reviewComment,
+        published,
+      });
+      this.status.set(published ? 'Review saved and published' : 'Review saved as draft');
+    } catch {
+      this.status.set('Could not save review. Please retry.');
+      return;
+    }
+
+    await this.openQuestionAnswerHistory(questionId);
+  }
+
+  async acceptSubmissionLlmReview(submissionId: string, published: boolean) {
+    const lectureId = this.selectedLectureId();
+    const questionId = this.selectedHistoryQuestionId();
+    if (!lectureId || !questionId) {
+      return;
+    }
+
+    try {
+      await this.workspaceService.acceptSubmissionLlmReview(lectureId, questionId, submissionId, {
+        published,
+      });
+      this.status.set(published ? 'LLM review accepted and published' : 'LLM review accepted as draft');
+    } catch {
+      this.status.set('Could not accept LLM review. Please retry.');
+      return;
+    }
+
+    await this.openQuestionAnswerHistory(questionId);
+  }
+
   closeQuestionAnswerHistory() {
     this.selectedHistoryQuestionId.set('');
-    this.questionHistory.set([]);
+    this.questionReviews.set([]);
     this.questionHistoryError.set('');
     this.questionHistoryLoading.set(false);
   }
