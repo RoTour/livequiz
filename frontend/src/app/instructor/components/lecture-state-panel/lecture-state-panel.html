@@ -19,16 +19,18 @@
 
     <div class="lq-stack">
       @for (question of state.questions; track question.questionId) {
-        <div class="lq-question-item">
-          <div class="lq-row">
-            <span><strong>#{{ question.order }}</strong></span>
-            <span>{{ question.prompt }}</span>
+        <section class="lq-question-item lq-question-shell">
+          <header class="lq-question-head">
+            <div class="lq-question-main">
+              <p class="lq-question-kicker">Question #{{ question.order }}</p>
+              <p class="lq-question-prompt">{{ question.prompt }}</p>
+            </div>
             <span class="lq-chip" [class.lq-chip-success]="question.unlocked" [class.lq-chip-muted]="!question.unlocked">
               {{ question.unlocked ? 'unlocked' : 'locked' }}
             </span>
-          </div>
+          </header>
 
-          <div>
+          <div class="lq-question-actions">
             <button
               type="button"
               class="lq-btn lq-btn-neutral"
@@ -63,15 +65,16 @@
                   <strong>Answer review queue</strong>
                   <span class="lq-muted">Grouped by student. Open only the attempt you want to review.</span>
                 </div>
+                <span class="lq-muted lq-history-queue-count">{{ awaitingReviewCount() }} awaiting review</span>
                 <button type="button" class="lq-btn lq-btn-neutral" (click)="dismissHistory()">Close</button>
               </div>
 
               @if (questionHistoryLoading) {
-                <p class="lq-muted">Loading student answers…</p>
+                <p class="lq-muted lq-history-empty">Loading student answers…</p>
               } @else if (questionHistoryError) {
-                <p class="lq-alert lq-alert-danger">{{ questionHistoryError }}</p>
+                <p class="lq-alert lq-alert-danger lq-history-empty">{{ questionHistoryError }}</p>
               } @else if (questionReviews.length === 0) {
-                <p class="lq-muted">No enrolled students found for this lecture.</p>
+                <p class="lq-muted lq-history-empty">No enrolled students found for this lecture.</p>
               } @else {
                 <div class="lq-history-list">
                   @for (row of questionReviews; track row.studentId) {
@@ -182,7 +185,7 @@
               }
             </div>
           }
-        </div>
+        </section>
       }
     </div>
   } @else {

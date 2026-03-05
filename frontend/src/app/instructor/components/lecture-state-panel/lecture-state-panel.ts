@@ -74,6 +74,12 @@ export class LectureStatePanel {
     return llmSuggestedStatus !== null && llmSuggestedStatus.length > 0;
   }
 
+  protected awaitingReviewCount(): number {
+    return this.questionReviews
+      .flatMap((row) => row.attempts)
+      .filter((attempt) => attempt.reviewStatus === 'AWAITING_REVIEW').length;
+  }
+
   protected saveReviewForAttempt(
     submissionId: string,
     reviewStatus: string,

@@ -2,47 +2,100 @@
   display: block;
 }
 
+.lq-question-shell {
+  border: 1px solid color-mix(in oklab, var(--color-lq-border) 68%, white);
+  border-radius: 0.96rem;
+  background: color-mix(in oklab, var(--color-lq-surface-raised) 94%, #d8e5ff);
+  padding: 0;
+  overflow: hidden;
+}
+
+.lq-question-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.58rem;
+  padding: 0.82rem 0.94rem;
+  background: color-mix(in oklab, #d8e5ff 34%, white);
+  border-bottom: 1px solid color-mix(in oklab, var(--color-lq-border) 18%, transparent);
+}
+
+.lq-question-main {
+  display: grid;
+  gap: 0.18rem;
+  min-width: min(100%, 340px);
+}
+
+.lq-question-kicker {
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: color-mix(in oklab, var(--color-lq-ink) 80%, #2b6dd7);
+}
+
+.lq-question-prompt {
+  margin: 0;
+  font-size: 1.02rem;
+  line-height: 1.36;
+}
+
+.lq-question-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.46rem;
+  padding: 0.72rem 0.94rem 0.32rem;
+}
+
 .lq-analytics-row {
   row-gap: 0.3rem;
+  padding: 0 0.94rem 0.84rem;
 }
 
 .lq-history-panel {
   display: grid;
-  gap: 0.82rem;
-  border: 1px solid color-mix(in oklab, var(--color-lq-border) 70%, white);
-  border-radius: 0.86rem;
-  padding: 0.78rem;
-  background: color-mix(in oklab, white 96%, var(--color-lq-surface-raised));
+  gap: 0;
+  border-top: 1px solid color-mix(in oklab, var(--color-lq-border) 18%, transparent);
+  background: color-mix(in oklab, var(--color-lq-surface-raised) 92%, #dbe7ff);
 }
 
 .lq-history-header {
   display: flex;
   flex-wrap: wrap;
-  align-items: flex-start;
-  gap: 0.5rem 0.8rem;
+  align-items: center;
+  gap: 0.54rem 0.86rem;
+  padding: 0.78rem 0.94rem;
+  border-bottom: 1px solid color-mix(in oklab, var(--color-lq-border) 14%, transparent);
 }
 
 .lq-history-title-wrap {
   display: grid;
-  gap: 0.16rem;
+  gap: 0.12rem;
 }
 
-.lq-history-header .lq-btn {
+.lq-history-queue-count {
   margin-left: auto;
+  font-weight: 600;
+}
+
+.lq-history-empty {
+  padding: 0.84rem 0.94rem;
 }
 
 .lq-history-list {
   display: grid;
-  gap: 0.66rem;
 }
 
 .lq-history-item {
   display: grid;
-  gap: 0.5rem;
-  border: 1px solid color-mix(in oklab, var(--color-lq-border) 75%, white);
-  border-radius: 0.72rem;
-  background: color-mix(in oklab, white 98%, var(--color-lq-warning));
-  padding: 0.66rem;
+  gap: 0.44rem;
+  padding: 0.76rem 0.94rem;
+}
+
+.lq-history-item + .lq-history-item {
+  border-top: 1px solid color-mix(in oklab, var(--color-lq-border) 14%, transparent);
 }
 
 .lq-history-identity {
@@ -54,24 +107,22 @@
 
 .lq-attempt-list {
   display: grid;
-  gap: 0.48rem;
+  gap: 0.22rem;
 }
 
 .lq-attempt-item {
-  border: 1px solid color-mix(in oklab, var(--color-lq-border) 82%, white);
-  border-radius: 0.66rem;
-  background: color-mix(in oklab, white 98%, var(--color-lq-info));
-  overflow: hidden;
+  border-radius: 0.62rem;
+  background: color-mix(in oklab, white 95%, #d6e4ff);
 }
 
 .lq-attempt-summary {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: 0.48rem;
   cursor: pointer;
   list-style: none;
-  padding: 0.54rem 0.62rem;
+  padding: 0.48rem 0.56rem;
 }
 
 .lq-attempt-summary::-webkit-details-marker {
@@ -86,21 +137,25 @@
 }
 
 .lq-attempt-summary-action {
-  color: var(--color-lq-muted);
-  font-size: 0.86rem;
+  color: color-mix(in oklab, var(--color-lq-ink-soft) 88%, #2d6dd4);
+  font-size: 0.84rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.03em;
 }
 
+.lq-attempt-item[open] {
+  background: color-mix(in oklab, white 91%, #c8dbff);
+}
+
 .lq-attempt-item[open] .lq-attempt-summary {
-  border-bottom: 1px dashed color-mix(in oklab, var(--color-lq-border) 85%, white);
+  border-bottom: 1px solid color-mix(in oklab, var(--color-lq-border) 12%, transparent);
 }
 
 .lq-attempt-body {
   display: grid;
   gap: 0.52rem;
-  padding: 0.58rem 0.62rem 0.66rem;
+  padding: 0.52rem 0.56rem 0.6rem;
 }
 
 .lq-history-answer {
@@ -109,13 +164,17 @@
   white-space: pre-wrap;
   overflow-wrap: anywhere;
   margin: 0;
-  border-left: 3px solid color-mix(in oklab, var(--color-lq-info) 65%, var(--color-lq-border));
-  padding-left: 0.52rem;
+  background: color-mix(in oklab, white 94%, var(--color-lq-surface));
+  border-radius: 0.5rem;
+  padding: 0.5rem 0.58rem;
 }
 
 .lq-review-controls {
   display: grid;
   gap: 0.44rem;
+  background: color-mix(in oklab, white 95%, var(--color-lq-accent-secondary));
+  border-radius: 0.54rem;
+  padding: 0.48rem;
 }
 
 .lq-review-controls-top {
@@ -134,8 +193,9 @@
 .lq-ai-suggestion {
   display: grid;
   gap: 0.34rem;
-  border-top: 1px dashed color-mix(in oklab, var(--color-lq-border) 85%, white);
-  padding-top: 0.46rem;
+  background: color-mix(in oklab, white 96%, var(--color-lq-accent-primary));
+  border-radius: 0.54rem;
+  padding: 0.46rem;
 }
 
 .lq-ai-actions {
@@ -145,13 +205,21 @@
   gap: 0.46rem;
 }
 
-@media (max-width: 760px) {
-  .lq-history-panel {
-    padding: 0.62rem;
-  }
-
-  .lq-history-header .lq-btn {
+@media (max-width: 880px) {
+  .lq-history-queue-count {
     margin-left: 0;
+  }
+}
+
+@media (max-width: 760px) {
+  .lq-question-head,
+  .lq-question-actions,
+  .lq-analytics-row,
+  .lq-history-header,
+  .lq-history-empty,
+  .lq-history-item {
+    padding-left: 0.72rem;
+    padding-right: 0.72rem;
   }
 
   .lq-review-controls-top {
