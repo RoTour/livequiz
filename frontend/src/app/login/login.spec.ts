@@ -67,6 +67,28 @@ describe('Login', () => {
     expect(component).toBeTruthy();
   });
 
+  it('hides instructor login by default', () => {
+    expect(component.showInstructorLogin()).toBe(false);
+  });
+
+  it('toggles instructor login visibility', () => {
+    component.toggleInstructorLogin();
+    expect(component.showInstructorLogin()).toBe(true);
+
+    component.toggleInstructorLogin();
+    expect(component.showInstructorLogin()).toBe(false);
+  });
+
+  it('clears instructor auth error when instructor panel is closed', () => {
+    component.toggleInstructorLogin();
+    component.authErrorMessage.set('Invalid instructor credentials.');
+
+    component.closeInstructorLogin();
+
+    expect(component.showInstructorLogin()).toBe(false);
+    expect(component.authErrorMessage()).toBe('');
+  });
+
   it('routes to the role default page after successful login', async () => {
     routeForCurrentUser.mockReturnValue('/student/lectures');
     login.mockReturnValue(from(Promise.resolve({ token: 'jwt' })));

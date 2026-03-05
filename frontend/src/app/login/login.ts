@@ -66,11 +66,18 @@ export class Login {
   }
 
   toggleInstructorLogin() {
-    this.showInstructorLogin.update((current) => !current);
+    this.showInstructorLogin.update((current) => {
+      const next = !current;
+      if (!next) {
+        this.authErrorMessage.set('');
+      }
+      return next;
+    });
   }
 
   closeInstructorLogin() {
     this.showInstructorLogin.set(false);
+    this.authErrorMessage.set('');
   }
 
   requestStudentMagicLink() {

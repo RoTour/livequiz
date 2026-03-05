@@ -47,13 +47,19 @@
 
   <p class="lq-auth-instructor-hint">
     Instructor?
-    <button type="button" class="lq-auth-link" (click)="toggleInstructorLogin()">
+    <button
+      type="button"
+      class="lq-auth-link"
+      (click)="toggleInstructorLogin()"
+      [attr.aria-expanded]="showInstructorLogin()"
+      aria-controls="instructor-login-panel"
+    >
       {{ showInstructorLogin() ? 'Hide instructor sign-in' : 'Sign in with password' }}
     </button>
   </p>
 
   @if (showInstructorLogin()) {
-    <section class="lq-auth-instructor-card lq-stack">
+    <section id="instructor-login-panel" class="lq-auth-instructor-card lq-stack">
       <h2 class="lq-section-title">Instructor sign-in</h2>
 
       <form [formGroup]="form" (ngSubmit)="submit()" class="lq-stack">
