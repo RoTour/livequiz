@@ -34,6 +34,19 @@ public class SubmissionEntity {
 
   private Instant evaluationCompletedAt;
 
+  @Column(nullable = false)
+  private boolean reviewPublished;
+
+  private Instant reviewCreatedAt;
+
+  private Instant reviewPublishedAt;
+
+  @Column(length = 255)
+  private String reviewedByInstructorId;
+
+  @Column(length = 64)
+  private String reviewOrigin;
+
   private Boolean feedbackIsCorrect;
 
   @Column(columnDefinition = "text")
@@ -41,6 +54,25 @@ public class SubmissionEntity {
 
   @Column(columnDefinition = "text")
   private String feedbackMissingKeyPoints;
+
+  @Column(length = 64)
+  private String llmSuggestedStatus;
+
+  @Column(columnDefinition = "text")
+  private String llmSuggestedComment;
+
+  @Column(columnDefinition = "text")
+  private String llmSuggestedMissingKeyPoints;
+
+  private Instant llmSuggestedAt;
+
+  @Column(length = 255)
+  private String llmSuggestedModel;
+
+  private Instant llmAcceptedAt;
+
+  @Column(length = 255)
+  private String llmAcceptedByInstructorId;
 
   public SubmissionEntity() {}
 
@@ -53,9 +85,21 @@ public class SubmissionEntity {
     String answerText,
     String answerStatus,
     Instant evaluationCompletedAt,
+    boolean reviewPublished,
+    Instant reviewCreatedAt,
+    Instant reviewPublishedAt,
+    String reviewedByInstructorId,
+    String reviewOrigin,
     Boolean feedbackIsCorrect,
     String feedbackComment,
-    String feedbackMissingKeyPoints
+    String feedbackMissingKeyPoints,
+    String llmSuggestedStatus,
+    String llmSuggestedComment,
+    String llmSuggestedMissingKeyPoints,
+    Instant llmSuggestedAt,
+    String llmSuggestedModel,
+    Instant llmAcceptedAt,
+    String llmAcceptedByInstructorId
   ) {
     this.id = id;
     this.lectureId = lectureId;
@@ -65,9 +109,21 @@ public class SubmissionEntity {
     this.answerText = answerText;
     this.answerStatus = answerStatus;
     this.evaluationCompletedAt = evaluationCompletedAt;
+    this.reviewPublished = reviewPublished;
+    this.reviewCreatedAt = reviewCreatedAt;
+    this.reviewPublishedAt = reviewPublishedAt;
+    this.reviewedByInstructorId = reviewedByInstructorId;
+    this.reviewOrigin = reviewOrigin;
     this.feedbackIsCorrect = feedbackIsCorrect;
     this.feedbackComment = feedbackComment;
     this.feedbackMissingKeyPoints = feedbackMissingKeyPoints;
+    this.llmSuggestedStatus = llmSuggestedStatus;
+    this.llmSuggestedComment = llmSuggestedComment;
+    this.llmSuggestedMissingKeyPoints = llmSuggestedMissingKeyPoints;
+    this.llmSuggestedAt = llmSuggestedAt;
+    this.llmSuggestedModel = llmSuggestedModel;
+    this.llmAcceptedAt = llmAcceptedAt;
+    this.llmAcceptedByInstructorId = llmAcceptedByInstructorId;
   }
 
   public String getId() {
@@ -102,6 +158,26 @@ public class SubmissionEntity {
     return evaluationCompletedAt;
   }
 
+  public boolean isReviewPublished() {
+    return reviewPublished;
+  }
+
+  public Instant getReviewCreatedAt() {
+    return reviewCreatedAt;
+  }
+
+  public Instant getReviewPublishedAt() {
+    return reviewPublishedAt;
+  }
+
+  public String getReviewedByInstructorId() {
+    return reviewedByInstructorId;
+  }
+
+  public String getReviewOrigin() {
+    return reviewOrigin;
+  }
+
   public Boolean getFeedbackIsCorrect() {
     return feedbackIsCorrect;
   }
@@ -112,5 +188,33 @@ public class SubmissionEntity {
 
   public String getFeedbackMissingKeyPoints() {
     return feedbackMissingKeyPoints;
+  }
+
+  public String getLlmSuggestedStatus() {
+    return llmSuggestedStatus;
+  }
+
+  public String getLlmSuggestedComment() {
+    return llmSuggestedComment;
+  }
+
+  public String getLlmSuggestedMissingKeyPoints() {
+    return llmSuggestedMissingKeyPoints;
+  }
+
+  public Instant getLlmSuggestedAt() {
+    return llmSuggestedAt;
+  }
+
+  public String getLlmSuggestedModel() {
+    return llmSuggestedModel;
+  }
+
+  public Instant getLlmAcceptedAt() {
+    return llmAcceptedAt;
+  }
+
+  public String getLlmAcceptedByInstructorId() {
+    return llmAcceptedByInstructorId;
   }
 }

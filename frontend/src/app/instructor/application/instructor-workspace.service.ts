@@ -7,6 +7,9 @@ import {
   LectureService,
   LectureStateResponse,
   QuestionAnalyticsResponse,
+  ReviewStatus,
+  StudentSubmissionReviewsResponse,
+  SubmissionReviewCommandResponse,
   StudentAnswerHistoryResponse,
 } from '../../lecture.service';
 
@@ -51,6 +54,39 @@ export class InstructorWorkspaceService {
     questionId: string,
   ): Promise<StudentAnswerHistoryResponse[]> {
     return await firstValueFrom(this.lectureService.getQuestionAnswerHistory(lectureId, questionId));
+  }
+
+  async listQuestionSubmissionReviews(
+    lectureId: string,
+    questionId: string,
+  ): Promise<StudentSubmissionReviewsResponse[]> {
+    return await firstValueFrom(this.lectureService.getQuestionSubmissionReviews(lectureId, questionId));
+  }
+
+  async upsertSubmissionReview(
+    lectureId: string,
+    questionId: string,
+    submissionId: string,
+    payload: {
+      reviewStatus: Exclude<ReviewStatus, 'AWAITING_REVIEW'>;
+      reviewComment: string;
+      published: boolean;
+    },
+  ): Promise<SubmissionReviewCommandResponse> {
+    return await firstValueFrom(
+      this.lectureService.upsertSubmissionReview(lectureId, questionId, submissionId, payload),
+    );
+  }
+
+  async acceptSubmissionLlmReview(
+    lectureId: string,
+    questionId: string,
+    submissionId: string,
+    payload: { published: boolean },
+  ): Promise<SubmissionReviewCommandResponse> {
+    return await firstValueFrom(
+      this.lectureService.acceptSubmissionLlmReview(lectureId, questionId, submissionId, payload),
+    );
   }
 
   async createInvite(lectureId: string): Promise<CreateInviteResponse> {

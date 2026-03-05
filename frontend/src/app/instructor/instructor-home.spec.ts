@@ -14,7 +14,9 @@ describe('InstructorHome', () => {
   const unlockNextQuestion = vi.fn();
   const getLectureState = vi.fn();
   const listQuestionAnalytics = vi.fn();
-  const listQuestionAnswerHistory = vi.fn();
+  const listQuestionSubmissionReviews = vi.fn();
+  const upsertSubmissionReview = vi.fn();
+  const acceptSubmissionLlmReview = vi.fn();
   const createInvite = vi.fn();
   const listInvites = vi.fn();
   const revokeInvite = vi.fn();
@@ -26,7 +28,9 @@ describe('InstructorHome', () => {
     unlockNextQuestion.mockReset();
     getLectureState.mockReset();
     listQuestionAnalytics.mockReset();
-    listQuestionAnswerHistory.mockReset();
+    listQuestionSubmissionReviews.mockReset();
+    upsertSubmissionReview.mockReset();
+    acceptSubmissionLlmReview.mockReset();
     createInvite.mockReset();
     listInvites.mockReset();
     revokeInvite.mockReset();
@@ -34,7 +38,9 @@ describe('InstructorHome', () => {
 
     getLectureState.mockResolvedValue({ lectureId: 'lecture-1', title: 'DDD', questions: [] });
     listQuestionAnalytics.mockResolvedValue([]);
-    listQuestionAnswerHistory.mockResolvedValue([]);
+    listQuestionSubmissionReviews.mockResolvedValue([]);
+    upsertSubmissionReview.mockResolvedValue({});
+    acceptSubmissionLlmReview.mockResolvedValue({});
     listInvites.mockResolvedValue([]);
 
     await TestBed.configureTestingModule({
@@ -48,7 +54,9 @@ describe('InstructorHome', () => {
             unlockNextQuestion,
             getLectureState,
             listQuestionAnalytics,
-            listQuestionAnswerHistory,
+            listQuestionSubmissionReviews,
+            upsertSubmissionReview,
+            acceptSubmissionLlmReview,
             createInvite,
             listInvites,
             revokeInvite,
@@ -100,20 +108,38 @@ describe('InstructorHome', () => {
   });
 
   it('loads student answer history for selected question', async () => {
-    listQuestionAnswerHistory.mockResolvedValueOnce([
+    listQuestionSubmissionReviews.mockResolvedValueOnce([
       {
         studentId: 'student',
         studentEmail: 'student@example.com',
-        latestAnswerAt: '2026-02-21T11:30:00Z',
-        attemptCount: 2,
-        latestAnswerText: 'Second attempt',
+        attempts: [
+          {
+            submissionId: 'submission-1',
+            answeredAt: '2026-02-21T11:30:00Z',
+            answerText: 'Second attempt',
+            reviewStatus: 'AWAITING_REVIEW',
+            reviewPublished: false,
+            reviewComment: null,
+            reviewUpdatedAt: null,
+            reviewCreatedAt: null,
+            reviewPublishedAt: null,
+            reviewedByInstructorId: null,
+            reviewOrigin: null,
+            llmSuggestedStatus: null,
+            llmSuggestedComment: null,
+            llmSuggestedAt: null,
+            llmSuggestedModel: null,
+            llmAcceptedAt: null,
+            llmAcceptedByInstructorId: null,
+          },
+        ],
       },
     ]);
 
     await component.openQuestionAnswerHistory('question-1');
     fixture.detectChanges();
 
-    expect(listQuestionAnswerHistory).toHaveBeenCalledWith('lecture-1', 'question-1');
+    expect(listQuestionSubmissionReviews).toHaveBeenCalledWith('lecture-1', 'question-1');
   });
 
   it('adds question and refreshes lecture state', async () => {

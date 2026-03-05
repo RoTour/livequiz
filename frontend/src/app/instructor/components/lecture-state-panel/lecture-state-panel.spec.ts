@@ -11,7 +11,7 @@ describe('LectureStatePanel', () => {
     fixture.componentRef.setInput('analyticsLoading', false);
     fixture.componentRef.setInput('analyticsError', '');
     fixture.componentRef.setInput('selectedHistoryQuestionId', '');
-    fixture.componentRef.setInput('questionHistory', []);
+    fixture.componentRef.setInput('questionReviews', []);
     fixture.componentRef.setInput('questionHistoryLoading', false);
     fixture.componentRef.setInput('questionHistoryError', '');
   };
@@ -114,7 +114,7 @@ describe('LectureStatePanel', () => {
     expect(compiled.textContent).toContain('Loading student answers…');
   });
 
-  it('prefers verified email and formats answer history timestamps', () => {
+  it('prefers verified email and renders attempt-level review details', () => {
     fixture.componentRef.setInput('lectureState', {
       lectureId: 'lecture-1',
       title: 'DDD Session',
@@ -129,20 +129,36 @@ describe('LectureStatePanel', () => {
       ],
     });
     fixture.componentRef.setInput('selectedHistoryQuestionId', 'q-1');
-    fixture.componentRef.setInput('questionHistory', [
+    fixture.componentRef.setInput('questionReviews', [
       {
         studentId: 'uuid-1',
         studentEmail: 'student@example.com',
-        latestAnswerAt: '2026-02-21T11:30:00Z',
-        attemptCount: 2,
-        latestAnswerText: 'Second attempt',
+        attempts: [
+          {
+            submissionId: 'submission-1',
+            answeredAt: '2026-02-21T11:30:00Z',
+            answerText: 'Second attempt',
+            reviewStatus: 'NEEDS_IMPROVEMENT',
+            reviewPublished: false,
+            reviewComment: 'Missing key points.',
+            reviewUpdatedAt: null,
+            reviewCreatedAt: null,
+            reviewPublishedAt: null,
+            reviewedByInstructorId: null,
+            reviewOrigin: null,
+            llmSuggestedStatus: 'INCOMPLETE',
+            llmSuggestedComment: 'Needs more precision.',
+            llmSuggestedAt: '2026-02-21T11:40:00Z',
+            llmSuggestedModel: 'openai/gpt-4o-mini',
+            llmAcceptedAt: null,
+            llmAcceptedByInstructorId: null,
+          },
+        ],
       },
       {
         studentId: 'uuid-2',
         studentEmail: null,
-        latestAnswerAt: null,
-        attemptCount: 0,
-        latestAnswerText: null,
+        attempts: [],
       },
     ]);
     fixture.detectChanges();
@@ -150,8 +166,9 @@ describe('LectureStatePanel', () => {
     const compiled = fixture.nativeElement as HTMLElement;
     expect(compiled.textContent).toContain('student@example.com');
     expect(compiled.textContent).toContain('Student ID');
-    expect(compiled.textContent).toContain('No submission yet');
+    expect(compiled.textContent).toContain('No submission yet.');
     expect(compiled.textContent).toContain('Second attempt');
+    expect(compiled.textContent).toContain('Accept AI review');
     expect(compiled.textContent).not.toContain('2026-02-21T11:30:00Z');
   });
 });

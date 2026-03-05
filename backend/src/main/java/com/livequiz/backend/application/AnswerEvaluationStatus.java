@@ -1,8 +1,8 @@
 package com.livequiz.backend.application;
 
 public enum AnswerEvaluationStatus {
-  AWAITING_EVALUATION,
+  AWAITING_REVIEW,
   CORRECT,
-  INCORRECT,
+  NEEDS_IMPROVEMENT,
   INCOMPLETE,
 }

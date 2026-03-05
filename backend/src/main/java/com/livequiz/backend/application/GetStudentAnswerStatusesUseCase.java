@@ -5,6 +5,7 @@ import com.livequiz.backend.domain.lecture.LectureEnrollmentRepository;
 import com.livequiz.backend.domain.lecture.LectureId;
 import com.livequiz.backend.domain.lecture.LectureRepository;
 import com.livequiz.backend.domain.lecture.Question;
+import com.livequiz.backend.domain.submission.Submission;
 import com.livequiz.backend.domain.submission.SubmissionRepository;
 import com.livequiz.backend.infrastructure.web.ApiException;
 import java.time.Instant;
@@ -53,22 +54,44 @@ public class GetStudentAnswerStatusesUseCase {
       .questions()
       .stream()
       .sorted(Comparator.comparingInt(Question::order))
-      .map(question ->
-        this.submissionRepository
-          .findLatestByLectureQuestionAndStudent(resolvedLectureId, question.id(), studentId)
-          .map(submission ->
-            new AnswerStatusResult(
+      .map(question -> {
+        java.util.List<Submission> submissions = this.submissionRepository.findByLectureQuestionAndStudent(
+          resolvedLectureId,
+          question.id(),
+          studentId
+        );
+        return submissions
+          .stream()
+          .max(Comparator.comparing(Submission::timestamp))
+          .map(latestSubmission -> {
+            String status = this.resolveStudentVisibleStatus(submissions);
+            return new AnswerStatusResult(
               lecture.id().value(),
               question.id().value(),
               question.prompt(),
               question.order(),
-              submission.answerStatus(),
-              submission.timestamp()
-            )
-          )
-      )
+              status,
+              latestSubmission.timestamp()
+            );
+          });
+      })
       .flatMap(Optional::stream)
       .toList();
+  }
+
+  private String resolveStudentVisibleStatus(java.util.List<Submission> submissions) {
+    return submissions
+      .stream()
+      .filter(Submission::reviewPublished)
+      .max(
+        Comparator.comparing(submission ->
+          submission.evaluationCompletedAt() != null
+            ? submission.evaluationCompletedAt()
+            : submission.timestamp()
+        )
+      )
+      .map(Submission::answerStatus)
+      .orElse(AnswerEvaluationStatus.AWAITING_REVIEW.name());
   }
 
   private void ensureStudentIsEnrolled(LectureId lectureId, String studentId) {

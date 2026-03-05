@@ -135,11 +135,11 @@ public class SubmissionEvaluationConsumer {
           submission.answerText()
         );
 
-      submission.applyEvaluation(
+      submission.recordLlmSuggestion(
         evaluationResult.status().name(),
-        evaluationResult.feedback().isCorrect(),
         evaluationResult.feedback().missingKeyPoints(),
         evaluationResult.feedback().comment(),
+        evaluationResult.model(),
         Instant.now()
       );
       this.submissionRepository.save(submission);

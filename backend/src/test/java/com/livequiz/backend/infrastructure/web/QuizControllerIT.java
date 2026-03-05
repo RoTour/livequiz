@@ -2,6 +2,7 @@ package com.livequiz.backend.infrastructure.web;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -20,6 +21,7 @@ import com.livequiz.backend.domain.submission.Submission;
 import com.livequiz.backend.domain.submission.SubmissionId;
 import com.livequiz.backend.domain.submission.SubmissionRepository;
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -644,6 +646,252 @@ public class QuizControllerIT {
           hasItem(nullValue())
         )
       );
+  }
+
+  @Test
+  void should_support_manual_review_lifecycle_per_submission_attempt() throws Exception {
+    String instructorToken = loginAsInstructor();
+    String studentToken = loginAsStudent();
+    String lectureId = createLecture(instructorToken, "Review Lecture");
+    String questionId = addQuestion(
+      instructorToken,
+      lectureId,
+      "Define ubiquitous language",
+      "Shared language",
+      60
+    );
+
+    String joinCode = createInviteJoinCode(instructorToken, lectureId);
+    joinLectureByCode(studentToken, joinCode);
+
+    mockMvc
+      .perform(
+        post("/api/lectures/{lectureId}/questions/unlock-next", lectureId)
+          .header("Authorization", "Bearer " + instructorToken)
+      )
+      .andExpect(status().isOk());
+
+    submitAnswer(studentToken, lectureId, questionId, "Language used by team");
+
+    Submission submission = this.submissionRepository
+      .findByLectureQuestionAndStudent(new LectureId(lectureId), new QuestionId(questionId), "student")
+      .stream()
+      .findFirst()
+      .orElseThrow();
+
+    mockMvc
+      .perform(
+        put(
+          "/api/lectures/{lectureId}/questions/{questionId}/answers/{submissionId}/review",
+          lectureId,
+          questionId,
+          submission.id().value()
+        )
+          .header("Authorization", "Bearer " + instructorToken)
+          .contentType("application/json")
+          .content(
+            """
+            {
+              "reviewStatus": "INCOMPLETE",
+              "reviewComment": "Please add a concrete context boundary example.",
+              "published": false
+            }
+            """
+          )
+      )
+      .andExpect(status().isOk())
+      .andExpect(jsonPath("$.reviewStatus").value("INCOMPLETE"))
+      .andExpect(jsonPath("$.reviewPublished").value(false));
+
+    mockMvc
+      .perform(
+        get(
+          "/api/lectures/{lectureId}/questions/{questionId}/answers/reviews",
+          lectureId,
+          questionId
+        )
+          .header("Authorization", "Bearer " + instructorToken)
+      )
+      .andExpect(status().isOk())
+      .andExpect(jsonPath("$[0].studentId").value("student"))
+      .andExpect(jsonPath("$[0].attempts[0].submissionId").value(submission.id().value()))
+      .andExpect(jsonPath("$[0].attempts[0].reviewStatus").value("INCOMPLETE"))
+      .andExpect(jsonPath("$[0].attempts[0].reviewPublished").value(false));
+  }
+
+  @Test
+  void should_only_expose_published_reviews_to_student_statuses() throws Exception {
+    String instructorToken = loginAsInstructor();
+    String studentToken = loginAsStudent();
+    String lectureId = createLecture(instructorToken, "Published Review Lecture");
+    String questionId = addQuestion(
+      instructorToken,
+      lectureId,
+      "Explain aggregate",
+      "Consistency boundary",
+      60
+    );
+
+    String joinCode = createInviteJoinCode(instructorToken, lectureId);
+    joinLectureByCode(studentToken, joinCode);
+
+    mockMvc
+      .perform(
+        post("/api/lectures/{lectureId}/questions/unlock-next", lectureId)
+          .header("Authorization", "Bearer " + instructorToken)
+      )
+      .andExpect(status().isOk());
+
+    submitAnswer(studentToken, lectureId, questionId, "First answer attempt");
+
+    Submission firstSubmission = this.submissionRepository
+      .findByLectureQuestionAndStudent(new LectureId(lectureId), new QuestionId(questionId), "student")
+      .stream()
+      .findFirst()
+      .orElseThrow();
+
+    mockMvc
+      .perform(
+        get("/api/lectures/{lectureId}/students/me/answer-statuses", lectureId)
+          .header("Authorization", "Bearer " + studentToken)
+      )
+      .andExpect(status().isOk())
+      .andExpect(jsonPath("$[0].status").value("AWAITING_REVIEW"));
+
+    mockMvc
+      .perform(
+        put(
+          "/api/lectures/{lectureId}/questions/{questionId}/answers/{submissionId}/review",
+          lectureId,
+          questionId,
+          firstSubmission.id().value()
+        )
+          .header("Authorization", "Bearer " + instructorToken)
+          .contentType("application/json")
+          .content(
+            """
+            {
+              "reviewStatus": "CORRECT",
+              "reviewComment": "Good answer.",
+              "published": false
+            }
+            """
+          )
+      )
+      .andExpect(status().isOk());
+
+    mockMvc
+      .perform(
+        get("/api/lectures/{lectureId}/students/me/answer-statuses", lectureId)
+          .header("Authorization", "Bearer " + studentToken)
+      )
+      .andExpect(status().isOk())
+      .andExpect(jsonPath("$[0].status").value("AWAITING_REVIEW"));
+
+    mockMvc
+      .perform(
+        put(
+          "/api/lectures/{lectureId}/questions/{questionId}/answers/{submissionId}/review",
+          lectureId,
+          questionId,
+          firstSubmission.id().value()
+        )
+          .header("Authorization", "Bearer " + instructorToken)
+          .contentType("application/json")
+          .content(
+            """
+            {
+              "reviewStatus": "CORRECT",
+              "reviewComment": "Good answer.",
+              "published": true
+            }
+            """
+          )
+      )
+      .andExpect(status().isOk());
+
+    mockMvc
+      .perform(
+        get("/api/lectures/{lectureId}/students/me/answer-statuses", lectureId)
+          .header("Authorization", "Bearer " + studentToken)
+      )
+      .andExpect(status().isOk())
+      .andExpect(jsonPath("$[0].status").value("CORRECT"));
+
+    Submission secondSubmission = new Submission(
+      new SubmissionId(UUID.randomUUID().toString()),
+      new LectureId(lectureId),
+      new QuestionId(questionId),
+      "student",
+      Instant.now().plusSeconds(120),
+      "Second answer attempt"
+    );
+    this.submissionRepository.save(secondSubmission);
+
+    mockMvc
+      .perform(
+        get("/api/lectures/{lectureId}/students/me/answer-statuses", lectureId)
+          .header("Authorization", "Bearer " + studentToken)
+      )
+      .andExpect(status().isOk())
+      .andExpect(jsonPath("$[0].status").value("CORRECT"));
+  }
+
+  @Test
+  void should_allow_instructor_to_accept_llm_review() throws Exception {
+    String instructorToken = loginAsInstructor();
+    String studentToken = loginAsStudent();
+    String lectureId = createLecture(instructorToken, "LLM Review Lecture");
+    String questionId = addQuestion(
+      instructorToken,
+      lectureId,
+      "What is eventual consistency?",
+      "A consistency model",
+      60
+    );
+
+    String joinCode = createInviteJoinCode(instructorToken, lectureId);
+    joinLectureByCode(studentToken, joinCode);
+
+    mockMvc
+      .perform(
+        post("/api/lectures/{lectureId}/questions/unlock-next", lectureId)
+          .header("Authorization", "Bearer " + instructorToken)
+      )
+      .andExpect(status().isOk());
+
+    submitAnswer(studentToken, lectureId, questionId, "Consistency eventually converges");
+
+    Submission submission = this.submissionRepository
+      .findByLectureQuestionAndStudent(new LectureId(lectureId), new QuestionId(questionId), "student")
+      .stream()
+      .findFirst()
+      .orElseThrow();
+    submission.recordLlmSuggestion(
+      "INCOMPLETE",
+      List.of("trade-offs"),
+      "Mention convergence trade-offs.",
+      "openai/gpt-4o-mini",
+      Instant.now()
+    );
+    this.submissionRepository.save(submission);
+
+    mockMvc
+      .perform(
+        post(
+          "/api/lectures/{lectureId}/questions/{questionId}/answers/{submissionId}/llm-review/accept",
+          lectureId,
+          questionId,
+          submission.id().value()
+        )
+          .header("Authorization", "Bearer " + instructorToken)
+          .contentType("application/json")
+          .content("{\"published\":true}")
+      )
+      .andExpect(status().isOk())
+      .andExpect(jsonPath("$.reviewStatus").value("INCOMPLETE"))
+      .andExpect(jsonPath("$.reviewPublished").value(true))
+      .andExpect(jsonPath("$.llmAcceptedAt").isNotEmpty());
   }
 
   private String createLecture(String token, String title) throws Exception {
