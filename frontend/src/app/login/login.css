@@ -1,0 +1,104 @@
+.lq-auth-shell {
+  max-width: 760px;
+  margin: 0 auto;
+  position: relative;
+  overflow: hidden;
+}
+
+.lq-auth-shell::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 88% 10%, color-mix(in oklab, var(--color-lq-accent-secondary) 24%, transparent), transparent 48%),
+    radial-gradient(circle at 10% 12%, color-mix(in oklab, var(--color-lq-accent-primary) 20%, transparent), transparent 42%);
+  opacity: 0.7;
+}
+
+.lq-auth-header,
+.lq-auth-student-card,
+.lq-auth-instructor-hint,
+.lq-auth-instructor-card {
+  position: relative;
+  z-index: 1;
+}
+
+.lq-auth-eyebrow {
+  display: inline-block;
+  width: fit-content;
+  border: 2px solid var(--color-lq-border);
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--color-lq-accent-primary) 70%, white);
+  color: var(--color-lq-ink);
+  padding: 0.17rem 0.58rem;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.lq-auth-student-card {
+  border: 3px solid var(--color-lq-border);
+  border-radius: 0.9rem;
+  background: color-mix(in oklab, var(--color-lq-surface-raised) 87%, var(--color-lq-accent-primary));
+  box-shadow: 5px 5px 0 rgba(0, 0, 0, 0.72);
+  color: var(--color-lq-ink);
+  display: grid;
+  gap: 0.75rem;
+  padding: clamp(0.95rem, 2.2vw, 1.15rem);
+}
+
+.lq-auth-primary-cta {
+  min-height: 2.7rem;
+  font-size: 1rem;
+}
+
+.lq-auth-caption {
+  color: color-mix(in oklab, var(--color-lq-ink) 78%, #4a3f53);
+  font-size: 0.84rem;
+}
+
+.lq-auth-instructor-hint {
+  margin-top: 0.9rem;
+  text-align: center;
+  color: color-mix(in oklab, var(--color-lq-ink-inverse) 85%, var(--color-lq-accent-primary));
+  font-size: 0.9rem;
+}
+
+.lq-auth-link {
+  border: 0;
+  background: none;
+  color: var(--color-lq-accent-secondary);
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 700;
+  margin-left: 0.25rem;
+  padding: 0;
+  text-decoration: underline;
+  text-underline-offset: 0.17rem;
+}
+
+.lq-auth-link:hover {
+  color: var(--color-lq-warning);
+}
+
+.lq-auth-instructor-card {
+  margin-top: 0.85rem;
+  border: 3px solid var(--color-lq-border);
+  border-radius: 0.85rem;
+  background: color-mix(in oklab, var(--color-lq-canvas) 72%, #2d3651);
+  box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.72);
+  padding: 0.9rem;
+  animation: lq-rise 220ms ease both;
+}
+
+@media (max-width: 720px) {
+  .lq-auth-primary-cta {
+    min-height: 2.5rem;
+  }
+
+  .lq-auth-instructor-hint {
+    text-align: left;
+  }
+}
