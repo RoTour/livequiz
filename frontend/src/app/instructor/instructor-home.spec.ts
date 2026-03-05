@@ -103,6 +103,7 @@ describe('InstructorHome', () => {
     listQuestionAnswerHistory.mockResolvedValueOnce([
       {
         studentId: 'student',
+        studentEmail: 'student@example.com',
         latestAnswerAt: '2026-02-21T11:30:00Z',
         attemptCount: 2,
         latestAnswerText: 'Second attempt',

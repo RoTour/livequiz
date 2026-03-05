@@ -4,11 +4,13 @@ import {
   QuestionAnalyticsResponse,
   StudentAnswerHistoryResponse,
 } from '../../../lecture.service';
+import { HumanDatePipe } from '../../../shared/date/human-date.pipe';
 
 @Component({
   selector: 'app-lecture-state-panel',
-  imports: [],
+  imports: [HumanDatePipe],
   templateUrl: './lecture-state-panel.html',
+  styleUrl: './lecture-state-panel.css',
 })
 export class LectureStatePanel {
   @Input({ required: true }) lectureState!: LectureStateResponse | null;
@@ -47,5 +49,13 @@ export class LectureStatePanel {
 
   protected isHistoryOpen(questionId: string): boolean {
     return this.selectedHistoryQuestionId === questionId;
+  }
+
+  protected studentDisplayLabel(row: StudentAnswerHistoryResponse): string {
+    return row.studentEmail ?? row.studentId;
+  }
+
+  protected hasVerifiedEmail(row: StudentAnswerHistoryResponse): boolean {
+    return row.studentEmail !== null;
   }
 }

@@ -3,6 +3,8 @@ package com.livequiz.backend.infrastructure.persistence.jpa;
 import com.livequiz.backend.domain.student.StudentIdentity;
 import com.livequiz.backend.domain.student.StudentIdentityRepository;
 import com.livequiz.backend.domain.student.StudentIdentityStatus;
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
@@ -28,6 +30,18 @@ public class JpaPostgresStudentIdentityRepository
   @Override
   public Optional<StudentIdentity> findByStudentId(String studentId) {
     return this.jpaStudentIdentityRepository.findById(studentId).map(this::toDomain);
+  }
+
+  @Override
+  public List<StudentIdentity> findByStudentIds(Collection<String> studentIds) {
+    if (studentIds == null || studentIds.isEmpty()) {
+      return List.of();
+    }
+    return this.jpaStudentIdentityRepository
+      .findByStudentIdIn(studentIds)
+      .stream()
+      .map(this::toDomain)
+      .toList();
   }
 
   @Override

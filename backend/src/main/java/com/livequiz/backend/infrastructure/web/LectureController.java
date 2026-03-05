@@ -78,6 +78,7 @@ public class LectureController {
   ) {}
   public record StudentAnswerHistoryResponse(
     String studentId,
+    String studentEmail,
     String latestAnswerAt,
     long attemptCount,
     String latestAnswerText
@@ -205,6 +206,7 @@ public class LectureController {
       .map(history ->
         new StudentAnswerHistoryResponse(
           history.studentId(),
+          history.studentEmail(),
           history.latestAnswerAt() != null ? history.latestAnswerAt().toString() : null,
           history.attemptCount(),
           history.latestAnswerText()

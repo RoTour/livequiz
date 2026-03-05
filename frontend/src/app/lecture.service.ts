@@ -127,6 +127,7 @@ export type QuestionAnalyticsResponse = {
 
 export type StudentAnswerHistoryResponse = {
   studentId: string;
+  studentEmail: string | null;
   latestAnswerAt: string | null;
   attemptCount: number;
   latestAnswerText: string | null;
