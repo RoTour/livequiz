@@ -1,7 +1,8 @@
 import { Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import QRCode from 'qrcode';
 import {
   CreateInviteResponse,
   LectureInviteResponse,
@@ -27,6 +28,7 @@ import { LectureStatePanel } from './components/lecture-state-panel/lecture-stat
 })
 export class InstructorHome implements OnInit {
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
   private readonly workspaceService = inject(InstructorWorkspaceService);
 
@@ -41,7 +43,11 @@ export class InstructorHome implements OnInit {
   protected readonly questionHistoryLoading = signal(false);
   protected readonly questionHistoryError = signal('');
   protected readonly lastCreatedInvite = signal<CreateInviteResponse | null>(null);
+  protected readonly inviteQrCodeDataUrl = signal('');
+  protected readonly inviteQrCodeError = signal('');
   protected readonly invites = signal<LectureInviteResponse[]>([]);
+
+  private inviteQrGenerationToken = 0;
 
   readonly addQuestionForm = new FormGroup({
     prompt: new FormControl('', [Validators.required, Validators.minLength(5)]),
@@ -197,16 +203,31 @@ export class InstructorHome implements OnInit {
       return;
     }
 
+    const pendingQrPreviewWindow = this.openPendingQrPreviewWindow();
+    let openedQrPreviewTab = true;
+
     try {
       const invite = await this.workspaceService.createInvite(lectureId);
       this.lastCreatedInvite.set(invite);
+      await this.generateInviteQrCode(invite);
+      openedQrPreviewTab = this.openInviteQrPreview(invite, pendingQrPreviewWindow);
     } catch {
+      pendingQrPreviewWindow?.close();
       this.status.set('Could not create invite. Please retry.');
       return;
     }
 
     const refreshed = await this.refreshInvites({ preserveStatusOnError: true });
-    this.status.set(refreshed ? 'Invite created' : 'Invite created, but invite list could not be loaded.');
+    if (refreshed) {
+      this.status.set(openedQrPreviewTab ? 'Invite created' : 'Invite created. Allow popups to open the QR tab.');
+      return;
+    }
+
+    this.status.set(
+      openedQrPreviewTab
+        ? 'Invite created, but invite list could not be loaded.'
+        : 'Invite created, but invite list could not be loaded. Allow popups to open the QR tab.',
+    );
   }
 
   async revokeInvite(inviteId: string) {
@@ -253,6 +274,7 @@ export class InstructorHome implements OnInit {
       this.analyticsError.set('');
       this.closeQuestionAnswerHistory();
       this.lastCreatedInvite.set(null);
+      this.resetInviteQrCode();
       this.invites.set([]);
       this.status.set('Lecture not selected. Return to the lecture list.');
       return;
@@ -263,6 +285,7 @@ export class InstructorHome implements OnInit {
     this.analyticsError.set('');
     this.closeQuestionAnswerHistory();
     this.lastCreatedInvite.set(null);
+    this.resetInviteQrCode();
     this.invites.set([]);
 
     const refreshed = await this.refreshLectureState({ preserveStatusOnError: true });
@@ -270,6 +293,96 @@ export class InstructorHome implements OnInit {
     await this.refreshInvites({ preserveStatusOnError: true });
     this.status.set(
       refreshed ? `Loaded lecture: ${normalizedLectureId}` : `Could not load lecture ${normalizedLectureId}.`,
+    );
+  }
+
+  private async generateInviteQrCode(invite: CreateInviteResponse) {
+    const generationToken = ++this.inviteQrGenerationToken;
+    if (!this.canApplyInviteQrResult(invite.inviteId, generationToken)) {
+      return;
+    }
+    this.inviteQrCodeDataUrl.set('');
+    this.inviteQrCodeError.set('');
+
+    const normalizedJoinUrl = invite.joinUrl.trim();
+    if (!normalizedJoinUrl) {
+      return;
+    }
+
+    try {
+      const qrCodeDataUrl = await QRCode.toDataURL(normalizedJoinUrl, {
+        width: 220,
+        margin: 1,
+        errorCorrectionLevel: 'M',
+      });
+      if (!this.canApplyInviteQrResult(invite.inviteId, generationToken)) {
+        return;
+      }
+      this.inviteQrCodeDataUrl.set(qrCodeDataUrl);
+      this.inviteQrCodeError.set('');
+    } catch {
+      if (!this.canApplyInviteQrResult(invite.inviteId, generationToken)) {
+        return;
+      }
+      this.inviteQrCodeDataUrl.set('');
+      this.inviteQrCodeError.set('Could not generate QR code. Share the link directly instead.');
+    }
+  }
+
+  private canApplyInviteQrResult(inviteId: string, generationToken: number): boolean {
+    return this.lastCreatedInvite()?.inviteId === inviteId && this.inviteQrGenerationToken === generationToken;
+  }
+
+  private resetInviteQrCode() {
+    this.inviteQrGenerationToken++;
+    this.inviteQrCodeDataUrl.set('');
+    this.inviteQrCodeError.set('');
+  }
+
+  private openPendingQrPreviewWindow(): Window | null {
+    try {
+      return window.open('', '_blank');
+    } catch {
+      return null;
+    }
+  }
+
+  private openInviteQrPreview(invite: CreateInviteResponse, pendingWindow: Window | null): boolean {
+    const inviteId = invite.inviteId.trim();
+    if (!inviteId) {
+      pendingWindow?.close();
+      return false;
+    }
+
+    try {
+      const previewUrlBase = this.router.serializeUrl(
+        this.router.createUrlTree(['/instructor/invites', inviteId, 'qr']),
+      );
+      const previewUrl = `${previewUrlBase}#${this.inviteQrPreviewHash(invite)}`;
+
+      if (pendingWindow && !pendingWindow.closed) {
+        pendingWindow.location.href = previewUrl;
+        return true;
+      }
+
+      const qrPreviewWindow = window.open(previewUrl, '_blank');
+      if (!qrPreviewWindow || qrPreviewWindow.closed) {
+        return false;
+      }
+
+      return true;
+    } catch {
+      pendingWindow?.close();
+      return false;
+    }
+  }
+
+  private inviteQrPreviewHash(invite: CreateInviteResponse): string {
+    return encodeURIComponent(
+      JSON.stringify({
+        joinCode: invite.joinCode,
+        joinUrl: invite.joinUrl,
+      }),
     );
   }
 }

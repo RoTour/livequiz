@@ -3,6 +3,7 @@ import { Login } from './login/login';
 import { authGuard } from './login/auth-guard';
 import { instructorGuard, studentGuard } from './login/role-guard';
 import { InstructorHome } from './instructor/instructor-home';
+import { InstructorInviteQr } from './instructor/instructor-invite-qr';
 import { InstructorLectureList } from './instructor/instructor-lecture-list';
 import { StudentLectureList } from './student/student-lecture-list';
 import { StudentLectureRoom } from './student/student-lecture-room';
@@ -28,6 +29,11 @@ export const routes: Routes = [
   {
     path: 'instructor/lectures/:lectureId',
     component: InstructorHome,
+    canActivate: [authGuard, instructorGuard],
+  },
+  {
+    path: 'instructor/invites/:inviteId/qr',
+    component: InstructorInviteQr,
     canActivate: [authGuard, instructorGuard],
   },
   {

@@ -13,7 +13,34 @@
   @if (lastCreatedInvite; as invite) {
     <div class="lq-alert lq-alert-info lq-stack">
       <p>New code: <strong>{{ invite.joinCode }}</strong></p>
-      <p class="lq-code">{{ invite.joinUrl }}</p>
+      <div class="lq-row">
+        <button type="button" (click)="copyJoinLink(invite.joinUrl)" class="lq-btn lq-btn-neutral">
+          Copy join link
+        </button>
+        <button type="button" (click)="toggleJoinLinkVisibility()" class="lq-btn lq-btn-neutral">
+          {{ showJoinLink ? 'Hide link' : 'Show link' }}
+        </button>
+        @if (copyStatus) {
+          <span class="lq-muted">{{ copyStatus }}</span>
+        }
+      </div>
+      @if (showJoinLink) {
+        <p class="lq-code">{{ invite.joinUrl }}</p>
+      }
+      @if (qrCodeDataUrl) {
+        <figure class="lq-stack lq-invite-qr-preview">
+          <img
+            [src]="qrCodeDataUrl"
+            [alt]="'QR code to join lecture with code ' + invite.joinCode"
+            width="220"
+            height="220"
+          />
+          <figcaption class="lq-muted">Scan to open the join link instantly.</figcaption>
+        </figure>
+      }
+      @if (qrCodeError) {
+        <p class="lq-muted">{{ qrCodeError }}</p>
+      }
     </div>
   }
 
